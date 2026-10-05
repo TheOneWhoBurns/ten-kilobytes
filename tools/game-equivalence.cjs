@@ -13,11 +13,16 @@ function simulate(html,seed,frames=240,metrics,unusedAtlasPixels=0,sharedActorAt
  const sandbox={document,AudioContext,Int16Array:class extends Int16Array{constructor(...args){super(...args);if(metrics)metrics.navigationAllocations=(metrics.navigationAllocations||0)+1;}},ResizeObserver:class{observe(){}},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=seed;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],sandbox,{timeout:5000});
  const key=(type,k)=>handlers[type]({key:k,target:fields.game,repeat:false,preventDefault(){}});
- key('keydown','r');key('keyup','r');fields.sound.onclick();key('keydown','e');key('keyup','e');
+ key('keydown','r');key('keyup','r');fields.sound.onclick();key('keydown','o');key('keyup','o');
+ // Traverse the playable prologue before comparing the ordinary combat loop.
+ time+=1000/60;raf.shift()(time);
+ if(fields['run-status'].textContent==='Room Zero')for(const [k,n] of [['d',174],['s',108],['a',168],['w',96],['d',36],['s',12],['d',108],['w',12],['d',12],['s',84],['a',144],['w',60],['d',120],['s',48],['a',108],['w',36],['d',30],['s',12],['d',27],['w',3]]){key('keydown',k);for(let j=0;j<n;j++){time+=1000/60;raf.shift()(time);}key('keyup',k);}
+ key('keydown','o');key('keyup','o');for(let j=0;j<30;j++){time+=1000/60;raf.shift()(time);}
+ assert.notEqual(fields['run-status'].textContent,'Room Zero','equivalence scenario reaches the dungeon');
  const pictures=[],hud=[];let direction;
  for(let i=0;i<frames;i++){
   if(i%60===0){if(direction)key('keyup',direction);direction=['d','s','a','w'][i/60%4];key('keydown',direction);}
-  if(i===12)key('keydown',' ');if(i===190)key('keyup',' ');
+  if(i===12)key('keydown','i');if(i===190)key('keyup','i');
   time+=1000/60;for(const n of nodes)if(n.end!==undefined&&n.end<=time/1000&&!n.ended){n.ended=true;n.onended?.();}
   raf.shift()(time);
   if(i%12===0){pictures.push(hash(main.getContext('2d').getImageData(0,0,372,252).data));hud.push([fields['run-status'].textContent,fields['pickup-status'].textContent,fields.attack['data-active'],fields.interact['data-active']]);}
@@ -37,10 +42,11 @@ function simulate(html,seed,frames=240,metrics,unusedAtlasPixels=0,sharedActorAt
 }
 module.exports={simulate};
 if(require.main===module){
- const rgb444=process.argv.includes('--rgb444'),sharedActorAtlas=process.argv.includes('--shared-actor'),original=fs.readFileSync('tools/fixtures/game-before-optimization.html','utf8'),baseline=rgb444?require('./quantize-colors.cjs')(original):original,args=process.argv.slice(2).filter(s=>!['--rgb444','--shared-actor'].includes(s)),files=args.length?args:['dist/index.html'];
+ const twoHit=process.argv.includes('--two-hit'),current=process.argv.includes('--current-source');
+ const rgb444=process.argv.includes('--rgb444'),sharedActorAtlas=process.argv.includes('--shared-actor'),original=fs.readFileSync(current?'dev/release-source.html':twoHit?'tools/fixtures/game-two-hit-before-optimization.html':'tools/fixtures/game-before-optimization.html','utf8'),baseline=rgb444?require('./quantize-colors.cjs')(original):original,args=process.argv.slice(2).filter(s=>!['--rgb444','--shared-actor','--two-hit','--current-source'].includes(s)),files=args.length?args:['dist/index.html'];
  if(rgb444)for(const [color] of original.matchAll(/#[a-f\d]{6}\b/gi)){
   const rounded=require('./quantize-colors.cjs')(color);
   for(let i=0;i<3;i++)assert(Math.abs(parseInt(color.slice(1+i*2,3+i*2),16)-parseInt(rounded[i+1],16)*17)<=8,'color error exceeds 8/255');
  }
- for(const file of files){try{const candidate=require('./read-build.cjs')(file);for(const seed of [1,2,7,19,83,104,2026])assert.deepEqual(simulate(candidate,seed,240,undefined,0,sharedActorAtlas),simulate(baseline,seed,240,undefined,24,sharedActorAtlas));console.log('PASS '+(rgb444?'RGB444 pixels (bounded color change), exact HUD/audio':'pixel/audio equality')+': '+file);}catch(e){console.error('FAIL '+file+': '+e.message.slice(0,500));process.exitCode=1;}}
+ for(const file of files){try{const candidate=require('./read-build.cjs')(file);for(const seed of [1,2,7,19,83,104,2026])assert.deepEqual(simulate(candidate,seed,240,undefined,0,sharedActorAtlas),simulate(baseline,seed,240,undefined,twoHit||current?0:24,sharedActorAtlas));console.log('PASS '+(rgb444?'RGB444 pixels (bounded color change), exact HUD/audio':'pixel/audio equality')+': '+file);}catch(e){console.error('FAIL '+file+': '+e.message.slice(0,500));process.exitCode=1;}}
 }

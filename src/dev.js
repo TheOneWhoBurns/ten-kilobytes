@@ -1,6 +1,6 @@
 // Included only in the development build; no editor code ships in dist/.
 function setupDev(){
- const defaults=()=>({speed:5,attackRate:12,attackCooldown:150,interactRate:12,attackMode:'hold',interactMode:'press',layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:' ',interact:'e'},grid:false,hitbox:false,collapsed:false});
+ const defaults=()=>({speed:5,attackRate:12,attackCooldown:150,interactRate:12,attackMode:'hold',interactMode:'press',layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:'i',interact:'o'},grid:false,hitbox:false,collapsed:false});
  const presets={wasd:{up:'w',left:'a',down:'s',right:'d'},arrows:{up:'arrowup',left:'arrowleft',down:'arrowdown',right:'arrowright'},ijkl:{up:'i',left:'j',down:'k',right:'l'}};
  const directions=['up','left','down','right'],bindings=[...directions,'attack','interact'],reserved=['r','[',']','p'];
  const validKey=k=>typeof k==='string'&&(k===' '||/^[a-z0-9]$/.test(k)||/^arrow(up|left|down|right)$/.test(k))&&!reserved.includes(k);
@@ -16,6 +16,7 @@ function setupDev(){
    if(saved.bindings&&directions.every(d=>validKey(saved.bindings[d]))&&new Set(directions.map(d=>saved.bindings[d])).size===4){
     for(const d of directions)settings.bindings[d]=saved.bindings[d];
     for(const d of ['attack','interact'])if(validKey(saved.bindings[d]))settings.bindings[d]=saved.bindings[d];
+    if(settings.bindings.attack===' '&&settings.bindings.interact==='e'&&!directions.some(d=>['i','o'].includes(settings.bindings[d]))){settings.bindings.attack='i';settings.bindings.interact='o';}
     for(const d of ['attack','interact'])if(bindings.some(k=>k!==d&&settings.bindings[k]===settings.bindings[d]))settings.bindings[d]=[' ','e','f','g'].find(k=>!Object.values(settings.bindings).includes(k));
    }else settings.bindings={...settings.bindings,...(presets[settings.layout]||presets.wasd)};
    for(const k of ['grid','hitbox','collapsed'])settings[k]=saved[k]===true;
@@ -62,6 +63,7 @@ function setupDev(){
  $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;keys.clear();releaseActions();last=0;if(!canFit(room.cells,player.x,player.y))player={...room.spawn};$('binding-status').textContent='';sync();save();};
  sync();
  return {
+  controls:()=>[directions.map(d=>label(settings.bindings[d])).join(' '),label(settings.bindings.attack),label(settings.bindings.interact)],
   get paused(){return paused||pending!==null||['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);},
   actionRate:type=>settings[type+'Rate'],
   attackCooldown:()=>settings.attackCooldown,

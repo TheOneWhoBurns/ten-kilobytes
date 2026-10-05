@@ -3,102 +3,92 @@
   "rows": [
     {
       "name": "baseline",
-      "html_bytes": 9184,
-      "zip_bytes": 9199,
+      "html_bytes": 8562,
+      "zip_bytes": 8577,
       "delta_html": 0,
       "delta_zip": 0,
-      "sprite_data_bytes": 1332,
-      "enemies": 3,
+      "sprite_data_bytes": 1152,
+      "enemies": 2,
       "weapons": 4,
-      "powers": 3
+      "powers": 0
     },
     {
       "name": "enemy_existing_art",
-      "html_bytes": 9191,
-      "zip_bytes": 9206,
-      "delta_html": 7,
-      "delta_zip": 7,
-      "sprite_data_bytes": 1332,
-      "enemies": 4,
+      "html_bytes": 8582,
+      "zip_bytes": 8597,
+      "delta_html": 20,
+      "delta_zip": 20,
+      "sprite_data_bytes": 1152,
+      "enemies": 3,
       "weapons": 4,
-      "powers": 3
+      "powers": 0
     },
     {
       "name": "enemy_attack_sequence",
-      "html_bytes": 9228,
-      "zip_bytes": 9242,
-      "delta_html": 44,
-      "delta_zip": 43,
-      "sprite_data_bytes": 1332,
-      "enemies": 4,
+      "html_bytes": 8609,
+      "zip_bytes": 8624,
+      "delta_html": 47,
+      "delta_zip": 47,
+      "sprite_data_bytes": 1152,
+      "enemies": 3,
       "weapons": 4,
-      "powers": 3
+      "powers": 0
     },
     {
       "name": "enemy_biome_weight",
-      "html_bytes": 9209,
-      "zip_bytes": 9223,
-      "delta_html": 25,
-      "delta_zip": 24,
-      "sprite_data_bytes": 1332,
-      "enemies": 4,
+      "html_bytes": 8590,
+      "zip_bytes": 8605,
+      "delta_html": 28,
+      "delta_zip": 28,
+      "sprite_data_bytes": 1152,
+      "enemies": 3,
       "weapons": 4,
-      "powers": 3
+      "powers": 0
     },
     {
       "name": "enemy_new_12px_sprite",
-      "html_bytes": 9214,
-      "zip_bytes": 9228,
-      "delta_html": 30,
-      "delta_zip": 29,
-      "sprite_data_bytes": 1350,
-      "enemies": 4,
+      "html_bytes": 8606,
+      "zip_bytes": 8621,
+      "delta_html": 44,
+      "delta_zip": 44,
+      "sprite_data_bytes": 1170,
+      "enemies": 3,
       "weapons": 4,
-      "powers": 3
+      "powers": 0
     },
     {
       "name": "weapon_existing_art",
-      "html_bytes": 9192,
-      "zip_bytes": 9207,
-      "delta_html": 8,
-      "delta_zip": 8,
-      "sprite_data_bytes": 1332,
-      "enemies": 3,
+      "html_bytes": 8591,
+      "zip_bytes": 8605,
+      "delta_html": 29,
+      "delta_zip": 28,
+      "sprite_data_bytes": 1152,
+      "enemies": 2,
       "weapons": 5,
-      "powers": 3
-    },
-    {
-      "name": "transformation",
-      "html_bytes": 9193,
-      "zip_bytes": 9208,
-      "delta_html": 9,
-      "delta_zip": 9,
-      "sprite_data_bytes": 1332,
-      "enemies": 3,
-      "weapons": 4,
-      "powers": 4
+      "powers": 0
     },
     {
       "name": "ten_enemy_recipes",
-      "html_bytes": 9273,
-      "zip_bytes": 9286,
-      "delta_html": 89,
-      "delta_zip": 87,
-      "sprite_data_bytes": 1332,
-      "enemies": 13,
+      "html_bytes": 8646,
+      "zip_bytes": 8661,
+      "delta_html": 84,
+      "delta_zip": 84,
+      "sprite_data_bytes": 1152,
+      "enemies": 12,
       "weapons": 4,
-      "powers": 3
+      "powers": 0
     },
     {
-      "name": "ten_enemies_six_weapons_six_powers",
-      "html_bytes": 9395,
-      "zip_bytes": 9410,
-      "delta_html": 211,
-      "delta_zip": 211,
-      "sprite_data_bytes": 1332,
-      "enemies": 13,
+      "name": "ten_enemies_six_weapons",
+      "html_bytes": 8738,
+      "zip_bytes": 8753,
+      "delta_html": 176,
+      "delta_zip": 176,
+      "sprite_data_bytes": 1152,
+      "enemies": 12,
       "weapons": 10,
-      "powers": 9
+      "powers": 0
     }
-  ]
+  ],
+  "checkpoint": "Two-hit revision before the starting room; rerun npm run measure:content for current costs."
 }

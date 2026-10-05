@@ -2,28 +2,22 @@
 // Only value 1 is walkable. Appearance and collision use the same cell type.
 function randomFor(value){let s=0;for(const c of String(value))s=Math.imul(s^c.charCodeAt(0),16777619);return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return(s>>>0)/4294967296;};}
 const W=31,H=21;
-// Functional bays share a circulation spine; damage interrupts their original rhythm.
-function generate(seed,shapeKind){
- const random=randomFor(seed),int=n=>Math.floor(random()*n);
- const cells=new Uint8Array(W*H),props=[],spawn={x:15.5,y:10.5},tone=shapeKind===undefined?int(3):shapeKind,condition=int(3);
- for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)cells[y*W+x]=1;
- const add=(x,y,t)=>props.push({x,y,t});
- const bays=2+int(3),gap=Math.floor(23/bays),damaged=int(bays);
- for(const side of [-1,1])for(let bay=0;bay<bays;bay++){
-  const x=4+bay*gap,y=side<0?3+int(2):14,w=tone===2?gap-2:2+int(Math.max(1,gap-3)),h=tone===0?2:tone===1?4:1+int(2),breakAt=int(h)*w,ruined=bay===damaged;
-  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
-   const xx=x+i,yy=y+j,n=yy*W+xx;
-   if(ruined&&(i+j*w===breakAt||condition===2&&i===0)){add(xx,yy,3+tone*6);continue;}
-   cells[n]=tone===1?4:2;
-   if(tone!==1)add(xx,yy,tone*6+(tone===0?int(2):0));
-  }
-  add(x-1,y+1,tone*6+2);
-  if(condition===1)add(x+w,y+h-1,tone*6+4);
-  if(condition===2)for(let k=0;k<3;k++)add(x-1-k,y,tone*6+3+k%3);
+// Connected random tunnelling: variable brush widths create pockets, ribbons and caves.
+function generate(random,shapeKind){
+ const int=n=>Math.floor(random()*n),cells=new Uint8Array(W*H),props=[],spawn={x:15.5,y:10.5},tone=shapeKind===undefined?int(3):shapeKind,cut=[],target=140+int(180),style=int(3);
+ let x=15,y=10,dx=1,dy=0,r=3;
+ for(let step=0;step<2000&&cut.length<target;step++){
+  for(let yy=Math.max(1,y-r);yy<=Math.min(H-2,y+r);yy++)for(let xx=Math.max(1,x-r);xx<=Math.min(W-2,x+r);xx++)if((xx-x)**2+(yy-y)**2<=r*r){const n=yy*W+xx;if(!cells[n]){cells[n]=1;cut.push(n);}}
+  if(step%20===0){const n=cut[int(cut.length)];x=n%W;y=n/W|0;r=style?1+int(style+1):int(2);}
+  if(random()<.3){const d=int(4);dx=[1,-1,0,0][d];dy=[0,0,1,-1][d];}
+  x=Math.max(1,Math.min(W-2,x+dx));y=Math.max(1,Math.min(H-2,y+dy));
  }
- // Additional functional fixtures stay outside the central route and door approaches.
- for(let y=3;y<19;y+=3)for(const x of [2,28])if(random()<.65)add(x,y,tone*6+2+int(4));
- return{cells,props,spawn,tone,condition,detail:Math.floor(random()*4294967296)};
+ for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+  const n=y*W+x,edge=[-1,1,-W,W].some(d=>cells[n+d]===1);
+  if(!cells[n]){if(tone===1)cells[n]=4;else if(edge&&random()<.12){cells[n]=2;props.push({x,y,t:tone*6+int(2)});}}
+  else if(Math.hypot(x-15,y-10)>4&&[-1,1,-W,W].some(d=>cells[n+d]!==1)&&random()<.14)props.push({x,y,t:tone*6+[2,4,5][int(3)]});
+ }
+ return{cells,props,spawn,tone};
 }
 function canFit(cells,x,y){
   const radius=.27;

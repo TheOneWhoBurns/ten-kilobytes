@@ -53,3 +53,7 @@ function hoist(source){
 }
 
 module.exports=source=>canvas(factor(hoist(source)),true);
+// Individual passes are exposed for measured, non-destructive build experiments.
+module.exports.factor=factor;
+module.exports.canvas=canvas;
+module.exports.hoist=hoist;

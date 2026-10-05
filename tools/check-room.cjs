@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const api=vm.runInNewContext(fs.readFileSync('src/room.js','utf8')+';({generate,canFit,movePlayer,W,H})');
+const api=vm.runInNewContext(fs.readFileSync('src/room.js','utf8')+';({generate:seed=>generate(randomFor(seed)),canFit,movePlayer,W,H})');
 const {generate,canFit,movePlayer,W,H}=api,cell=(cells,n)=>cells[n]||0,layouts=new Set();
 for(let seed=0;seed<2000;seed++){
   const {cells:packed,spawn}=generate(seed),cells=Array.from({length:W*H},(_,n)=>cell(packed,n)),key=Array.from(cells).join('');layouts.add(key);

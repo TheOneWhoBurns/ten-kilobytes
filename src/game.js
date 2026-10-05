@@ -3,37 +3,48 @@ ctx.imageSmoothingEnabled=false;
 const atlas=document.createElement('canvas'),art=atlas.getContext('2d');
 const background=document.createElement('canvas');background.width=372;background.height=252;
 const floor=background.getContext('2d');
-let room,player,sprite=104,last=0,seed=1,dev;
+let room,player,sprite=104,last=0,seed,dev;
 function tile(c,index,x,y){c.drawImage(atlas,index*12,0,12,12,x,y,12,12);}
-function reset(){
-  level=1;chamber=0;health=8;power=null;weapon=0;temper=0;world=makeLevel(seed,level);makeActor();enterRoom();
+function writeTiles(text,x,y){
+ for(const c of text){const i=assets.letters.indexOf(c);if(i>=0)tile(ctx,assets.font+i,x*12,y*12);else if(DEV&&c!==' '){ctx.font='12px monospace';ctx.fillStyle='#e7e5ce';ctx.fillText(c,x*12,y*12+12);}x++;}
+}
+function reset(fresh=false){
+  if(fresh){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];if(DEV)$('seed').value=seed;}
+  level=0;chamber=0;health=2;hitFlash=0;weapon=0;temper=0;world=makeEntrance();makeActor();enterRoom();
 }
 function enterRoom(from){
-  keys.clear();room=world.rooms[chamber];player={...room.spawn};shots=[];hurt=1;travel=0;resetActions();
+  keys.clear();navSolid=navDistances=null;room=world.rooms[chamber];player={...room.spawn};shots=[];hurt=1;travel=0;resetActions();
   const door=room.doors.find(d=>d.to===from);if(door){const [dx,dy]=directions[door.dir];player.x=door.x-dx*1.5;player.y=door.y-dy*1.5;facing=Math.atan2(-dy,-dx);}
+  if(!level)facing=0;
   room.visited=true;
   art.globalCompositeOperation='source-atop';
-  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,12,'#edc9d3']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
+  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
   floor.fillStyle='#080c14';floor.fillRect(0,0,372,252);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
    const n=y*W+x,px=x*12,py=y*12;
    if(room.cells[n]===1){
-    floor.fillStyle=worldColor(Math.abs(x-15)<2||Math.abs(y-10)<2?15:12);floor.fillRect(px,py,12,12);
+    floor.fillStyle=worldColor(14);floor.fillRect(px,py,12,12);
     floor.globalAlpha=.09;tile(floor,assets.pantry+18+world.shape,px,py);floor.globalAlpha=1;
     if(room.cells[n-W]!==1){floor.fillStyle='#0006';floor.fillRect(px,py,12,4);}
    }else if(room.cells[n]===4){
     floor.fillStyle=worldColor(7,10);floor.fillRect(px,py,12,12);floor.fillStyle=worldColor(25,15);if((x+y)%2===0)floor.fillRect(px+3,py+6,5,1);
-   }else{
+   }else if(!level||!room.cells[n]&&![-1,1,-W,W].some(d=>room.cells[n+d]===1)){floor.fillStyle='#101722';floor.fillRect(px,py,12,12);}else{
     floor.fillStyle=worldColor(18,20);floor.fillRect(px,py,12,12);floor.globalAlpha=.32;tile(floor,assets.pantry+21+world.shape,px,py);floor.globalAlpha=1;
     if(room.cells[n+W]===1){floor.fillStyle=worldColor(32,20);floor.fillRect(px,py+9,12,2);floor.fillStyle='#0009';floor.fillRect(px,py+11,12,1);}
    }
+   if(!level&&room.cells[n]===1){
+    const turn=room.cells[n-W]===1&&room.cells[n+W]===1;
+    floor.fillStyle='#324957';floor.fillRect(px,py,12,12);
+    for(let k=0;k<12;k+=6){floor.fillStyle='#66818a';floor.fillRect(px+(turn?0:k),py+(turn?k:0),turn?12:1,turn?1:12);floor.fillStyle='#1a2c38';floor.fillRect(px+(turn?0:k+4),py+(turn?k+4:0),turn?12:2,turn?2:12);}
+   }
   }
+  if(!level){floor.fillStyle='#101722';floor.fillRect(156,108,48,48);for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,156+i%2*24,108+(i>>1)*24,24,24);}
   for(const p of room.props){const x=p.x*12,y=p.y*12;if(p.t%6<3){floor.fillStyle='#050a1077';floor.fillRect(x+2,y+10,10,3);}tile(floor,assets.pantry+p.t,x,y-(p.t%6<3?2:0));}
-  if(DEV)$('info').textContent=['Memorial aisles','Sluice basins','Reading hall'][world.shape]+' · '+['abandoned','overgrown','breached'][room.condition];
-  if(DEV)$('room-select').value=chamber;
+  if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
+  if(DEV)$('room-select').value=level?chamber:-1;
 }
 function choose(value){sprite=Number.isFinite(+value)?Math.max(104,Math.min(assets.last,Math.round(+value))):104;if(DEV)$('sprite').value=sprite;makeActor();}
-function nextRoom(){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];if(DEV)$('seed').value=seed;reset();}
+function nextRoom(){reset(true);}
 function cycle(d){choose(sprite+d>assets.last?104:sprite+d<104?assets.last:sprite+d);}
 if(DEV){
  $('generate').onclick=()=>{seed=$('seed').value||'1';reset();canvas.focus();};
@@ -41,7 +52,7 @@ if(DEV){
  $('seed').onkeydown=e=>{if(e.key==='Enter')$('generate').click();};
  $('sprite').onchange=e=>choose(e.target.value);
  $('prev').onclick=()=>cycle(-1);$('next').onclick=()=>cycle(1);
- $('room-select').onchange=e=>{chamber=+e.target.value;enterRoom();canvas.focus();};
+ $('room-select').onchange=e=>{if(+e.target.value<0)reset();else{if(!level){level=1;world=makeLevel(seed,level);}chamber=+e.target.value;enterRoom();}canvas.focus();};
  $('clear-room').onclick=()=>{for(const e of room.enemies)if(e.hp>0)hitEnemy(e,10000);canvas.focus();};
 }
 for(const type of ['attack','interact']){
@@ -56,12 +67,12 @@ addEventListener('keydown',e=>{
   if(DEV&&dev.keydown(e))return;
   if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;
   const k=e.key.toLowerCase();
-  if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','r','[',']',' ','e'].includes(k))e.preventDefault();
+  if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','r','[',']','i','o'].includes(k))e.preventDefault();
   keys.add(k);if(e.repeat)return;
-  if(!DEV){if(k===' ')holdAction('attack');if(k==='e')holdAction('interact');}
+  if(!DEV){if(k==='i')holdAction('attack');if(k==='o')holdAction('interact');}
   if(k==='r')nextRoom();if(DEV){if(k==='[')cycle(-1);if(k===']')cycle(1);}
 });
-addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(DEV)dev.keyup(k);else{if(k===' ')releaseAction('attack');if(k==='e')releaseAction('interact');}});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(DEV)dev.keyup(k);else{if(k==='i')releaseAction('attack');if(k==='o')releaseAction('interact');}});
 addEventListener('blur',()=>{keys.clear();releaseActions();});
 document.addEventListener('visibilitychange',()=>{keys.clear();releaseActions();last=0;});
 document.addEventListener('focusin',e=>{if(e.target!==canvas&&e.target!==$('attack')&&e.target!==$('interact')){keys.clear();releaseActions();}});
@@ -83,6 +94,7 @@ function frame(time){
     tickActions(health?step:0);tickWorld(step);drawWorld();
     const x=Math.round(player.x*12)-6,y=Math.round(player.y*12)-6;
     ctx.fillStyle='#090c08';ctx.fillRect(x+2,y+10,8,3);ctx.globalAlpha=hurt>0&&Math.floor(hurt*12)%2?.45:1;drawActor(x,y);ctx.globalAlpha=1;
+    if(hitFlash){ctx.fillStyle='#df5665';ctx.globalAlpha=hitFlash;ctx.fillRect(0,0,W*12,H*12);ctx.globalAlpha=1;}
     if(DEV)dev.draw(dt,time);
     if(DEV)canvas.dataset.action=action? action.type:'idle';
     if(DEV)canvas.dataset.frame=actionFrame();
@@ -96,8 +108,8 @@ function frame(time){
 const bits=atob(assets.bits);atlas.width=bits.length/18*12;atlas.height=12;
 for(let i=0;i<bits.length;i++)for(let b=0;b<8;b++)if(bits.charCodeAt(i)&128>>b){
  const tileIndex=Math.floor(i/18),pixel=(i%18)*8+b;
- art.fillStyle=tileIndex===assets.loot?'#8bcfb8':tileIndex?'#efefdb':'#93978c';art.fillRect(tileIndex*12+pixel%12,Math.floor(pixel/12),1,1);
+ art.fillStyle='#efefdb';art.fillRect(tileIndex*12+pixel%12,Math.floor(pixel/12),1,1);
 }
 makeActor();
 if(DEV)dev=setupDev();
-reset();if(DEV)resize();requestAnimationFrame(frame);
+reset(true);if(DEV)resize();requestAnimationFrame(frame);

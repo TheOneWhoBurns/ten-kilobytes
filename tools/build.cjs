@@ -7,11 +7,14 @@ const sheet=PNG.sync.read(fs.readFileSync(path.join(root,'assets/source/urizen.p
 const spec=JSON.parse(read('assets/selection.json'));
 const characterSheet=PNG.sync.read(fs.readFileSync(path.join(root,'assets/generated/104-sheet.png')));
 if(characterSheet.width!==72||characterSheet.height!==48)throw Error('104 sheet must be 6 × 4 tiles');
-const characterBits=Buffer.alloc(24*18);
+const characterBits=Buffer.alloc(25*18);
 for(let t=0;t<24;t++)for(let p=0;p<144;p++){
  const n=((Math.floor(t/6)*12+Math.floor(p/12))*72+(t%6)*12+p%12)*4;
  if(characterSheet.data[n+3]>127)characterBits[t*18+(p>>3)]|=128>>(p&7);
 }
+const death=JSON.parse(read('assets/player-death.json'));
+if(death.length!==12||death.some(r=>!/^[.#]{12}$/.test(r)))throw Error('Death pose must be a 12px binary mask');
+for(let p=0;p<144;p++)if(death[p/12|0][p%12]==='#')characterBits[24*18+(p>>3)]|=128>>(p&7);
 if(spec.tile_size!==12||spec.margin!==1||spec.spacing!==1)throw Error('Expected Urizen 12px grid');
 // One silhouette bit per pixel. Black is transparent; runtime supplies the ink color.
 function pack(tiles){
@@ -28,21 +31,24 @@ function pack(tiles){
 }
 // Six slots per biome, then textures. Unused second slots in water/archive share art.
 const pantry=[[5,39],[8,39],[7,42],[28,21],[1,38],[34,25], [4,13],[4,13],[4,9],[1,5],[5,10],[6,9], [2,36],[2,36],[16,36],[4,39],[0,39],[32,14], [5,6],[8,6],[10,6],[0,3],[10,3],[1,4]].map(([x,y])=>({x,y}));
-async function build({catalog=contentData.load(),write=true,development=true,sourceOnly=false}={}){
+async function build({catalog=contentData.load(),write=true,development=true,sourceOnly=false,sourceTransform=s=>s,packingOptions=require('./packing-options.json'),quick=false,packMode='roadroller'}={}){
 const content=contentData.compile(catalog,{specialize:true}),{enemyTiles,weaponTiles}=content;
-const bossTiles=[28,30,38].flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
-if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,pickup:[{x:33,y:4}],player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
-const sources=quantizeColors(content.source+require('./landmark-data.cjs')()+content.transform(['src/room.js','src/actions.js','src/world.js','src/game.js'].map(read).join('\n')));
+const bossTiles=[28].flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
+if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
+const sources=quantizeColors(sourceTransform(content.source+require('./landmark-data.cjs')()+content.transform(['src/room.js','src/actions.js','src/world.js','src/game.js'].map(read).join('\n'))));
 const reports={},artifacts={};
+const ring=[65,66,67,68].map(x=>({x,y:4}));
 for(const dev of development?[true,false]:[false]){
  const enemyColumns=enemyTiles;
- const characters=dev?spec.tiles:[],tiles=[...characters,{x:33,y:4},...pantry,...weaponTiles,...enemyTiles,...bossTiles],bits=Buffer.concat([pack(tiles),characterBits]);
- const assets=JSON.stringify({bits:bits.toString('base64'),last:dev?103+characters.length-1:104,loot:characters.length,pantry:characters.length+1,weapon:characters.length+1+pantry.length,weaponCount:weaponTiles.length,enemies:tiles.length-bossTiles.length-enemyTiles.length,enemyCount:enemyTiles.length,bosses:tiles.length-bossTiles.length,actor:tiles.length});
+ const letters=dev?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''),font=[...letters].map(c=>{const n=c.charCodeAt(0)-65;return{x:n<6?97+n:72+n,y:n<6?47:48};});
+ const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...bossTiles,...ring,...font],bits=Buffer.concat([pack(tiles),characterBits]),enemies=characters.length+pantry.length+weaponTiles.length;
+ const assets=JSON.stringify({bits:bits.toString('base64'),last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,bosses:enemies+enemyTiles.length,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,actor:tiles.length});
+ if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,ring,font},null,2)+'\n');}
  const template=quantizeColors(read(dev?'src/dev.html':'src/index.html'));
  const css=template.match(/<style>([\s\S]*?)<\/style>/)[1];
  let code=transformSync('const assets='+assets+';\n'+(dev?read('src/dev.js'):'')+'\n'+(dev?sources:sourceOnly?compactSource(sources):releaseLayout(sources)),{minify:true,format:'iife',target:'es2020',define:{DEV:String(dev)}}).code;
  // The property allowlist contains game-owned fields only; keep browser API properties out.
- if(!dev)code=(await require('terser').minify(code,{compress:{passes:3},mangle:{properties:{builtins:true,regex:/^(weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
+ if(!dev)code=(await require('terser').minify(code,{compress:{passes:3},mangle:{properties:{builtins:true,regex:/^(letters|font|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
  const shell=template.replace(css,()=>transformSync(css,{loader:'css',minify:true}).code.trim()),render=js=>shell.replace('__CODE__',()=>js);
  let html=Buffer.from(render(code)),encoding='utf-8';
  if(!dev&&sourceOnly){
@@ -55,13 +61,14 @@ for(const dev of development?[true,false]:[false]){
  if(write&&!dev)fs.writeFileSync(path.join(root,'dev/release-source.html'),html);
  let zip,packing='none',modelMemoryMB=0;
  if(!dev&&!sourceOnly){
-  const {roller,smallestEnvelope}=require('./pack-release.cjs');
-  const packed=await roller(html.toString('utf8'),require('./packing-options.json'));
-  const selected=await smallestEnvelope(packed.html);
-  html=selected.html;zip=selected.zip;packing='roadroller+deflate';encoding='windows-1252';modelMemoryMB=packed.memoryMB;
+  const {roller,smallestEnvelope,envelope,zipHtml}=require('./pack-release.cjs');
+  const packed=packMode==='native'?{html:html.toString('utf8'),memoryMB:0}:await roller(html.toString('utf8'),packingOptions);
+  const candidate=quick?await envelope(packed.html,10):null;
+  const selected=quick?{html:candidate,zip:await zipHtml(candidate,10)}:await smallestEnvelope(packed.html);
+  html=selected.html;zip=selected.zip;packing=packMode==='native'?'deflate':'roadroller+deflate';encoding='windows-1252';modelMemoryMB=packed.memoryMB;
  }else zip=zipSync({'index.html':[html,{mtime:new Date(2026,9,4)}]},{level:9});
  artifacts[dev?'development':'release']={html,zip};
- const report={enemy_definitions:catalog.enemies.length,weapon_definitions:catalog.weapons.length,power_definitions:catalog.powers.length,definition_source_bytes:Buffer.byteLength(content.source),visual_profile:'rgb444',limit:10000,budget_metric:sourceOnly?'minified_source_with_assets':'standalone_html_and_submission_zip',compliant:Math.max(html.length,sourceOnly?0:zip.length)<=10000,packing,source_encoding:encoding,decoder_model_mb:modelMemoryMB,source_bytes:unpackedBytes,html_bytes:html.length,unpacked_html_bytes:unpackedBytes,zip_bytes:zip.length,sprite_count:dev?characters.length-1:1,enemy_sprite_count:enemyColumns.length,pantry_tiles:pantry.length,sprite_data_bytes:bits.length,atlas_tiles:bits.length/18,remaining_file_bytes:10000-Math.max(html.length,sourceOnly?0:zip.length)};
+ const report={enemy_definitions:catalog.enemies.length,weapon_definitions:catalog.weapons.length,boss_definitions:catalog.bosses.length,power_definitions:0,definition_source_bytes:Buffer.byteLength(content.source),visual_profile:'rgb444',limit:10000,budget_metric:sourceOnly?'minified_source_with_assets':'standalone_html_and_submission_zip',compliant:Math.max(html.length,sourceOnly?0:zip.length)<=10000,packing,source_encoding:encoding,decoder_model_mb:modelMemoryMB,source_bytes:unpackedBytes,html_bytes:html.length,unpacked_html_bytes:unpackedBytes,zip_bytes:zip.length,sprite_count:dev?characters.length-1:1,enemy_sprite_count:enemyColumns.length,pantry_tiles:pantry.length,sprite_data_bytes:bits.length,atlas_tiles:bits.length/18,remaining_file_bytes:10000-Math.max(html.length,sourceOnly?0:zip.length)};
  reports[dev?'development':'release']=report;
  if(write&&!dev)fs.writeFileSync(path.join(root,'dev/release-preview.html'),html);
  const decoded=unzipSync(zip);if(!Buffer.from(decoded['index.html']).equals(html))throw Error('ZIP verification failed');

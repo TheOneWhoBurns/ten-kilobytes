@@ -1,0 +1,8 @@
+{
+  "seed_count": 1000,
+  "depths": [
+    1,
+    10
+  ],
+  "sha256": "1dafdbdf16fe152d17f9c924ef2beb000ae4dd90a641d8b7173dcc2e391a03c3"
+}

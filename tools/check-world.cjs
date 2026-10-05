@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const source=fs.readFileSync('src/room.js','utf8')+'\nlet room,player;const DEV=false;\n'+fs.readFileSync('src/actions.js','utf8')+'\n({init(seed){room=generate(seed);player={...room.spawn};resetActions();return {room,objects,player};},W,H,canFit})';
+const source=fs.readFileSync('src/room.js','utf8')+'\nlet room,player;const DEV=false;\n'+fs.readFileSync('src/actions.js','utf8')+'\n({init(seed){room=generate(randomFor(seed));player={...room.spawn};resetActions();return {room,objects,player};},W,H,canFit})';
 const ui={setAttribute(){}};
 const api=vm.runInNewContext(source,{document:{createElement:()=>({getContext:()=>({})})},$:()=>ui});
 for(let seed=0;seed<250;seed++){
