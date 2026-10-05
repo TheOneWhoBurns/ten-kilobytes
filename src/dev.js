@@ -56,10 +56,10 @@ function setupDev(){
  for(const d of bindings)$('bind-'+d).onclick=()=>{keys.clear();releaseActions();pending=d;$('binding-status').textContent=d+': press key';sync();};
  $('pause').onclick=pause;
  $('dev-toggle').onclick=()=>{cancel();settings.collapsed=!settings.collapsed;sync();save();};
- $('collision').onchange=e=>{collision=e.target.checked;keys.clear();if(collision&&!canFit(room.solid,player.x,player.y))player={...room.spawn};sync();};
+ $('collision').onchange=e=>{collision=e.target.checked;keys.clear();if(collision&&!canFit(room.cells,player.x,player.y))player={...room.spawn};sync();};
  $('respawn').onclick=()=>{keys.clear();releaseActions();player={...room.spawn};canvas.focus();};
  for(const id of ['grid','hitbox'])$(id).onchange=e=>{settings[id]=e.target.checked;save();};
- $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;keys.clear();releaseActions();last=0;if(!canFit(room.solid,player.x,player.y))player={...room.spawn};$('binding-status').textContent='';sync();save();};
+ $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;keys.clear();releaseActions();last=0;if(!canFit(room.cells,player.x,player.y))player={...room.spawn};$('binding-status').textContent='';sync();save();};
  sync();
  return {
   get paused(){return paused||pending!==null||['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);},
@@ -89,7 +89,7 @@ function setupDev(){
    const dx=held('right')-held('left'),dy=held('down')-held('up'),length=Math.hypot(dx,dy),time=Math.min(dt,.05)*movementFactor();
    faceMovement(dx,dy);
    if(!length||time<=0)return;
-   if(collision){const steps=Math.ceil(settings.speed/5);for(let i=0;i<steps;i++)movePlayer(room.solid,player,dx,dy,time*settings.speed/5/steps);}
+   if(collision){const steps=Math.ceil(settings.speed/5);for(let i=0;i<steps;i++)movePlayer(room.cells,player,dx,dy,time*settings.speed/5/steps);}
    else{player.x=Math.max(.5,Math.min(W-.5,player.x+dx/length*time*settings.speed));player.y=Math.max(.5,Math.min(H-.5,player.y+dy/length*time*settings.speed));}
   },
   draw(dt,time){

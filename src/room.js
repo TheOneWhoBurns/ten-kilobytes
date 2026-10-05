@@ -1,57 +1,40 @@
+// One authoritative grid: 0 wall, 1 floor, 2 fixture, 4 water.
+// Only value 1 is walkable. Appearance and collision use the same cell type.
+function randomFor(value){let s=0;for(const c of String(value))s=Math.imul(s^c.charCodeAt(0),16777619);return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return(s>>>0)/4294967296;};}
 const W=31,H=21;
+// Functional bays share a circulation spine; damage interrupts their original rhythm.
 function generate(seed,shapeKind){
-  let state=2166136261;
-  for(const c of String(seed))state=Math.imul(state^c.charCodeAt(0),16777619);
-  const random=()=>{state+=0x6D2B79F5;let n=Math.imul(state^state>>>15,1|state);n^=n+Math.imul(n^n>>>7,61|n);return((n^n>>>14)>>>0)/4294967296;};
-  const int=(a,b)=>a+Math.floor(random()*(b-a+1));
-  const cells=new Uint8Array(W*H),features=new Uint8Array(W*H),spawn={x:15.5,y:10.5};
-  // Superellipses vary continuously from angular to rounded to squared.
-  function shape(cx,cy,rx,ry,p){
-    const result=[];
-    for(let y=Math.max(1,Math.ceil(cy-ry));y<=Math.min(H-2,Math.floor(cy+ry));y++)for(let x=Math.max(1,Math.ceil(cx-rx));x<=Math.min(W-2,Math.floor(cx+rx));x++)
-      if(Math.abs((x-cx)/rx)**p+Math.abs((y-cy)/ry)**p<=1)result.push(y*W+x);
-    return result;
+ const random=randomFor(seed),int=n=>Math.floor(random()*n);
+ const cells=new Uint8Array(W*H),props=[],spawn={x:15.5,y:10.5},tone=shapeKind===undefined?int(3):shapeKind,condition=int(3);
+ for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)cells[y*W+x]=1;
+ const add=(x,y,t)=>props.push({x,y,t});
+ const bays=2+int(3),gap=Math.floor(23/bays),damaged=int(bays);
+ for(const side of [-1,1])for(let bay=0;bay<bays;bay++){
+  const x=4+bay*gap,y=side<0?3+int(2):14,w=tone===2?gap-2:2+int(Math.max(1,gap-3)),h=tone===0?2:tone===1?4:1+int(2),breakAt=int(h)*w,ruined=bay===damaged;
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+   const xx=x+i,yy=y+j,n=yy*W+xx;
+   if(ruined&&(i+j*w===breakAt||condition===2&&i===0)){add(xx,yy,3+tone*6);continue;}
+   cells[n]=tone===1?4:2;
+   if(tone!==1)add(xx,yy,tone*6+(tone===0?int(2):0));
   }
-  function carve(cx,cy,rx,ry,p){for(const n of shape(cx,cy,rx,ry,p))cells[n]=1;}
-  const power=shapeKind===undefined?1.4+random()*3:1.4+shapeKind*1.3+random()*.4;
-  // A screen-sized chamber with seed-carved obstacles and readable edge doors.
-  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)cells[y*W+x]=1;
-  function connected(){
-    const seen=new Set([10*W+15]),queue=[10*W+15];
-    for(let i=0;i<queue.length;i++)for(const d of [-1,1,-W,W]){
-      const n=queue[i]+d;if(cells[n]&&!seen.has(n)){seen.add(n);queue.push(n);}
-    }
-    return seen.size===cells.reduce((a,v)=>a+v,0);
-  }
-  const wanted=int(3,6);
-  for(let attempt=0,placed=0;attempt<50&&placed<wanted;attempt++){
-    const x=int(4,W-5),y=int(3,H-4),long=random()<.5,rx=long?int(2,4):1.5,ry=long?1.5:int(2,3);
-    const cut=shape(x,y,rx,ry,power);
-    if(!cut.length||cut.some(n=>Math.hypot(n%W-15,Math.floor(n/W)-10)<3.5||[-1,0,1,-W,W,-W-1,-W+1,W-1,W+1].some(d=>!cells[n+d])))continue;
-    for(const n of cut)cells[n]=0;
-    if(!connected()){for(const n of cut)cells[n]=1;continue;}
-    const material=random()<.5?1:2;
-    for(const n of cut)features[n]=material;
-    placed++;
-  }
-  // Remove any diagonal-only fringe created by rasterizing a rounded lobe.
-  const queue=[10*W+15],seen=new Set(queue);
-  for(let i=0;i<queue.length;i++)for(const d of [-1,1,-W,W]){
-    const n=queue[i]+d;if(cells[n]&&!seen.has(n)){seen.add(n);queue.push(n);}
-  }
-  for(let n=0;n<cells.length;n++)if(cells[n]&&!seen.has(n))cells[n]=0;
-  return {cells,features,spawn,tone:int(0,2),detail:state>>>0};
+  add(x-1,y+1,tone*6+2);
+  if(condition===1)add(x+w,y+h-1,tone*6+4);
+  if(condition===2)for(let k=0;k<3;k++)add(x-1-k,y,tone*6+3+k%3);
+ }
+ // Additional functional fixtures stay outside the central route and door approaches.
+ for(let y=3;y<19;y+=3)for(const x of [2,28])if(random()<.65)add(x,y,tone*6+2+int(4));
+ return{cells,props,spawn,tone,condition,detail:Math.floor(random()*4294967296)};
 }
 function canFit(cells,x,y){
   const radius=.27;
   for(const yy of [y-radius,y+radius])for(const xx of [x-radius,x+radius])
-    if(xx<0||yy<0||xx>=W||yy>=H||!cells[Math.floor(yy)*W+Math.floor(xx)])return false;
+    if(xx<0||yy<0||xx>=W||yy>=H||cells[Math.floor(yy)*W+Math.floor(xx)]!==1)return false;
   return true;
 }
-function movePlayer(cells,p,dx,dy,dt){
+function movePlayer(cells,p,dx,dy,dt,speed=5){
   const length=Math.hypot(dx,dy);
   if(!length)return;
-  const distance=5*Math.min(dt,.05),steps=Math.ceil(distance/.1);
+  const distance=speed*Math.min(dt,.05),steps=Math.ceil(distance/.1);
   dx=dx/length*distance/steps;dy=dy/length*distance/steps;
   for(let i=0;i<steps;i++){
     if(canFit(cells,p.x+dx,p.y))p.x+=dx;

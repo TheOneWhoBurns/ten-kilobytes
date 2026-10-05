@@ -5,6 +5,7 @@ __pycache__/
 node_modules/
 dev/play.html
 dev/release-preview.html
+dev/release-source.html
 dev/snapshots/
 dev/*.jpg
 dev/*.png

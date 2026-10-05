@@ -12,10 +12,10 @@ function boot(file,saved){
  const document={getElementById:id=>fields[id],createElement:()=>{const node={};node.getContext=()=>({...context,drawImage(...args){if(node.width===12&&node.height===456&&args[0]!==node&&args[6]===0)actorSprite=args[1]/12+103;}});return node;},addEventListener:(name,fn)=>handlers[name]=fn};
  const sandbox={document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:require('node:crypto').webcrypto,requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],sandbox);
- if(fields.seed)assert(fields.info.textContent.startsWith('Room ready'),'room generated');
+ if(fields.seed)assert(/Memorial|Sluice|Reading/.test(fields.info.textContent),'room generated');
  const tick=(n=1,elapsed=1000/60)=>{for(let i=0;i<n;i++){time+=elapsed;raf.shift()(time);}};
  const key=(type,key,target=canvas,options={})=>handlers[type]({key,target,repeat:false,preventDefault(){},...options});
- tick();return {fields,tick,key,handlers,storage,get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){return lastDraw[2]/12},get strokes(){return strokes}};
+ tick();return {fields,tick,key,handlers,storage,get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];return image.width===12?lastDraw[2]/12:14+lastDraw[1]/12-(image.width/12-24)},get strokes(){return strokes}};
 }
 for(const file of ['dist/index.html','dev/play.html']){
  const g=boot(file),{fields,tick,key,handlers}=g,startX=g.x,startSprite=g.sprite;
@@ -46,7 +46,7 @@ console.log('PASS dev controls: speed, pause, presets, custom/duplicate/reserved
 
 for(const file of ['dist/index.html','dev/play.html']){
  const g=boot(file),f=g.fields,poses=new Set(),idle=g.sprite;
- g.key('keydown','e');g.key('keyup','e');g.tick();assert(!f['run-status'].textContent.includes('· None ·'),'pickup changes the active power');
+ g.key('keydown','e');g.key('keyup','e');g.tick();assert(!f['run-status'].textContent.includes('· None'),'pickup changes the active power');
  g.key('keydown',' ');g.key('keyup',' ');assert.equal(f.attack['data-active'],'true','attack starts on input');
  for(let i=0;i<10;i++){g.tick();poses.add(g.pose);assert.equal(g.sprite,idle,'character identity preserved');}
  assert(poses.size>=3,'strike and recovery have separate poses');assert.equal(f.attack['data-active'],'false','fast recovery');
@@ -127,7 +127,7 @@ for(const file of ['dist/index.html','dev/play.html']){
 // Pickup must not swivel the character or conceal a punch, and its hit still follows aim.
 for(const file of ['dist/index.html','dev/play.html']){
  const g=boot(file),f=g.fields;g.key('keydown',' ');g.key('keydown','e');g.key('keyup','e');g.tick();
- assert.equal(g.pose,17,'pickup cannot steal the attack pose or direction');assert(!f['run-status'].textContent.includes('· None ·'),'pickup replaces the active power');
+ assert.equal(g.pose,17,'pickup cannot steal the attack pose or direction');assert(!f['run-status'].textContent.includes('· None'),'pickup replaces the active power');
  g.key('keyup',' ');g.tick(10);assert.equal(g.pose,14,'idle keeps captured facing after simultaneous pickup');
 }
 console.log('PASS simultaneous actions: captured hit direction, punch priority and pickup');
@@ -143,3 +143,5 @@ for(const fps of [30,60,144]){
  g.key('keyup',' ');g.tick(30);assert.equal(g.fields.attack['data-active'],'false','long frame creates no catch-up queue');
 }
 console.log('PASS cooldown timing: 30/60/144 fps cadence and no long-frame catch-up burst');
+assert.equal(boot('dist/index.html').fields['run-status'].textContent,boot('dev/play.html').fields['run-status'].textContent,'release and development begin with identical game state');
+assert.equal(boot('dist/index.html').fields['pickup-status'].textContent,boot('dev/play.html').fields['pickup-status'].textContent,'release and development generate the same starting power');

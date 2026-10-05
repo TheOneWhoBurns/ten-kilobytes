@@ -1,0 +1,211 @@
+{
+  "enemySprites": [
+    [
+      114,
+      10
+    ],
+    [
+      130,
+      10
+    ],
+    [
+      114,
+      31
+    ],
+    [
+      130,
+      31
+    ],
+    [
+      114,
+      17
+    ],
+    [
+      130,
+      17
+    ],
+    [
+      109,
+      42
+    ],
+    [
+      110,
+      42
+    ],
+    [
+      104,
+      42
+    ],
+    [
+      105,
+      42
+    ]
+  ],
+  "enemies": [
+    {
+      "id": "sentinel",
+      "attack": {
+        "mode": "charge"
+      },
+      "art": {
+        "base": 0,
+        "variants": 2,
+        "themeStride": 2
+      }
+    },
+    {
+      "id": "watcher",
+      "attack": {
+        "mode": "fan",
+        "count": 3
+      },
+      "art": {
+        "base": 6,
+        "variants": 2
+      }
+    },
+    {
+      "id": "slime",
+      "attack": {
+        "mode": "fan",
+        "count": 5
+      },
+      "art": {
+        "base": 8,
+        "variants": 2,
+        "animation": 5
+      }
+    }
+  ],
+  "bosses": [
+    {
+      "id": "skull",
+      "attack": {
+        "mode": "ring"
+      },
+      "art": {
+        "base": 0,
+        "variants": 2,
+        "themeStride": 2,
+        "composite": 0
+      },
+      "drop": "needle"
+    },
+    {
+      "id": "serpent",
+      "attack": {
+        "mode": "charge"
+      },
+      "art": {
+        "base": 6,
+        "variants": 2,
+        "composite": 4
+      },
+      "drop": "fang"
+    },
+    {
+      "id": "spider",
+      "attack": {
+        "mode": "fan"
+      },
+      "art": {
+        "base": 8,
+        "variants": 2,
+        "composite": 8
+      },
+      "drop": "bow"
+    }
+  ],
+  "weapons": [
+    {
+      "id": "fist",
+      "name": "Fist",
+      "attack": {
+        "count": 0
+      },
+      "pitch": 95
+    },
+    {
+      "id": "needle",
+      "name": "Bone needle",
+      "sprite": [
+        28,
+        8
+      ],
+      "traits": [
+        "pierce"
+      ],
+      "pitch": 140
+    },
+    {
+      "id": "bow",
+      "name": "Silk bow",
+      "sprite": [
+        27,
+        10
+      ],
+      "attack": {
+        "count": 3,
+        "speed": 10,
+        "curve": 0.11
+      },
+      "pitch": 185
+    },
+    {
+      "id": "fang",
+      "name": "Returning fang",
+      "sprite": [
+        44,
+        6
+      ],
+      "traits": [
+        "return"
+      ],
+      "attack": {
+        "life": 1.2,
+        "reachLife": 0,
+        "temperLife": 0
+      },
+      "pitch": 230
+    }
+  ],
+  "powers": [
+    {
+      "id": "ember",
+      "name": "Ember",
+      "damage": 1,
+      "shot": {
+        "speed": 9,
+        "damage": 1,
+        "life": 0.55
+      },
+      "body": "#ffc3a0",
+      "effect": "#ed926a"
+    },
+    {
+      "id": "wraith",
+      "name": "Wraith",
+      "traits": [
+        "phase",
+        "trail"
+      ],
+      "speed": 0.15,
+      "taken": 2,
+      "body": "#a8e6eb",
+      "effect": "#9edee0"
+    },
+    {
+      "id": "thorn",
+      "name": "Thorn",
+      "reach": 0.3,
+      "slow": 0.15,
+      "retaliate": {
+        "damage": 2,
+        "radius": 3
+      },
+      "body": "#d6b7ef",
+      "effect": "#d6b7ef",
+      "height": 3
+    }
+  ]
+}

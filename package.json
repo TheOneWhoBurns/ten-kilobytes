@@ -1,18 +1,26 @@
 {
   "name": "ten-kilobytes",
   "version": "1.0.0",
-  "description": "Procedural single-room real-time movement prototype for the 10 KB jam",
+  "description": "Procedural real-time roguelike with a 10,000-byte standalone file budget",
   "scripts": {
     "build": "node tools/build.cjs",
-    "test": "node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs",
-    "dev": "node tools/serve.cjs"
+    "test": "node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs && node tools/check-catalog.cjs && node tools/game-equivalence.cjs --rgb444 --shared-actor && node tools/check-representation.cjs && node tools/check-landmarks.cjs && node tools/check-packing.cjs && node tools/check-content.cjs",
+    "dev": "node tools/serve.cjs",
+    "catalog": "node tools/catalog.cjs",
+    "test:equivalence": "node tools/game-equivalence.cjs --rgb444 --shared-actor",
+    "measure": "node tools/build.cjs --measure",
+    "measure:source": "node tools/build.cjs --source --measure",
+    "measure:content": "node tools/measure-content.cjs"
   },
   "type": "commonjs",
   "devDependencies": {
     "@gfx/zopfli": "^1.0.15",
+    "@napi-rs/canvas": "^1.0.10",
+    "acorn": "^8.18.0",
     "esbuild": "^0.28.2",
     "fflate": "^0.8.3",
     "pngjs": "^7.0.0",
+    "roadroller": "^2.1.0",
     "terser": "^5.51.2"
   },
   "private": true
