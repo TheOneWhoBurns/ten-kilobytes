@@ -1,0 +1,15 @@
+{
+  "source": "https://vurmux.itch.io/urizen-onebit-tileset",
+  "downloaded": "2026-10-04",
+  "license": "CC0-1.0",
+  "files": {
+    "urizen-2bit-free.png": {
+      "bytes": 7014,
+      "sha256": "22f09a78ee825bcb440321d558bb685abaed841addc7d0d078c047e6455c5e3f"
+    },
+    "urizen.png": {
+      "bytes": 314934,
+      "sha256": "f5d927e5e9877a3c088bc488aa64d50f85ce09fd73ded3c1fd25ad715b3ac617"
+    }
+  }
+}

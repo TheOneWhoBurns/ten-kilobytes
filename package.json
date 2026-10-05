@@ -1,0 +1,19 @@
+{
+  "name": "ten-kilobytes",
+  "version": "1.0.0",
+  "description": "Procedural single-room real-time movement prototype for the 10 KB jam",
+  "scripts": {
+    "build": "node tools/build.cjs",
+    "test": "node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs",
+    "dev": "node tools/serve.cjs"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@gfx/zopfli": "^1.0.15",
+    "esbuild": "^0.28.2",
+    "fflate": "^0.8.3",
+    "pngjs": "^7.0.0",
+    "terser": "^5.51.2"
+  },
+  "private": true
+}

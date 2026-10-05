@@ -1,0 +1,10 @@
+dist/
+__pycache__/
+.DS_Store
+.venv/
+node_modules/
+dev/play.html
+dev/release-preview.html
+dev/snapshots/
+dev/*.jpg
+dev/*.png
