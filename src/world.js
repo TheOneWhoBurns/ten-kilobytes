@@ -3,11 +3,9 @@ const exitNames=['Tiny palace','Portal','Giant mirror','Hole','Giant mouth','Hol
 let world,level=1,chamber=0,score=0,health=2,hurt=0,hitFlash=0,weapon=0,temper=0,shots=[],worldTime=0,travel=0,destination=-1;
 // A safe, fixed prologue. The dungeon is generated only when its doorway is crossed.
 function makeEntrance(){
- // Each byte packs a corridor length and its two-bit direction.
- const cells=new Uint8Array(W*H);let x=0,y=1;
- for(const c of atob('dEpxQxgKCAc0BgwLCDphK1AeCQ8Z')){const n=c.charCodeAt(0),[dx,dy]=directions[n&3];for(let k=n>>2;k--;){cells[y*W+x]=1;x+=dx;y+=dy;}}
- for(let y=9;y<13;y++)for(let x=13;x<17;x++)cells[y*W+x]=1;
- return{hue:215,shape:0,motif:0,rooms:[{cells,spawn:31,doors:[],enemies:[],loot:[],gate:{x:15,y:11}}],nodes:[]};
+ // One open superellipse chamber around the ring; the player starts at its left edge.
+ const cells=new Uint8Array(W*H);fillShape(cells,14,9,4);
+ return{hue:215,shape:0,motif:0,rooms:[{cells,spawn:313,doors:[],enemies:[],loot:[],gate:{x:15,y:11}}],nodes:[]};
 }
 // A 16×16 lattice centered at (8,8) packs each coordinate pair into one byte.
 // The six-room walk plus exit spans at most six steps, so neither axis can wrap.
@@ -40,17 +38,16 @@ function makeLevel(value,depth){
   const available=new Set(spots),spot=()=>{const n=spots.splice(pick(spots.length),1)[0]??325;return tilePoint(n);};
   r.gate=tilePoint(i===6?232:325);r.enemies=[];
   const boss=i===result.boss,kind=boss?0:enemyPools?enemyPools[theme][pick(enemyPools[theme].length)]:pick(ENEMY_COUNT),rule=enemyRules[kind+(boss?ENEMY_COUNT:0)],mode=rule[E_MODE];
-  const count=i===6?0:boss?1:[3,4,6].includes(mode)?rule[E_COUNT]+pick(rule[E_COUNT_STEP]+1):Math.min(4,1+depth+(i>>1));
+  const count=i===6?0:boss?1:(mode===3||mode===6)?rule[E_COUNT]+pick(rule[E_COUNT_STEP]+1):Math.min(4,1+depth+(i>>1));
   for(let j=0;j<count;j++){
    const e={...spot(),boss,kind,pattern:pick(mode===8?6:3),form:rule[E_ART]+theme*rule[E_THEME]+pick(rule[E_FRAMES]),phase:0,wait:mode===7||mode===9?0:1+rng(),angle:0,cycle:0};
    if(boss){e.x=15.5;e.y=6.5+pick(3);e.prize=rng();}
-   e.hp=boss?120+20*depth:1;e.guard=mode===4?5:0;e.slot=j;r.enemies.push(e);
+   e.hp=boss?120+20*depth:1;e.slot=j;r.enemies.push(e);
   }
-  if((mode===4||mode===6)&&count){
-   const horizontal=pick(2),x=horizontal?15-(count>>1):7+16*pick(2),y=horizontal?5+10*pick(2):10-(count>>1),angle=horizontal?Math.PI/2:0;
+  if(mode===6&&count){
+   const horizontal=pick(2),x=horizontal?15-(count>>1):7+16*pick(2),y=horizontal?5+10*pick(2):10-(count>>1);
    tunnel(r.cells,x,y);
-   for(const e of r.enemies){e.x=x+(horizontal?e.slot:0)+.5;e.y=y+(horizontal?0:e.slot)+.5;r.cells[(e.y|0)*W+(e.x|0)]=1;e.follow=r.enemies[e.slot-1];e.trail=[];e.slot=(horizontal?-1:1)*(e.slot-(count-1)/2);e.angle=angle;}
-   if(mode===4)r.formation={x:x+.5+(horizontal?(count-1)/2:0),y:y+.5+(horizontal?0:(count-1)/2),a:angle};
+   for(const e of r.enemies){e.x=x+(horizontal?e.slot:0)+.5;e.y=y+(horizontal?0:e.slot)+.5;r.cells[(e.y|0)*W+(e.x|0)]=1;e.follow=r.enemies[e.slot-1];e.trail=[];}
   }
   if(i!==6&&i!==result.boss&&theme!==1)growHazards(r,theme,available);
   r.loot=[];r.reward=i!==6&&!boss&&ARMOR_COUNT&&rng()<.25?pick(ARMOR_COUNT):-1;
@@ -91,9 +88,8 @@ function volley(p,a,count,speed,damage,life,friendly=false,flags=0,spread=.23,cu
 function clearShot(a,b){const d=Math.hypot(b.x-a.x,b.y-a.y);for(let t=.2;t<d;t+=.2)if(!canFit(room.cells,a.x+(b.x-a.x)*t/d,a.y+(b.y-a.y)*t/d))return false;return true;}
 function fire(p,a,speed,damage,life,friendly=false,disc=false){if(shots.length>=96)return;const s={x:p.x,y:p.y,dx:Math.cos(a)*speed,dy:Math.sin(a)*speed,damage:friendly?damage:0,life,age:0,boss:p.boss,art:friendly&&disc?weaponArt:-1,hit:[],traits:(disc?2:0)|(PIERCING_SHOTS&&friendly?weaponRules[weapon][W_FLAGS]&1:0)};shots.push(s);return s;}
 function bossWeapon(e){const pool=bossDrops[e.kind];return pool[Math.floor(world.reward*pool.length)];}
-function hitEnemy(e,damage,origin=player){
+function hitEnemy(e,damage){
  if(e.hp<=0)return;
- if(e.guard>0&&Math.cos(Math.atan2(origin.y-e.y,origin.x-e.x)-e.angle)>.2){const blocked=Math.min(e.guard,damage);e.guard-=blocked;damage-=blocked;e.flash=.12;tone(350,.045,'triangle',.03);if(!damage)return;}
 e.hp=Math.max(0,e.hp-damage);if(e.hp){e.flash=.12;tone(80,.045,'triangle',.025);return;}tone(e.boss?110:75,e.boss?.5:.12,'triangle',.04);
  if(health)score+=e.boss?100:10;
  if(e.boss){const value=bossWeapon(e),forms=weaponForms[value];objects.push({x:e.x,y:e.y,kind:3,value,art:CONTIGUOUS_FORMS?forms[0]+Math.floor((e.prize??world.reward)*forms[1]):forms[Math.floor((e.prize??world.reward)*forms.length)],temper:e.pattern});}
@@ -115,11 +111,6 @@ function tickWorld(dt){
  if(travel>0){travel-=dt;if(travel<=0){const from=chamber;if(destination<0){level++;world=makeLevel(seed,level);chamber=0;enterRoom();}else{chamber=destination;enterRoom(from);}}return;}
  if(!health)return;
  room.looking=false;
- if(room.formation){const g=room.formation,a=Math.atan2(player.y-g.y,player.x-g.x),turn=Math.atan2(Math.sin(a-g.a),Math.cos(a-g.a)),angle=g.a+Math.max(-dt*.12,Math.min(dt*.12,turn)),alive=room.enemies.filter(e=>e.hp>0);
-  const fits=(x,y,a)=>alive.every(e=>canFit(room.cells,x-Math.sin(a)*e.slot,y+Math.cos(a)*e.slot));
-  if(fits(g.x,g.y,angle))g.a=angle;
-  const x=g.x+Math.cos(g.a)*dt*1.6,y=g.y+Math.sin(g.a)*dt*1.6;if(fits(x,y,g.a)){g.x=x;g.y=y;}
- }
  // Identity determines the attack grammar; seeds vary cadence and density within it.
  for(const e of room.enemies)if(e.hp>0){
   e.flash=Math.max(0,(e.flash||0)-dt);e.wait-=dt;
@@ -127,7 +118,6 @@ function tickWorld(dt){
   if(!SEQUENCED_ENEMIES&&rawMode>=3){
    const mode=rawMode,speed=rule[E_MOVE]*5;
    if(mode===3)seek(e,player,dt,speed);
-   if(mode===4){const g=room.formation;e.x=g.x-Math.sin(g.a)*e.slot;e.y=g.y+Math.cos(g.a)*e.slot;e.angle=g.a;}
    if(mode===5){if(e.phase){if(e.wait<=0){e.hp=0;tone(55,.2,'sawtooth',.035);}}else if(d<1&&clearShot(e,player)){e.phase=1;e.wait=.8;cast(e,a,5);}else seek(e,player,dt,speed);}
    if(mode===6){
     let lead=e.follow;while(lead&&lead.hp<=0)lead=lead.follow;
@@ -141,7 +131,7 @@ function tickWorld(dt){
    if(mode===7){if(e.wait<=0){e.angle=a;e.wait=.7+d/rule[E_CHARGE];}const x=e.x,y=e.y;movePlayer(room.cells,e,Math.cos(e.angle),Math.sin(e.angle),dt,rule[E_CHARGE]);if(Math.hypot(e.x-x,e.y-y)<dt)e.wait=0;}
    if(mode===8){if(e.wait<=0&&clearShot(e,player)){cast(e,a,e.pattern);e.wait=3.5;}if(d>8)seek(e,player,dt,speed);}
    if(mode===9){if(e.wait<=0){e.angle=a;e.wait=7;}if(Math.cos(a-e.angle)>.866&&clearShot(e,player))room.looking=true;}
-   if(mode!==4&&mode!==7&&mode!==9)e.angle=a;
+   if(mode!==7&&mode!==9)e.angle=a;
   }else{
    const mode=SEQUENCED_ENEMIES?rule[E_MODE][(e.cycle-(e.phase>1))%rule[E_MODE].length]:rule[E_MODE],lunge=mode===1;
    if(!e.phase&&(lunge||d>rule[E_STANDOFF]||!clearShot(e,player)))seek(e,player,dt,rule[E_MOVE]*5);
@@ -165,7 +155,7 @@ function tickWorld(dt){
   for(let i=0;i<steps&&s.life>0;i++){
    s.x+=s.dx*dt/steps;s.y+=s.dy*dt/steps;
    if(!canFit(room.cells,s.x,s.y)){s.life=0;break;}
-   if(s.damage){for(const e of room.enemies)if(e.hp>0&&!s.hit.includes(e)&&Math.hypot(e.x-s.x,e.y-s.y)<(e.boss?.85:.5)){s.hit.push(e);hitEnemy(e,s.damage,{x:s.x-s.dx*.03,y:s.y-s.dy*.03});if(!(s.traits&3))s.life=0;}}
+   if(s.damage){for(const e of room.enemies)if(e.hp>0&&!s.hit.includes(e)&&Math.hypot(e.x-s.x,e.y-s.y)<(e.boss?.85:.5)){s.hit.push(e);hitEnemy(e,s.damage);if(!(s.traits&3))s.life=0;}}
    else if(Math.hypot(s.x-player.x,s.y-player.y)<.4){hurtPlayer();s.life=0;}
   }
  }

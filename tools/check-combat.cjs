@@ -5,14 +5,9 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  g.init();let e=g.enemy(id.swarm,5.5,10.5);g.tick(50);assert(Math.abs(e.x-6.125)<.03,'swarm walks slowly toward player');
  for(const [name,speed] of [['horse',12],['slow-horse',3]]){g.init();e=g.enemy(id[name],5.5,10.5);g.tick(10);assert(Math.abs(e.x-5.5-speed*.1)<.03,'horse charges immediately at specified speed');g.position(15.5,15.5);const y=e.y;g.tick(10);assert.equal(e.y,y,'horse does not steer during straight charge');}
  g.init();e=g.enemy(id.charge,6.5,10.5);g.tick(1);assert.equal(e.phase,1);const x=e.x;g.tick(20);assert.equal(e.x,x,'charge keeps windup');
- g.init();const front=g.enemy(id['shield-wall'],18.5,10.5,{angle:Math.PI});g.hit(front,2,{x:16,y:10.5});assert.equal(front.guard,3);assert.equal(front.hp,1);g.hit(front,1,{x:20,y:10.5});assert.equal(front.hp,0,'rear bypasses remaining five-point front armor');assert.equal(g.state.score,10);
- g.init();e=g.enemy(id['shield-wall'],18.5,10.5,{angle:Math.PI});g.hit(e,5,{x:16,y:10.5});assert.equal(e.hp,1);assert.equal(e.guard,0);g.hit(e,1,{x:16,y:10.5});assert.equal(e.hp,0,'six damage from front consumes armor and body');
  g.init();const a=g.enemy(id.conga,8.5,10.5,{trail:[{x:8.5,y:10.5}]}),b=g.enemy(id.conga,7.5,10.5,{follow:a,trail:[{x:7.5,y:10.5}]});g.tick(30);assert(Math.abs(a.x-11.8)<.04,'conga leader moves at 11');assert(a.x-b.x>.75&&a.x-b.x<1.15,'follower retains line spacing');a.hp=0;const bx=b.x;g.tick(10);assert(b.x>bx,'dead leader does not stall conga');assert(b.trail.length<=64);
- g.init();for(let y=10;y<20;y++)g.wall(10,y);const leader=g.enemy(id.conga,9.5,11.5,{trail:[]}),follower=g.enemy(id.conga,9.5,12.5,{follow:leader,trail:[]});g.position(15.5,11.5);g.tick(90);assert(follower.x>10.5,'follower follows the traversed bend around a wall');
+ g.init();for(let y=10;y<20;y++)g.wall(10,y);const leader=g.enemy(id.conga,9.5,11.5,{trail:[],form:0}),follower=g.enemy(id.conga,9.5,12.5,{follow:leader,trail:[]});g.position(15.5,11.5);g.tick(90);assert(follower.x>10.5,'follower follows the traversed bend around a wall');
 
- g.init();g.state.room.formation={x:7.5,y:10.5,a:0};const wall=[-1,0,1].map(slot=>g.enemy(id['shield-wall'],7.5,10.5+slot,{slot}));g.position(15.5,9.5);g.tick(200);for(let i=1;i<wall.length;i++)assert(Math.abs(Math.hypot(wall[i].x-wall[i-1].x,wall[i].y-wall[i-1].y)-1)<.08,'shield formation stays side by side while turning');
- // The group controller validates every slot before assigning the rigid line.
- for(let y=1;y<20;y++)g.wall(12,y);g.tick(200);for(const e of wall)for(const x of [e.x-.27,e.x+.27])for(const y of [e.y-.27,e.y+.27])assert(g.state.room.cells[(y|0)*31+(x|0)]&1,'rigid shield slots never cross a wall');
  // Four projectile grammars, with boss appearance unchanged.
  for(const [name,count,speed,life] of [['arrow-single',1,3.2,2.5],['arrow-fan',5,3.2,2.5],['arrow-sniper',1,6.4,1000],['arrow-rapid',5,3.2,2.5]]){g.init();e=g.enemy(id[name],5.5,10.5,{phase:1,wait:0,angle:0});g.tick(1);assert.equal(g.state.shots.length,count,name);const s=g.state.shots[0];assert(Math.abs(Math.hypot(s.dx,s.dy)-speed)<1e-8);assert(s.life>life-.02);assert(!s.boss);}
  const cadence={};for(const name of ['arrow-fan','arrow-rapid','arrow-sniper']){g.init();e=g.enemy(id[name],5.5,10.5);g.tick(800);cadence[name]=e.cycle;}assert(cadence['arrow-rapid']>cadence['arrow-fan']*1.5);assert(cadence['arrow-sniper']<cadence['arrow-fan']);
@@ -40,7 +35,7 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  console.log('PASS expanded combat '+(release?'release controller':specialize?'specialized recipes':'authoring recipes'));
 }
 // Compare the actual binary art inputs to the user-coordinate manifest.
-const catalog=data.load(),manifest=require('../assets/roster-pools.json'),art=new Set(catalog.enemySprites.map(p=>p.join(','))),empty=new Set(Object.values(manifest.omittedEmptyTiles).flat().map(p=>p.join(',')));
+const catalog=data.load(),manifest=require('../assets/roster-pools.json'),art=new Set(catalog.enemySprites.map(p=>p.join(','))),empty=new Set([...Object.values(manifest.omittedEmptyTiles),...Object.values(manifest.trimmedEnemyTiles)].flat().map(p=>p.join(',')));
 for(const pool of Object.values(manifest.requestedEnemyPools))for(const p of pool)assert(art.has(p.join(','))||empty.has(p.join(',')),'requested enemy tile retained '+p);
 const compiled=data.compile(),weapons=new Set(compiled.weaponTiles.map(p=>p.x+','+p.y));for(const pool of manifest.weaponPools)for(const p of pool.tiles)assert(weapons.has(p.join(','))||manifest.omittedEmptyWeaponTiles.some(q=>q.join(',')===p.join(',')),'requested weapon art retained '+p);assert.equal(compiled.armorTiles.length,12);
 console.log('PASS complete requested enemy, weapon and armor sprite pools');

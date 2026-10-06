@@ -19,7 +19,7 @@ function cast(p,a,shape,friendly=false){
 }
 function melee(a,reach,damage,wide=false,origin=player,hit=[]){
  for(const e of room.enemies){const x=e.x-origin.x,y=e.y-origin.y,u=x*Math.cos(a)+y*Math.sin(a),v=y*Math.cos(a)-x*Math.sin(a);
-  if(e.hp>0&&!hit.includes(e)&&(wide===7?u>0&&u<3.5&&Math.abs(v)<1.5:Math.hypot(x,y)<reach+(e.boss?.5:0)&&(wide||Math.cos(Math.atan2(y,x)-a)>.2))&&clearShot(origin,e)){hit.push(e);hitEnemy(e,damage,origin);}
+  if(e.hp>0&&!hit.includes(e)&&(wide===7?u>0&&u<3.5&&Math.abs(v)<1.5:Math.hypot(x,y)<reach+(e.boss?.5:0)&&(wide||Math.cos(Math.atan2(y,x)-a)>.2))&&clearShot(origin,e)){hit.push(e);hitEnemy(e,damage);}
  }
  return hit;
 }
@@ -33,7 +33,7 @@ function tickCombat(dt){
  }
  blows=blows.filter(b=>b.age<(b.kind===6?.42:b.kind===3?.36:.22));if(dash?.age>=.42)dash=null;
  for(const f of fields){f.age+=dt;if(f.age<f.burn||f.age>f.burn+.55)continue;
-  if(f.damage){for(const e of room.enemies)if(e.hp>0&&!f.hit.includes(e)&&spellCell(f,(e.y|0)*W+(e.x|0))>=0){f.hit.push(e);hitEnemy(e,f.damage,f);}}
+  if(f.damage){for(const e of room.enemies)if(e.hp>0&&!f.hit.includes(e)&&spellCell(f,(e.y|0)*W+(e.x|0))>=0){f.hit.push(e);hitEnemy(e,f.damage);}}
   else if(spellCell(f,(player.y|0)*W+(player.x|0))>=0)hurtPlayer();
  }
  fields=fields.filter(f=>f.age<f.burn+.55);

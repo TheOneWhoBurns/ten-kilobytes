@@ -32,7 +32,7 @@ for(let seed=0;seed<1000;seed++){
   const start=10*31+15,q=[start],s=new Set(q);for(let j=0;j<q.length;j++)for(const d of [-1,1,-31,31]){const n=q[j]+d;if((r.cells[n]&1)&&Math.abs(n%31-q[j]%31)<=1&&!s.has(n)){s.add(n);q.push(n);}}
   assert.equal(s.size,Array.from({length:api.W*api.H},(_,n)=>r.cells[n]).filter(v=>v&1).length,'every floor tile connects to room center');
   for(const p of [...r.enemies,...hazards(r),...r.loot,r.gate])assert(api.canFit(r.cells,p.x,p.y),'entities have valid player-sized floor');
-  if(r.enemies.length&&!r.enemies[0].boss){const name=require('../assets/content.json').enemies[r.enemies[0].kind].id,n=r.enemies.length;if(name==='swarm')assert(n>=20&&n<=27);if(name==='shield-wall')assert(n>=4&&n<=9);if(name==='conga'){assert(n>=8&&n<=12);assert.equal(new Set(r.enemies.map(e=>e.x+','+e.y)).size,n,'conga starts with distinct adjacent tiles');for(let k=1;k<n;k++)assert.equal(Math.hypot(r.enemies[k].x-r.enemies[k-1].x,r.enemies[k].y-r.enemies[k-1].y),1);}}
+  if(r.enemies.length&&!r.enemies[0].boss){const name=require('../assets/content.json').enemies[r.enemies[0].kind].id,n=r.enemies.length;if(name==='swarm')assert(n>=20&&n<=27);if(name==='conga'){assert(n>=8&&n<=12);assert.equal(new Set(r.enemies.map(e=>e.x+','+e.y)).size,n,'conga starts with distinct adjacent tiles');for(let k=1;k<n;k++)assert.equal(Math.hypot(r.enemies[k].x-r.enemies[k-1].x,r.enemies[k].y-r.enemies[k-1].y),1);}}
   for(const e of r.enemies){if(!e.boss)assert(Math.hypot(e.x-15.5,e.y-10.5)>4,'shared placement retains a four-tile arrival pocket');assert(e.form>=0&&e.form<require('../assets/content.json').enemySprites.length);assert(r.doors.every(d=>Math.hypot(e.x-d.x,e.y-d.y)>3),'door entries remain clear');}
  }
 }

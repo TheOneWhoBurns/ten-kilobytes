@@ -46,7 +46,7 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  key('keydown',']');tick();key('keyup',']');assert.equal(g.sprite,startSprite+(fields.seed?1:0),'dev sprite advances; release stays 104');
  key('keydown','d');handlers.blur();tick(10);assert.equal(g.x,stopped,'blur clears movement');
  if(fields.seed){key('keydown','a',fields.seed);tick(10);assert.equal(g.x,stopped,'typing does not move');}
- key('keydown','r');key('keyup','r');tick();assert.equal(g.x,0,'new run resets to entrance spawn');
+ key('keydown','r');key('keyup','r');tick();assert.equal(g.x,36,'new run resets to entrance spawn');
  console.log('PASS '+file+': runtime, held movement, release, sprite change, blur and regeneration');
 }
 const g=boot('dev/play.html'),f=g.fields;

@@ -3,13 +3,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const api=vm.runInNewContext(fs.readFileSync('src/room.js','utf8')+fs.readFileSync('src/world.js','utf8')+';({makeEntrance,canFit,tilePoint,W,H})',{atob});
 const lobby=api.makeEntrance(),r=lobby.rooms[0],spawn=api.tilePoint(r.spawn);
 assert.equal(lobby.rooms.length,1);assert.equal(lobby.nodes.length,0);assert.equal(r.enemies.length,0);assert.equal(hazards(r).length,0);assert.equal(r.loot.length,0);assert.equal(r.doors.length,0,'central ring replaces screen-edge exit');for(let y=9;y<13;y++)for(let x=13;x<17;x++)assert.equal(r.cells[y*31+x],1,'entire 4x4 ring is walkable');assert(api.canFit(r.cells,r.gate.x,r.gate.y),'player fits at exact ring center');
-assert(api.canFit(r.cells,spawn.x,spawn.y));assert(!api.canFit(r.cells,15.5,3.5));assert(!api.canFit(r.cells,15.5,16.5));
-// Each instruction has half a tile of clear space; the route bends around it.
-for(const [x,y,w]of [[11,5.5,9],[6,13.5,13],[6,15.5,15]])for(let yy=0;yy<21;yy++)for(let xx=0;xx<31;xx++)if(xx+1>x-.5&&xx<x+w+.5&&yy+1>y-.5&&yy<y+1.5)assert.equal(r.cells[yy*31+xx],0,'instruction margin stays clear of stairs');
+assert(api.canFit(r.cells,spawn.x,spawn.y));assert(api.canFit(r.cells,15.5,11.5),'ring center is open floor');
+// One open chamber: every floor cell connects to the ring, and none touches the border.
 const begin=(spawn.y|0)*31+(spawn.x|0),end=11*31+15,queue=[begin],dist=new Map([[begin,0]]);
 for(const n of queue)for(const k of [n-1,n+1,n-31,n+31])if(r.cells[k]===1&&Math.abs(k%31-n%31)<2&&!dist.has(k)){dist.set(k,dist.get(n)+1);queue.push(k);}
-assert.equal(queue.length,Array.from(r.cells).filter(x=>x===1).length,'every step connected');assert(dist.get(end)>200,'Spiral path cannot be bypassed through title gaps');
-for(let n=0;n<651;n++)if(r.cells[n]&&(n<31||n>=620||n%31===0||n%31===30))assert(n===31,'only the side start reaches the border');
+assert.equal(queue.length,Array.from(r.cells).filter(x=>x===1).length,'every step connected');assert(dist.has(end),'spawn reaches the ring');
+for(let n=0;n<651;n++)if(r.cells[n])assert(!(n<31||n>=620||n%31===0||n%31===30),'chamber stays inside the border');
 for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const saved=file==='dev/play.html'?JSON.stringify({speed:10,layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:'i',interact:'o'}}):undefined;
  const g=boot(file,saved,false,false);assert.equal(g.fields['run-status'].textContent,'Room Zero');assert.equal(g.mapCount,0);assert.equal(g.entropy,g.fields.seed?1:0,'only dev needs a reproducible run seed');assert.equal(g.randomCalls,0,'release waits until descent to generate the dungeon');assert(g.lettering.includes('ROOM ZERO'));assert(g.lettering.includes('"I" -> ATTACK')&&g.lettering.includes('"O" -> INTERACT')&&g.lettering.some(s=>s.includes('-> WASD')),'text shows actual controls');
@@ -17,5 +16,5 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  g.walkEntrance(false);assert.equal(g.fields['run-status'].textContent,'Room Zero','ring waits for interaction');assert.equal(g.x,174);assert.equal(g.y,122);g.key('keydown','a');g.tick(2);g.key('keyup','a');g.key('keydown','o');g.key('keyup','o');g.tick();assert.equal(g.x,174,'interact centers player horizontally');assert.equal(g.y,122,'interact centers player vertically');g.tick(30);assert(g.fields['run-status'].textContent.startsWith('HP 2/2 · 1 / 1'),'ring interaction enters normal level one');assert.equal(g.mapCount,1,'only entered room visible');
  if(g.fields['room-select']){g.fields['room-select'].value='6';g.fields['room-select'].onchange({target:g.fields['room-select']});g.tick();assert.equal(g.mapCount,2,'visiting exit reveals only exit, not boss or route');g.fields['room-select'].value='0';g.fields['room-select'].onchange({target:g.fields['room-select']});g.tick();assert.equal(g.mapCount,2,'visited rooms remain visible');}
  g.key('keydown','r');g.key('keyup','r');g.tick();assert.equal(g.fields['run-status'].textContent,'Room Zero');assert.equal(g.mapCount,0,'new run hides previous map');assert.equal(g.entropy,g.fields.seed?2:0,'dev restart requests fresh entropy');if(!g.fields.seed){const before=g.randomCalls;g.goDungeon();assert(g.randomCalls>before,'restart generates from new random draws');}
- console.log('PASS '+file+': safe spiral entrance, actual controls, physical spiral traversal and centered ring, level one and visited-only minimap');
+ console.log('PASS '+file+': safe open entrance, actual controls, physical traversal and centered ring, level one and visited-only minimap');
 }
