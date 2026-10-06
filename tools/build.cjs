@@ -8,9 +8,9 @@ const spec=JSON.parse(read('assets/selection.json'));
 const characterSheet=PNG.sync.read(fs.readFileSync(path.join(root,'assets/generated/104-sheet.png')));
 if(characterSheet.width!==72||characterSheet.height!==48)throw Error('104 sheet must be 6 × 4 tiles');
 const characterBits=Buffer.alloc(25*18);
-// The sheet's side-view idle/walk columns look backwards relative to its attack columns; flip them.
+// The sheet's side-view idle/walk heads look backwards (feet are right); mirror only the head rows.
 for(let t=0;t<24;t++)for(let p=0;p<144;p++){
- const flip=t<12&&t%6<3,n=((Math.floor(t/6)*12+Math.floor(p/12))*72+(t%6)*12+(flip?11-p%12:p%12))*4;
+ const flip=t<12&&t%6<3&&p<60,n=((Math.floor(t/6)*12+Math.floor(p/12))*72+(t%6)*12+(flip?11-p%12:p%12))*4;
  if(characterSheet.data[n+3]>127)characterBits[t*18+(p>>3)]|=128>>(p&7);
 }
 const death=JSON.parse(read('assets/player-death.json'));
