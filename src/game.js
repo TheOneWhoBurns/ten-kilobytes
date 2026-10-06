@@ -28,12 +28,12 @@ function enterRoom(from){
    const x=n%W*12,y=(n/W|0)*12,open=room.cells[n]&1;
    floor.fillStyle=level?worldColor(open?14:8):open?'#2a3d4a':'#101722';floor.fillRect(x,y,12,12);
    // The entrance floor repeats tile 13,0, turned a quarter per quadrant so four sections meet at the ring.
-   if(!level&&open){floor.save();floor.translate(x+6,y+6);floor.rotate([2,3,1,0][(x>168)+(y>120)*2]*Math.PI/2);tile(floor,assets.sky+8,-6,-6);floor.restore();}
+   if(!level&&open){floor.save();floor.translate(x+6,y+6);floor.rotate([2,3,1,0][(x>174)+(y>120)*2]*Math.PI/2);tile(floor,assets.sky+8,-6,-6);floor.restore();}
    floor.globalAlpha=open?.09:.25;if(level||!open)tile(floor,assets.pantry+(open?18:21)+world.shape,x,y);floor.globalAlpha=1;
   }
   // A sun or a moon lies under the entrance ring.
-  if(!level){const sky=assets.sky+(Math.random()<.5?0:4);for(let i=0;i<4;i++)floor.drawImage(atlas,(sky+i)*12,0,12,12,156+i%2*18,108+(i>>1)*18,18,18);}
-  if(!level)for(let i=0;i<4;i++)tile(floor,assets.ring+i,162+i%2*12,114+(i>>1)*12);
+  if(!level){const sky=assets.sky+(Math.random()<.5?0:4);for(let i=0;i<4;i++)floor.drawImage(atlas,(sky+i)*12,0,12,12,150+i%2*36,90+(i>>1)*36,36,36);}
+  if(!level)for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,162+i%2*24,102+(i>>1)*24,24,24);
   for(let n=0;n<W*H;n++)if(room.cells[n]>>1)tile(floor,assets.pantry+(room.cells[n]>>1)-1,n%W*12,(n/W|0)*12);
   if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
   if(DEV){$('room-select').value=level?chamber:-1;$('weapon-test').value=weapon;$('enemy-test').value=room.enemies[0]&&!room.enemies[0].boss?room.enemies[0].kind:-1;}

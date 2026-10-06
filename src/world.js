@@ -5,7 +5,7 @@ let world,level=1,chamber=0,score=0,health=2,hurt=0,hitFlash=0,weapon=0,shots=[]
 function makeEntrance(){
  // One open superellipse chamber around the ring; the player starts at its left edge.
  const cells=new Uint8Array(W*H);fillShape(cells,14,9,4);
- return{hue:215,shape:0,motif:0,rooms:[{cells,spawn:313,doors:[],enemies:[],loot:[],gate:{x:14.5,y:10.5}}]};
+ return{hue:215,shape:0,motif:0,rooms:[{cells,spawn:313,doors:[],enemies:[],loot:[],gate:{x:15.5,y:10.5}}]};
 }
 // A 16×16 lattice centered at (8,8) packs each coordinate pair into one byte.
 // The six-room walk plus exit spans at most six steps, so neither axis can wrap.
