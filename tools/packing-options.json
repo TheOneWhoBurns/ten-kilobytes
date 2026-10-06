@@ -28,8 +28,8 @@
   "sparseModel": true,
   "precision": 16,
   "modelMaxCount": 4,
-  "modelRecipBaseCount": 24,
+  "modelRecipBaseCount": 16,
   "recipLearningRate": 1800,
-  "numAbbreviations": 16,
+  "numAbbreviations": 32,
   "dynamicModels": 1
 }

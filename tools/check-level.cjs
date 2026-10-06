@@ -24,7 +24,7 @@ for(let seed=0;seed<1000;seed++){
  const w=api.makeLevel(seed,1);assert.equal(JSON.stringify(w),JSON.stringify(api.makeLevel(seed,1)),'seed reproduces entire level');assert.equal(w.rooms.length,6);assert(w.boss>0&&w.boss<6);variants.add(w.exit);
  assert.equal(w.rooms.flatMap(r=>r.enemies).filter(e=>e.boss).length,1,'one boss');assert.equal(JSON.stringify(w.rooms[w.boss].gate),'{"x":15.5,"y":10.5}','the landmark exit stands in the boss arena');
  const arena=w.rooms[w.boss];assert(arena.cells.filter(c=>c===1).length>=180,'boss arena has broad open floor');for(let y=7;y<=13;y++)for(let x=9;x<=21;x++)assert.equal(arena.cells[y*31+x],1,'boss fighting core is unobstructed');
- assert(w.motif>=0&&w.motif<625);assert(w.reward>=0&&w.reward<1);
+ assert(Number.isInteger(w.song)&&w.song>=0,"each floor carries a song seed");assert(w.reward>=0&&w.reward<1);
  const queue=[0],seen=new Set(queue);for(let i=0;i<queue.length;i++)for(const d of w.rooms[queue[i]].doors)if(!seen.has(d.to)){seen.add(d.to);queue.push(d.to);}assert.equal(seen.size,6,'whole level connected');
  for(let i=0;i<6;i++){
   const r=w.rooms[i];assert.equal(r.loot.length,0,'no potion or weapon spawns before combat');assert(r.enemies.every(e=>e.hp===(e.boss?280/3:1)),'ordinary HP 1; boss HP is two thirds of 140');assert(r.enemies.every(e=>!e.boss||e.kind===0),'one Skull identity across biomes');assert(props(r).every(p=>p.x>=0&&p.x<31&&p.y>=0&&p.y<21),'props remain on the map');if(i<6){assert(r.doors.length>=1,'every combat room connects');if(r.doors.length===1)deadEnds++;}if(r.doors.length>2)branching++;

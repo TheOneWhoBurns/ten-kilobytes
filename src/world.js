@@ -1,17 +1,17 @@
 // Generate only the current floor, using one seeded stream; visits retain room state.
 const exitNames=['Tiny palace','Portal','Giant mirror','Hole','Giant mouth','Hollow tree','Skull stairs','Buried elevator','Whirlpool','Folded doorway'];
-let world,level=1,chamber=0,score=0,health=2,hurt=0,hitFlash=0,weapon=0,shots=[],worldTime=0,travel=0,destination=-1;
+let world,level=1,chamber=0,health=2,hurt=0,hitFlash=0,weapon=0,shots=[],worldTime=0,travel=0,destination=-1;
 // A safe, fixed prologue. The dungeon is generated only when its doorway is crossed.
 function makeEntrance(){
  // One open superellipse chamber around the ring; the player starts at its left edge.
  const cells=new Uint8Array(W*H);fillShape(cells,14,9,4);
- return{hue:215,shape:0,motif:0,rooms:[{cells,spawn:313,doors:[],enemies:[],loot:[],gate:{x:15.5,y:10.5}}]};
+ return{hue:215,shape:0,song:7349,rooms:[{cells,spawn:313,doors:[],enemies:[],loot:[],gate:{x:15.5,y:10.5}}]};
 }
 // A 16×16 lattice centered at (8,8) packs each coordinate pair into one byte.
 // The six-room walk plus exit spans at most six steps, so neither axis can wrap.
 function makeLevel(value,depth){
  rng=randomFor(value+':'+depth);
- const theme=pick(3),result={hue:[215,175,265][theme]+pick(25),shape:theme,exit:pick(exitNames.length),rooms:[],boss:0,reward:rng(),motif:pick(625)},nodes=[136],steps=[1,-1,16,-16];
+ const theme=pick(3),result={hue:[215,175,265][theme]+pick(25),shape:theme,exit:pick(exitNames.length),rooms:[],boss:0,reward:rng(),song:rng()*2**31|0},nodes=[136],steps=[1,-1,16,-16];
  while(nodes.length<6){const n=nodes[pick(nodes.length)]+steps[pick(4)];if(!nodes.includes(n))nodes.push(n);}
  const links=nodes.map(p=>steps.map(d=>nodes.indexOf(p+d))),queue=[0];
  for(let j=0;j<queue.length;j++)for(const n of links[queue[j]])if(n>=0&&!queue.includes(n)){queue.push(n);result.boss=n;}
@@ -91,7 +91,6 @@ function bossWeapon(e){const pool=bossDrops[e.kind];return pool[Math.floor(world
 function hitEnemy(e,damage){
  if(e.hp<=0)return;
 e.hp=Math.max(0,e.hp-damage);if(e.hp){e.flash=.12;tone(80,.045,'triangle',.025);return;}tone(e.boss?110:75,e.boss?.5:.12,'triangle',.04);
- if(health)score+=e.boss?75+Math.random()*51|0:5+Math.random()*11|0;
  objects.push({x:e.x,y:e.y,kind:1,value:Math.random()*5|0});
  if(e.boss)objects.push({x:e.x,y:e.y,kind:3,value:bossWeapon(e)});
 }
@@ -189,7 +188,7 @@ function drawWorld(){
  if(!level){
   const controls=DEV?dev.controls():['W A S D','I','O'];
   // The title is the sheet's gothic capitals at double size.
-  for(let i=0;i<9;i++)ctx.drawImage(atlas,(assets.title+i)*12,0,12,12,78+i*24,18,24,24);
+  for(let i=0;i<9;i++)tile(ctx,assets.title+i,78+i*24,18,24);
   writeTiles((DEV?controls[0].replaceAll(' ',''):'WASD')+' -> MOVE',4.5);writeTiles('SPACE -> HOLD',6);writeTiles(DEV?'"'+controls[1]+'" -> ATTACK':'"I" -> ATTACK',14);writeTiles(DEV?'"'+controls[2]+'" -> INTERACT':'"O" -> INTERACT',16);
   if(DEV/*diagnostics*/){$('run-status').textContent='Room Zero';$('pickup-status').textContent=Math.hypot(player.x-room.gate.x,player.y-room.gate.y)<1.8?controls[2]+' · Descend':'Follow the stairs';}
  }
@@ -218,11 +217,13 @@ function tone(hz,duration,type='square',volume=.02,delay=0){
  g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
  o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+duration);
 }
-// A four-bar minor loop: triangle bass, square arpeggio and a floor-seeded sine melody.
+// Every floor rolls its own song from one seed: scale, key, tempo, chord walk, arpeggio stride,
+// melody rhythm and notes. The bass is triangle, the arpeggio square and the melody sine.
 function musicTick(dt){
- if(!audio)return;beatClock-=dt;if(beatClock>0)return;beatClock+=.24+world.shape*.02;
- const step=beat++%8,root=[0,8,3,7][beat>>3&3]+world.hue%12,play=(n,d,v,g)=>tone(65.4*2**((n+root)/12),d,v,g);
+ if(!audio)return;beatClock-=dt;if(beatClock>0)return;
+ const s=world.song,step=beat++%8,scale=[[0,3,5,7,10],[0,2,4,7,9],[0,1,5,7,8]][s%3],root=scale[s>>(beat>>3&3)*2+2&3]+(s>>4)%12,play=(n,d,v,g)=>tone(65.4*2**((n+root)/12),d,v,g);
+ beatClock+=.2+(s>>10&7)*.014;
  if(!(step%4))play(0,.7,'triangle',.045);
- play([12,19,24,15][step%4],.3,'square',.012);
- if(world.motif>>step&1)play(24+[0,3,5,7,10][(world.motif>>step+3)%5],.5,'sine',.02);
+ play(12+scale[step*(s>>13&3|1)%5],.3,'square',.012);
+ if(s>>16+step&1)play(24+scale[(s>>step+21)%5],.5,'sine',.02);
 }

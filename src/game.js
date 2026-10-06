@@ -6,7 +6,7 @@ const atlas=DEV?document.createElement('canvas'):canvas.cloneNode(),art=atlas.ge
 const background=DEV?document.createElement('canvas'):canvas.cloneNode();if(DEV){background.width=372;background.height=252;}
 const floor=background.getContext('2d');
 let room,player,sprite=104,last=0,seed,dev;
-function tile(c,index,x,y){c.drawImage(atlas,index*12,0,12,12,x,y,12,12);}
+function tile(c,index,x,y,size=12){c.drawImage(atlas,index*12,0,12,12,x,y,size,size);}
 // Centred lettering with a hard drop shadow.
 function writeTiles(text,y,font='bold 14px monospace'){
  ctx.font=font;ctx.textAlign='center';
@@ -15,7 +15,7 @@ function writeTiles(text,y,font='bold 14px monospace'){
 
 function reset(fresh=false){
   if(fresh){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];if(DEV)$('seed').value=seed;}
-  level=0;chamber=0;score=0;maxHealth=health=2;weaponArt=0;hitFlash=0;weapon=0;world=makeEntrance();makeActor();enterRoom();
+  level=0;chamber=0;maxHealth=health=2;weaponArt=0;hitFlash=0;weapon=0;world=makeEntrance();makeActor();enterRoom();
 }
 function enterRoom(from){
   clearKeys();room=world.rooms[chamber];player=tilePoint(room.spawn);shots=[];fields=[];blows=[];dash=null;gaze=0;hurt=1;travel=0;resetActions();
@@ -32,8 +32,7 @@ function enterRoom(from){
    floor.globalAlpha=open?.09:.25;if(level||!open)tile(floor,assets.pantry+(open?18:21)+world.shape,x,y);floor.globalAlpha=1;
   }
   // A sun or a moon lies under the entrance ring.
-  if(!level){const sky=assets.sky+(Math.random()<.5?0:4);for(let i=0;i<4;i++)floor.drawImage(atlas,(sky+i)*12,0,12,12,150+i%2*36,90+(i>>1)*36,36,36);}
-  if(!level)for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,162+i%2*24,102+(i>>1)*24,24,24);
+  if(!level){const sky=assets.sky+(Math.random()<.5?0:4);for(const [index,size] of [[sky,36],[assets.ring,24]])for(let i=0;i<4;i++)tile(floor,index+i,186-size+i%2*size,126-size+(i>>1)*size,size);}
   for(let n=0;n<W*H;n++)if(room.cells[n]>>1)tile(floor,assets.pantry+(room.cells[n]>>1)-1,n%W*12,(n/W|0)*12);
   if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
   if(DEV){$('room-select').value=level?chamber:-1;$('weapon-test').value=weapon;$('enemy-test').value=room.enemies[0]&&!room.enemies[0].boss?room.enemies[0].kind:-1;}
@@ -104,7 +103,6 @@ function frame(time){
     const x=Math.round(player.x*12)-6,y=Math.round(player.y*12)-10;
     ctx.fillStyle='#090c08';ctx.fillRect(x+2,y+10,8,3);ctx.globalAlpha=hurt>0&&Math.floor(hurt*12)%2?.45:1;drawActor(x,y);ctx.globalAlpha=1;drawCombat();
     if(hitFlash){ctx.fillStyle='#df5665';ctx.globalAlpha=hitFlash;ctx.fillRect(0,0,W*12,H*12);ctx.globalAlpha=1;}
-    if(!health)writeTiles('SCORE '+score,1);
     if(DEV)dev.draw(dt,time);
     if(DEV)canvas.dataset.action=action? action.type:'idle';
     if(DEV)canvas.dataset.frame=actionFrame();
