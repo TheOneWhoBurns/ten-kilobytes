@@ -47,7 +47,7 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
  });
  // Normalize fields that a behavior never reads. Future recipes retain every field
  // used by any mode in their sequence; constant-column specialization can then fold it.
- const uses={COUNT:[0,2,3,4,6],COUNT_STEP:[0,2,3,4,6],SPEED:[0,2],WIND:[0,1,2],ACTIVE:[0,1,2],COOL:[0,1,2],COOL_STEP:[0,1,2],MOVE:[0,1,2,3,5,6,8],SPREAD:[0,2],RECOVER:[0,1,2],RANGE:[0,1,2],STANDOFF:[0,2],LIFE:[0,2],CHARGE:[1,7]};
+ const uses={COUNT:[0,2,3,4,6],COUNT_STEP:[0,2,3,4,6],SPEED:[0,2],WIND:[0,1,2],ACTIVE:[0,1,2],COOL:[0,1,2],COOL_STEP:[0,1,2],MOVE:[0,1,2,3,5,6,8,9],SPREAD:[0,2],RECOVER:[0,1,2],RANGE:[0,1,2],STANDOFF:[0,2],LIFE:[0,2],CHARGE:[1,7]};
  for(const [name,modes] of Object.entries(uses)){
   const column=schema.E.indexOf(name),used=row=>(Array.isArray(row[0])?row[0]:[row[0]]).some(m=>modes.includes(m)),counts=new Map();
   for(const row of enemyRows)if(used(row))counts.set(row[column],(counts.get(row[column])||0)+1);

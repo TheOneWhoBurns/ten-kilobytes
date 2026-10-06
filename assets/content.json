@@ -426,7 +426,7 @@
         "base": 56,
         "variants": 13
       },
-      "move": 0.15,
+      "move": 0.5,
       "attack": {
         "mode": "medusa",
         "cooldown": 1,

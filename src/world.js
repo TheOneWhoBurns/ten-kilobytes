@@ -133,7 +133,8 @@ function tickWorld(dt){
    }
    if(mode===7){if(e.wait<=0){e.angle=a;e.wait=.7+d/rule[E_CHARGE];}const x=e.x,y=e.y;movePlayer(room.cells,e,Math.cos(e.angle),Math.sin(e.angle),dt,rule[E_CHARGE]);if(Math.hypot(e.x-x,e.y-y)<dt)e.wait=0;}
    if(mode===8){if(e.wait<=0&&clearShot(e,player)){cast(e,a,e.pattern*e.pattern);e.wait=3.5;}if(d>8)seek(e,player,dt,speed);}
-   if(mode===9){if(e.wait<=0){e.angle=a;e.wait=7;}e.look=d<7&&Math.cos(a-e.angle)>.866&&clearShot(e,player);if(e.look)room.looking=true;}
+   // Medusa swings its gaze cone after the player and closes in to keep them inside it.
+   if(mode===9){const turn=Math.atan2(Math.sin(a-e.angle),Math.cos(a-e.angle));e.angle+=Math.max(-dt*2.5,Math.min(dt*2.5,turn));if(d>4)seek(e,player,dt,speed);e.look=d<7&&Math.cos(a-e.angle)>.866&&clearShot(e,player);if(e.look)room.looking=true;}
    if(mode!==7&&mode!==9)e.angle=a;
   }else{
    const mode=SEQUENCED_ENEMIES?rule[E_MODE][(e.cycle-(e.phase>1))%rule[E_MODE].length]:rule[E_MODE],lunge=mode===1;
@@ -170,12 +171,12 @@ function drawWorld(){
  for(const e of room.enemies)if(e.hp>0){
   const rule=enemyRule(e),size=e.boss?24:12,cx=Math.round(e.x*12),cy=Math.round(e.y*12),wind=e.phase===1,bob=e.phase===0?Math.sin(worldTime*9+e.x)*1.2:0,stretch=wind?.8:e.phase===2?1.15:1;
   ctx.fillStyle='#050a10';ctx.fillRect(cx-size/2,cy+size/2-2,size,3);
-  ctx.save();ctx.translate(cx,cy+bob);ctx.scale(Math.cos(e.angle)<0?-1:1,stretch);ctx.globalAlpha=e.flash?.35:1;
+  ctx.save();ctx.translate(cx,cy+bob);ctx.scale(Math.cos(e.angle)>0?-1:1,stretch);ctx.globalAlpha=e.flash?.35:1;
   if(e.boss)for(let j=0;j<4;j++)tile(ctx,assets.bosses+j,-12+j%2*12,-12+(j>>1)*12);
   else tile(ctx,assets.enemies+(rule[E_ANIM]?rule[E_ART]+world.shape*rule[E_THEME]+Math.floor(worldTime*rule[E_ANIM])%rule[E_FRAMES]:e.form),-6,-6);
   ctx.restore();
   // A medusa's gaze is a visible line while it is building madness.
-  if(e.look){ctx.strokeStyle='#c394ff';ctx.globalAlpha=.5;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(player.x*12,player.y*12-4);ctx.stroke();ctx.globalAlpha=1;}
+  if(rule[E_MODE]===9){ctx.fillStyle='#c394ff';ctx.globalAlpha=e.look?.3:.1;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,84,e.angle-.52,e.angle+.52);ctx.fill();ctx.globalAlpha=1;}
  }
  for(const s of shots){const x=Math.round(s.x*12),y=Math.round(s.y*12);if(!s.boss){ctx.save();ctx.translate(x,y);ctx.rotate(s.art>=0?s.age*16:Math.atan2(s.dy,s.dx)+Math.PI/4);tile(ctx,s.art>=0?assets.weapon+s.art:assets.effects,-6,-6);ctx.restore();}else{ctx.fillStyle='#ff9b87';ctx.fillRect(x-1,y-2,3,5);ctx.fillRect(x-2,y-1,5,3);}}
  drawGate();
