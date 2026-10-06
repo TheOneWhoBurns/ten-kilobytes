@@ -57,10 +57,10 @@ function setupDev(){
  for(const d of bindings)$('bind-'+d).onclick=()=>{keys.clear();releaseActions();pending=d;$('binding-status').textContent=d+': press key';sync();};
  $('pause').onclick=pause;
  $('dev-toggle').onclick=()=>{cancel();settings.collapsed=!settings.collapsed;sync();save();};
- $('collision').onchange=e=>{collision=e.target.checked;keys.clear();if(collision&&!canFit(room.cells,player.x,player.y))player={...room.spawn};sync();};
- $('respawn').onclick=()=>{keys.clear();releaseActions();player={...room.spawn};canvas.focus();};
+ $('collision').onchange=e=>{collision=e.target.checked;keys.clear();if(collision&&!canFit(room.cells,player.x,player.y))player=tilePoint(room.spawn);sync();};
+ $('respawn').onclick=()=>{keys.clear();releaseActions();player=tilePoint(room.spawn);canvas.focus();};
  for(const id of ['grid','hitbox'])$(id).onchange=e=>{settings[id]=e.target.checked;save();};
- $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;keys.clear();releaseActions();last=0;if(!canFit(room.cells,player.x,player.y))player={...room.spawn};$('binding-status').textContent='';sync();save();};
+ $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;keys.clear();releaseActions();last=0;if(!canFit(room.cells,player.x,player.y))player=tilePoint(room.spawn);$('binding-status').textContent='';sync();save();};
  sync();
  return {
   controls:()=>[directions.map(d=>label(settings.bindings[d])).join(' '),label(settings.bindings.attack),label(settings.bindings.interact)],

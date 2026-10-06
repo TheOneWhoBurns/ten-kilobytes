@@ -7,10 +7,13 @@ function boot(file,saved,peaceful=true,dungeon=true){
  for(const match of html.matchAll(/<(input|button|select|span|div|canvas|p)[^>]*\bid="([^"]+)"[^>]*>/g)){
   fields[match[2]]=match[1]==='input'?new Input(match[0].match(/value="([^"]*)"/)?.[1]||''):new Element(match[1].toUpperCase());
  }
- const context={fillText(text){lettering.push(text);},clearRect(){},save(){},restore(){},rotate(){},translate(){},scale(){},fillRect(x,y,w,h){if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){lastDraw=args;const letters=fields.seed?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''),i=args[1]/12-(args[0].width/12-25-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
+ const context={fillText(text){lettering.push(text);},clearRect(){},save(){},restore(){},rotate(){},translate(){},scale(){},fillRect(x,y,w,h){if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){lastDraw=args;const letters=(fields.seed?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''))+'@"->',i=args[1]/12-(args[0].width/12-25-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
  const canvas=fields.game;canvas.getContext=()=>context;canvas.parentElement={getBoundingClientRect:()=>({width:1200,height:650})};
  const document={getElementById:id=>fields[id],createElement:()=>{const node={};node.getContext=()=>({...context,drawImage(...args){if(node.width===12&&node.height===456&&args[0]!==node&&args[6]===0)actorSprite=args[1]/12+103;}});return node;},addEventListener:(name,fn)=>handlers[name]=fn};
- const sandbox={document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=++entropy;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
+ let audioContexts=0,audioNotes=0;
+ class AudioContext{constructor(){audioContexts++;this.state='running';}get currentTime(){return time/1000;}get destination(){return{};}resume(){this.state='running';}createOscillator(){return{frequency:{},connect(){},disconnect(){},start(){audioNotes++;},stop(){}};}createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}}
+ let randomCalls=0;const random=require('./test-random.cjs')('1:1');
+ const sandbox={AudioContext,Math:Object.assign(Object.create(Math),{random(){randomCalls++;return random();}}),document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=++entropy;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],sandbox);
  if(fields.seed)assert(/Room Zero|Memorial|Sluice|Reading/.test(fields.info.textContent),'room generated');
  // Controls are exercised independently of combat; survival has its own suite.
@@ -20,7 +23,7 @@ function boot(file,saved,peaceful=true,dungeon=true){
  tick();
  const walkEntrance=(enter=true)=>{
   const bindings=saved?JSON.parse(saved).bindings:null;
-  for(const [x,y] of [[29.5,1.5],[29.5,19.5],[1.5,19.5],[1.5,3.5],[7.5,3.5],[7.5,5.5],[25.5,5.5],[25.5,3.5],[27.5,3.5],[27.5,17.5],[3.5,17.5],[3.5,7.5],[23.5,7.5],[23.5,15.5],[5.5,15.5],[5.5,9.5],[10.5,9.5],[10.5,11.5],[15,11.5],[15,11]])for(const [axis,target,negative,positive] of [[5,x*12-6,'left','right'],[6,y*12-6,'up','down']]){
+  for(const [x,y] of require('./fixtures/entrance-route.json'))for(const [axis,target,negative,positive] of [[5,x*12-6,'left','right'],[6,y*12-10,'up','down']]){
    if(Math.abs(lastDraw[axis]-target)<1)continue;const dir=lastDraw[axis]>target?negative:positive,button=bindings?.[dir]||{left:'a',right:'d',up:'w',down:'s'}[dir];
    key('keydown',button);let steps=0;while(Math.abs(lastDraw[axis]-target)>=1&&steps++<1000)tick(1,1000/120);key('keyup',button);assert(steps<1000,'narrow entrance traversal reaches each bend');
   }
@@ -31,11 +34,11 @@ function boot(file,saved,peaceful=true,dungeon=true){
   if(peaceful)fields['clear-room']?.click();tick();
  };
  if(dungeon)goDungeon();
- return {fields,tick,key,handlers,storage,goDungeon,walkEntrance,get bitmapText(){return ink.join('')},get entropy(){return entropy},get lettering(){return lettering},get mapCount(){return mapCount},get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];return image.width===12?lastDraw[2]/12:14+lastDraw[1]/12-(image.width/12-25)},get flashes(){return hitFrames},get strokes(){return strokes}};
+ return {fields,tick,key,handlers,storage,goDungeon,walkEntrance,get bitmapText(){return ink.join('')},get entropy(){return entropy},get randomCalls(){return randomCalls},get audioContexts(){return audioContexts},get audioNotes(){return audioNotes},get lettering(){return lettering},get mapCount(){return mapCount},get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];return image.width===12?lastDraw[2]/12:14+lastDraw[1]/12-(image.width/12-25)},get flashes(){return hitFrames},get strokes(){return strokes}};
 }
 module.exports=boot;
 if(require.main===module){
-for(const file of ['dist/index.html','dev/play.html']){
+for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const g=boot(file),{fields,tick,key,handlers}=g,startX=g.x,startSprite=g.sprite;
  key('keydown','a');tick(12);key('keyup','a');assert(g.x<startX-8,'held key moves continuously');
  const stopped=g.x;tick(10);assert.equal(g.x,stopped,'keyup stops motion');
@@ -59,11 +62,11 @@ f['dev-toggle'].click();assert.equal(f['dev-panel'].hidden,true,'bar collapses')
 const saved=g.storage.get('room-zero-dev-v1'),restored=boot('dev/play.html',saved);assert.equal(+restored.fields.speed.value,10);assert.equal(restored.fields['bind-right'].textContent,'T');assert(restored.fields['dev-panel'].hidden,'collapse persisted');
 f.collision.checked=false;f.collision.onchange({target:f.collision});g.key('keydown','ArrowUp');run('t',300);g.key('keyup','ArrowUp');assert(g.x>330,'collision disabled allows wall crossing');f.collision.checked=true;f.collision.onchange({target:f.collision});g.tick();assert.equal(g.x,180,'collision restore returns embedded player to spawn');
 f.defaults.click();assert.equal(+f.speed.value,5);assert.equal(f.layout.value,'wasd');assert(!f.grid.checked&&!f.hitbox.checked&&!f['dev-panel'].hidden,'defaults restore settings');
-assert(!fs.readFileSync('dist/index.html','utf8').includes('room-zero-dev-v1'),'dev preferences removed from release');
+assert(!fs.readFileSync('dev/release-diagnostics.html','utf8').includes('room-zero-dev-v1'),'dev preferences removed from release');
 const migrated=boot('dev/play.html',JSON.stringify({speed:10,layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:' ',interact:'e'}}),true,false);assert.equal(migrated.fields['bind-attack'].textContent,'I');assert.equal(migrated.fields['bind-interact'].textContent,'O');assert.equal(+migrated.fields.speed.value,10);
 console.log('PASS dev controls: speed, pause, presets, custom/duplicate/reserved bindings, overlays, collapse, persistence, collision and defaults');
 
-for(const file of ['dist/index.html','dev/play.html']){
+for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const g=boot(file),f=g.fields,poses=new Set(),idle=g.sprite;
  g.key('keydown','o');g.key('keyup','o');g.tick();assert(!f['run-status'].textContent.includes('None'),'no power slot in HUD');
  g.key('keydown','i');g.key('keyup','i');assert.equal(f.attack['data-active'],'true','attack starts on input');
@@ -80,7 +83,7 @@ for(const file of ['dist/index.html','dev/play.html']){
  console.log('PASS '+file+': instant pickup/hit, character identity, quick recovery, pickup animation, tuning, repeat and pause');
 }
 
-for(const file of ['dist/index.html','dev/play.html']){
+for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  for(const [keyName,direction] of [['d',0],['a',1],['s',2],['w',3]]){
   const g=boot(file),poses=new Set();g.key('keydown',keyName);
   for(let n=0;n<18;n++){g.tick();poses.add(g.pose);assert(g.pose>=14+direction*6&&g.pose<20+direction*6,'walk uses the correct facing row');}
@@ -102,7 +105,7 @@ for(const frame of [3,4])for(let y=0;y<6;y++)for(let x=0;x<12;x++)assert.equal(a
 for(let y=0;y<5;y++)for(let x=0;x<12;x++)assert.equal(alpha(60+x,y+2),alpha(11-x,y),'pickup retains action orientation after requested idle swap');
 console.log('PASS 104 orientation: mirrored left row and matching idle/walk/attack/pickup head');
 
-for(const file of ['dist/index.html','dev/play.html']){
+for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  // Long input-lifecycle checks run in the safe entrance so enemy damage cannot cancel input.
  const g=boot(file,undefined,true,false),f=g.fields;g.walkEntrance(false);
  // Face left, then strafe down/right while holding a left-facing attack.
@@ -121,6 +124,8 @@ for(const file of ['dist/index.html','dev/play.html']){
  g.tick(20);assert.equal(f.attack['data-active'],'false','early click was not queued');
  f.attack.click();assert.equal(f.attack['data-active'],'true','fresh click after cooldown attacks immediately');
  g.tick(10);
+ if(f.pause){
+ // Pointer buttons exist only in development; keyboard-only release has one hold flag.
  // Pointer release must not cancel a simultaneous keyboard hold.
  g.key('keydown','i');f.attack.onpointerdown({button:0,pointerId:7,preventDefault(){}});
  f.attack.onpointerup({pointerId:7});g.tick(15);let repeated=false;
@@ -129,6 +134,7 @@ for(const file of ['dist/index.html','dev/play.html']){
  f.attack.onpointerdown({button:0,pointerId:8,preventDefault(){}});g.key('keyup','i');g.tick(15);repeated=false;
  for(let i=0;i<12;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'keyup preserves pointer input');
  f.attack.onpointercancel({pointerId:8});g.tick(10);assert.equal(f.attack['data-active'],'false','pointer cancel releases');
+ }
  // Focus within gameplay preserves held controls; leaving it safely clears them.
  g.key('keydown','i');g.handlers.focusin({target:f.game});g.tick(10);g.handlers.focusin({target:f.attack});g.tick(10);
  repeated=false;for(let i=0;i<12;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'gameplay focus preserves held attack');
@@ -141,11 +147,11 @@ for(const file of ['dist/index.html','dev/play.html']){
   f.pause.click();g.key('keydown','i');g.tick(30);f.pause.click();g.tick(40);assert.equal(f.attack['data-active'],'false','paused input does not latch a repeat');
   f['attack-mode'].value='press';f['attack-mode'].onchange({target:f['attack-mode']});g.key('keydown','i');g.tick(90);assert.equal(f.attack['data-active'],'false','press mode never auto-repeats');g.key('keyup','i');
  }
- console.log('PASS '+file+': locked attack strafe/idle, fresh direction input, cooldown gaps/no queue, independent pointer/keyboard and focus lifecycle');
+ console.log('PASS '+file+': locked attack strafe/idle, fresh direction input, cooldown gaps/no queue, focus lifecycle'+(f.pause?' and independent pointer/keyboard':''));
 }
 
 // Pickup must not swivel the character or conceal a punch, and its hit still follows aim.
-for(const file of ['dist/index.html','dev/play.html']){
+for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const g=boot(file),f=g.fields;g.key('keydown','i');g.key('keydown','o');g.key('keyup','o');g.tick();
  assert.equal(g.pose,17,'pickup cannot steal the attack pose or direction');assert(!f['run-status'].textContent.includes('None'),'no power slot');
  g.key('keyup','i');g.tick(10);assert.equal(g.pose,14,'idle keeps captured facing after simultaneous pickup');
@@ -153,22 +159,22 @@ for(const file of ['dist/index.html','dev/play.html']){
 console.log('PASS simultaneous actions: captured hit direction, punch priority and pickup');
 
 for(const fps of [30,60,144]){
- const g=boot('dist/index.html');g.key('keydown','i');let active=true,starts=1,lastStart=0;
+ const g=boot('dev/release-diagnostics.html');g.key('keydown','i');let active=true,starts=1,lastStart=0;
  for(let i=1;i<=fps;i++){g.tick(1,1000/fps);const next=g.fields.attack['data-active']==='true';if(next&&!active){const time=i*1000/fps;assert(time-lastStart>=150-1e-6,'repeat respects cooldown across frame rates');lastStart=time;starts++;}active=next;}
  assert(starts>=6&&starts<=7,'repeat cadence stays close across frame rates');
 }
 {
- const g=boot('dist/index.html');g.key('keydown','i');g.tick(4,30);assert.equal(g.fields.attack['data-active'],'false');
+ const g=boot('dev/release-diagnostics.html');g.key('keydown','i');g.tick(4,30);assert.equal(g.fields.attack['data-active'],'false');
  g.tick(1,5000);assert.equal(g.fields.attack['data-active'],'true','long frame triggers at most the next ready strike');
  g.key('keyup','i');g.tick(30);assert.equal(g.fields.attack['data-active'],'false','long frame creates no catch-up queue');
 }
 console.log('PASS cooldown timing: 30/60/144 fps cadence and no long-frame catch-up burst');
-assert.equal(boot('dist/index.html').fields['run-status'].textContent,boot('dev/play.html').fields['run-status'].textContent,'release and development begin with identical game state');
-assert.equal(boot('dist/index.html').fields['pickup-status'].textContent,boot('dev/play.html',undefined,false).fields['pickup-status'].textContent,'release and development generate the same starting encounter');
+assert.equal(boot('dev/release-diagnostics.html').fields['run-status'].textContent,boot('dev/play.html').fields['run-status'].textContent,'release and development begin with identical game state');
+assert.equal(boot('dev/release-diagnostics.html').fields['pickup-status'].textContent,boot('dev/play.html',undefined,false).fields['pickup-status'].textContent,'release and development generate the same starting encounter');
 
-for(const file of ['dist/index.html','dev/play.html']){
+for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const g=boot(file,undefined,false);let hit=false;for(let i=0;i<3600&&!g.fields['run-status'].textContent.startsWith('Fallen');i++){g.tick();if(g.fields['run-status'].textContent.startsWith('HP 1'))hit=true;}
- assert(hit,'first damage leaves 1 HP');assert(g.fields['run-status'].textContent.startsWith('Fallen'),'second hit kills player');assert(g.flashes>0,'damage draws red feedback');assert.equal(g.pose,38,'death uses dedicated atlas sprite');const x=g.x,y=g.y;g.key('keydown','d');g.key('keydown','i');g.tick(30);assert.equal(g.x,x);assert.equal(g.y,y);assert.equal(g.pose,38,'dead player does not walk or attack');g.key('keyup','d');g.key('keyup','i');g.fields.interact.click();g.tick();assert.equal(g.fields['run-status'].textContent,'Room Zero','interact restarts in safe entrance');assert.equal(g.entropy,2,'death restart rolls a new seed');
+ assert(hit,'first damage leaves 1 HP');assert(g.fields['run-status'].textContent.startsWith('Fallen'),'second hit kills player');assert(g.flashes>0,'damage draws red feedback');assert.equal(g.pose,38,'death uses dedicated atlas sprite');const x=g.x,y=g.y;g.key('keydown','d');g.key('keydown','i');g.tick(30);assert.equal(g.x,x);assert.equal(g.y,y);assert.equal(g.pose,38,'dead player does not walk or attack');g.key('keyup','d');g.key('keyup','i');g.fields.interact.click();g.tick();assert.equal(g.fields['run-status'].textContent,'Room Zero','interact restarts in safe entrance');assert.equal(g.entropy,g.fields.seed?2:0,'dev restart rolls a fresh seed; release uses native random draws');if(!g.fields.seed){const before=g.randomCalls;g.goDungeon();assert(g.randomCalls>before,'new run consumes fresh random draws');}
  console.log('PASS '+file+': 2 HP, damage flash, dedicated corpse, death lock and restart');
 }
 

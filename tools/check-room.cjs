@@ -1,8 +1,8 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const api=vm.runInNewContext(fs.readFileSync('src/room.js','utf8')+';({generate:seed=>generate(randomFor(seed)),canFit,movePlayer,W,H})');
-const {generate,canFit,movePlayer,W,H}=api,cell=(cells,n)=>cells[n]||0,layouts=new Set();
+const api=vm.runInNewContext(fs.readFileSync('src/room.js','utf8')+';({generate:seed=>generate(randomFor(seed)),canFit,movePlayer,tilePoint,W,H})');
+const {generate,canFit,movePlayer,tilePoint,W,H}=api,cell=(cells,n)=>cells[n]||0,layouts=new Set();
 for(let seed=0;seed<2000;seed++){
-  const {cells:packed,spawn}=generate(seed),cells=Array.from({length:W*H},(_,n)=>cell(packed,n)),key=Array.from(cells).join('');layouts.add(key);
+  const {cells:packed,spawn:spawnIndex}=generate(seed),spawn=tilePoint(spawnIndex),cells=Array.from({length:W*H},(_,n)=>cell(packed,n)),key=Array.from(cells).join('');layouts.add(key);
   const repeated=generate(seed).cells;assert.equal(key,Array.from({length:W*H},(_,n)=>cell(repeated,n)).join(''),'seed reproducibility');
   assert(canFit(packed,spawn.x,spawn.y),'safe spawn');
   assert(canFit(packed,spawn.x+3,spawn.y),'reachable lantern placement');
@@ -27,10 +27,10 @@ for(let seed=0;seed<2000;seed++){
   }
 }
 assert(layouts.size>1900,'generated variety');
-const room=generate('physics'),a={...room.spawn},b={...room.spawn};
+const room=generate('physics'),origin=tilePoint(room.spawn),a={...origin},b={...origin};
 movePlayer(room.cells,a,1,0,.02);movePlayer(room.cells,b,1,1,.02);
-assert(Math.abs(Math.hypot(a.x-room.spawn.x,a.y-room.spawn.y)-Math.hypot(b.x-room.spawn.x,b.y-room.spawn.y))<1e-9,'normalized diagonal speed');
-const p={...room.spawn};movePlayer(room.cells,p,1,0,10);assert(p.x-room.spawn.x<=.251,'long-frame clamp');
+assert(Math.abs(Math.hypot(a.x-origin.x,a.y-origin.y)-Math.hypot(b.x-origin.x,b.y-origin.y))<1e-9,'normalized diagonal speed');
+const p=tilePoint(room.spawn);movePlayer(room.cells,p,1,0,10);assert(p.x-origin.x<=.251,'long-frame clamp');
 console.log('PASS: 2,000 seeds; determinism, connectivity, borders, movement collision, diagonal speed and long frames.');
 
 const distances=[];for(const fps of [30,60,144]){const p={x:10.5,y:10.5},packed=new Uint8Array(W*H).fill(1);for(let i=0;i<fps/2;i++)movePlayer(packed,p,1,0,1/fps,11.5);distances.push(p.x);}assert(Math.max(...distances)-Math.min(...distances)<1e-9,'lunge speed independent of frame rate');

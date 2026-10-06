@@ -7,17 +7,17 @@
     5,
     6,
     7,
+    11,
     13,
-    21,
+    35,
     42,
-    161,
-    200
+    172
   ],
   "maxMemoryMB": 10,
-  "precision": 14,
-  "modelMaxCount": 5,
-  "modelRecipBaseCount": 10,
-  "recipLearningRate": 930,
-  "numAbbreviations": 22,
+  "precision": 15,
+  "modelMaxCount": 4,
+  "modelRecipBaseCount": 21,
+  "recipLearningRate": 1333,
+  "numAbbreviations": 16,
   "dynamicModels": 1
 }

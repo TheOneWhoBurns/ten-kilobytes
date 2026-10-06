@@ -1,9 +1,10 @@
 const {inflateSync,inflateRawSync}=require('node:zlib');
 const {unzipSync}=require('fflate');
 const zopfli=require('@gfx/zopfli');
-// l1 is a browser encoding label for Windows-1252 (also for TextDecoder).
-const prefix=(escape,xor)=>'<meta charset=l1><body onload=\'let m=new TextDecoder("l1").decode(new Uint8Array(256).map((_,i)=>i)),a=[],e=0;for(let c of p.textContent){let n=m.indexOf(c);n==='+escape+'?e=32:(a.push(n^e'+(xor?'^'+xor:'')+'),e=0)}new Response(new Response(new Uint8Array(a)).body.pipeThrough(new DecompressionStream("deflate"))).text().then(h=>{document.write(h);document.close()})\'><plaintext id=p hidden>';
-function binaryEnvelope(compressed){
+// ISO-8859-5 has a linear Cyrillic range and only two exceptional byte mappings.
+// Its inverse needs no 256-character table. "cyrillic" is its browser label.
+const prefix=(escape,xor,script)=>'<meta charset=cyrillic><body onload=\'let a=[],e=0;for(let c of p.textContent){let n=c.charCodeAt();n=n>255?n>2e3?240:n-864:n==167?253:n;n==='+escape+'?e=32:(a.push(n^e'+(xor?'^'+xor:'')+'),e=0)}new Response(new Response(new Uint8Array(a)).body.pipeThrough(new DecompressionStream("deflate"))).text().then(h=>{'+(script?'eval(h)':'document.write(h)')+';document.close()})\'><plaintext id=p hidden>';
+function binaryEnvelope(compressed,script=false){
  // Select an XOR alphabet and a rare escape byte. This is an exact byte
  // permutation: it reduces HTML escaping without altering the Deflate stream.
  const counts=new Uint32Array(256);
@@ -14,7 +15,7 @@ function binaryEnvelope(compressed){
   // escaping is unnecessary. Only NUL, CR and the escape marker need coding.
   // XOR-32 payloads for NUL/CR must not themselves equal the escape marker.
   if([13,32,45].includes(escape))continue;
-  const head=prefix(escape,xor),cost=counts[xor]+counts[13^xor]+counts[escape^xor]+head.length;
+  const head=prefix(escape,xor,script),cost=counts[xor]+counts[13^xor]+counts[escape^xor]+head.length;
   if(!best||cost<best.cost)best={xor,escape,head,cost};
  }
  const {xor,escape,head}=best,escaped=[];
@@ -23,10 +24,15 @@ function binaryEnvelope(compressed){
  if(!Buffer.from(restored).equals(compressed))throw Error('Binary alphabet round trip failed');
  return Buffer.concat([Buffer.from(head),Buffer.from(escaped)]);
 }
-async function envelope(html,iterations=1000){
- const input=Buffer.from(html),compressed=Buffer.from(await zopfli.zlibAsync(input,{numiterations:iterations}));
+async function envelope(html,iterations=1000,script=false,data){
+ // With a separate payload, compress the final document-close instruction too.
+ // It still runs after the game starts; the outer bootstrap only evaluates code.
+ const input=Buffer.from(html+(data?';document.close()':'')),compressed=Buffer.from(await zopfli.zlibAsync(input,{numiterations:iterations}));
  if(!inflateSync(compressed).equals(input))throw Error('Deflate round trip failed');
- return binaryEnvelope(compressed);
+ if(!data)return binaryEnvelope(compressed,script);
+ const result=binaryEnvelope(Buffer.concat([compressed,data]),true),marker=Buffer.from('<plaintext id=p hidden>'),end=result.indexOf(marker)+marker.length;
+ const head=result.subarray(0,end).toString('ascii').replace('new Uint8Array(a)','new Uint8Array(a.splice(0,'+compressed.length+'))').replace('.then(h=>{eval(h);document.close()})','.then(h=>eval(h))');
+ return Buffer.concat([Buffer.from(head),result.subarray(end)]);
 }
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let j=0;j<8;j++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
 function crc32(bytes){let c=-1;for(const n of bytes)c=crcTable[(c^n)&255]^(c>>>8);return(c^-1)>>>0;}
@@ -39,22 +45,24 @@ async function zipHtml(html,iterations=1000){
  const zip=Buffer.concat([local,name,data,central,name,end]);if(!Buffer.from(unzipSync(zip)['index.html']).equals(input))throw Error('ZIP archive round trip failed');return zip;
 }
 function jsInput(html){return 'document.write('+JSON.stringify(html.replace(/<script>[\s\S]*?<\/script>/,''))+');'+html.match(/<script>([\s\S]*?)<\/script>/)[1];}
-async function roller(html,options,optimize=0){
+async function roller(html,options,optimize=0,binary=false){
  const {Packer}=await import('roadroller'),data=jsInput(html),packer=new Packer([{data,type:'js',action:'eval'}],options);
- const result=optimize?await packer.optimize(optimize):null,packed=packer.makeDecoder(),code=packed.firstLine+packed.secondLine;
+ const result=optimize?await packer.optimize(optimize):null,packed=packer.makeDecoder();
+ let code=packed.firstLine+packed.secondLine,stream;
+ if(binary){const raw=await require('./byte-stream.cjs')(packer,{data,type:'js',action:'eval'},code);code=raw.code;stream=raw.data;}
  // Preprocessing normalizes string escapes. Compare parsed programs, not source spelling.
- let restored;require('node:vm').runInNewContext(code,{eval:s=>restored=s},{timeout:10000});
- const canonical=s=>JSON.stringify(require('acorn').parse(s,{ecmaVersion:2020}),(k,v)=>['start','end','raw'].includes(k)?undefined:v);
+ let restored;require('node:vm').runInNewContext(code,{eval:s=>restored=s,TextDecoder,a:stream&&Array.from(stream)},{timeout:10000});
+ const canonical=s=>JSON.stringify(require('acorn').parse(s,{ecmaVersion:2020}),function(k,v){return ['start','end'].includes(k)||k==='raw'&&!Object.hasOwn(this,'cooked')?undefined:v;});
  if(canonical(data)!==canonical(restored))throw Error('Roadroller changed the program');
- return{html:'<!doctype html><meta charset=utf-8><script>'+code.replace(/<\/script/gi,'<\\/script')+'</script>',options:packer.options,memoryMB:packer.memoryUsageMB,search:result};
+ return{code,data:stream,html:binary?undefined:'<!doctype html><meta charset=utf-8><script>'+code.replace(/<\/script/gi,'<\\/script')+'</script>',options:packer.options,memoryMB:packer.memoryUsageMB,search:result};
 }
-async function smallestEnvelope(source){
- // More inner compression can make the final ZIP larger. Select by delivered
- // bytes, including HTML escaping, bootstrap and the outer archive.
+async function smallestEnvelope(source,script=false,data){
+ // The standalone source file is the primary budget. Break equal HTML sizes
+ // by ZIP size; the build still checks both complete artifacts against 10 KB.
  let best;
  for(const iterations of [10,100,300,1000]){
-  const html=await envelope(source,iterations),zip=await zipHtml(html);
-  if(!best||Math.max(html.length,zip.length)<Math.max(best.html.length,best.zip.length))best={html,zip,iterations};
+  const html=await envelope(source,iterations,script,data),zip=await zipHtml(html);
+  if(!best||html.length<best.html.length||html.length===best.html.length&&zip.length<best.zip.length)best={html,zip,iterations};
  }
  return best;
 }

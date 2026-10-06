@@ -13,7 +13,7 @@ function reset(fresh=false){
   level=0;chamber=0;health=2;hitFlash=0;weapon=0;temper=0;world=makeEntrance();makeActor();enterRoom();
 }
 function enterRoom(from){
-  keys.clear();navSolid=navDistances=null;room=world.rooms[chamber];player={...room.spawn};shots=[];hurt=1;travel=0;resetActions();
+  keys.clear();navSolid=navDistances=null;room=world.rooms[chamber];player=tilePoint(room.spawn);shots=[];hurt=1;travel=0;resetActions();
   const door=room.doors.find(d=>d.to===from);if(door){const [dx,dy]=directions[door.dir];player.x=door.x-dx*1.5;player.y=door.y-dy*1.5;facing=Math.atan2(-dy,-dx);}
   if(!level)facing=0;
   room.visited=true;
@@ -38,7 +38,7 @@ function enterRoom(from){
     for(let k=0;k<12;k+=6){floor.fillStyle='#66818a';floor.fillRect(px+(turn?0:k),py+(turn?k:0),turn?12:1,turn?1:12);floor.fillStyle='#1a2c38';floor.fillRect(px+(turn?0:k+4),py+(turn?k+4:0),turn?12:2,turn?2:12);}
    }
   }
-  if(!level){floor.fillStyle='#101722';floor.fillRect(156,108,48,48);for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,156+i%2*24,108+(i>>1)*24,24,24);}
+  if(!level){floor.fillStyle='#324957';floor.fillRect(156,108,48,48);for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,156+i%2*24,108+(i>>1)*24,24,24);}
   for(const p of room.props){const x=p.x*12,y=p.y*12;if(p.t%6<3){floor.fillStyle='#050a1077';floor.fillRect(x+2,y+10,10,3);}tile(floor,assets.pantry+p.t,x,y-(p.t%6<3?2:0));}
   if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
   if(DEV)$('room-select').value=level?chamber:-1;
@@ -55,14 +55,15 @@ if(DEV){
  $('room-select').onchange=e=>{if(+e.target.value<0)reset();else{if(!level){level=1;world=makeLevel(seed,level);}chamber=+e.target.value;enterRoom();}canvas.focus();};
  $('clear-room').onclick=()=>{for(const e of room.enemies)if(e.hp>0)hitEnemy(e,10000);canvas.focus();};
 }
-for(const type of ['attack','interact']){
+if(DEV/*diagnostics*/)for(const type of ['attack','interact']){
  const button=$(type);
  button.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();canvas.focus();button.setPointerCapture(e.pointerId);holdAction(type,'pointer'+e.pointerId);};
  button.onpointerup=button.onpointercancel=button.onlostpointercapture=e=>releaseAction(type,'pointer'+e.pointerId);
  button.onclick=e=>{if(!e||e.detail===0)performAction(type);};
 }
-$('sound').onclick=()=>{if(!audio)audio=new AudioContext();audio.resume();muted=!muted;$('sound').textContent=muted?'Sound off':'Sound on';};
+addEventListener('pointerdown',startAudio);
 addEventListener('keydown',e=>{
+  startAudio();
   if(e.ctrlKey||e.metaKey||e.altKey||e.target.isContentEditable)return;
   if(DEV&&dev.keydown(e))return;
   if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;
@@ -75,7 +76,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(DEV)dev.keyup(k);else{if(k==='i')releaseAction('attack');if(k==='o')releaseAction('interact');}});
 addEventListener('blur',()=>{keys.clear();releaseActions();});
 document.addEventListener('visibilitychange',()=>{keys.clear();releaseActions();last=0;});
-document.addEventListener('focusin',e=>{if(e.target!==canvas&&e.target!==$('attack')&&e.target!==$('interact')){keys.clear();releaseActions();}});
+document.addEventListener('focusin',e=>{if(e.target!==canvas&&(!(DEV/*diagnostics*/)||e.target!==$('attack')&&e.target!==$('interact'))){keys.clear();releaseActions();}});
 function resize(){const r=canvas.parentElement.getBoundingClientRect(),scale=Math.min((r.width-24)/372,(r.height-24)/252),s=Math.max(.1,scale);canvas.style.width=372*s+'px';canvas.style.height=252*s+'px';}
 if(DEV)new ResizeObserver(resize).observe(canvas.parentElement);
 function frame(time){
@@ -92,7 +93,7 @@ function frame(time){
     ctx.drawImage(background,0,0);
     const step=DEV&&dev.paused?0:Math.min(dt,.05);
     tickActions(health?step:0);tickWorld(step);drawWorld();
-    const x=Math.round(player.x*12)-6,y=Math.round(player.y*12)-6;
+    const x=Math.round(player.x*12)-6,y=Math.round(player.y*12)-10;
     ctx.fillStyle='#090c08';ctx.fillRect(x+2,y+10,8,3);ctx.globalAlpha=hurt>0&&Math.floor(hurt*12)%2?.45:1;drawActor(x,y);ctx.globalAlpha=1;
     if(hitFlash){ctx.fillStyle='#df5665';ctx.globalAlpha=hitFlash;ctx.fillRect(0,0,W*12,H*12);ctx.globalAlpha=1;}
     if(DEV)dev.draw(dt,time);

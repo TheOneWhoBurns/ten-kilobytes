@@ -1,0 +1,224 @@
+{
+  "measured_at_utc": "2026-10-06T02:52:42.196Z",
+  "release_sha256": "7db379c8fc35603bad5a00bcc40728345a1625126a7e26d0596d29fc4d327555",
+  "baseline": {
+    "enemy_definitions": 2,
+    "weapon_definitions": 4,
+    "boss_definitions": 1,
+    "power_definitions": 0,
+    "definition_source_bytes": 790,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html_and_submission_zip",
+    "compliant": true,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 9.1552734375,
+    "source_bytes": 20187,
+    "html_bytes": 8454,
+    "unpacked_html_bytes": 20187,
+    "zip_bytes": 8493,
+    "sprite_count": 1,
+    "enemy_sprite_count": 8,
+    "pantry_tiles": 24,
+    "sprite_data_bytes": 1548,
+    "atlas_tiles": 86,
+    "remaining_file_bytes": 1507
+  },
+  "method": "Independent leave-one-component-out recompilation with unchanged packing settings. Sprite probes zero bitmap pixels while preserving dimensions and offsets. Code probes remove named bodies/blocks and allow dead-code elimination. Probes are not playable and are never written to dist. Deltas overlap, depend on shared dependencies/compression context, do not sum to file size, and are not guaranteed shippable removal savings.",
+  "feature_costs_descending": [
+    {
+      "id": "generation",
+      "label": "Dungeon generation: room shapes, graph, doors, placement and hazard patches",
+      "html_bytes_saved": 1351,
+      "expanded_bytes_saved": 3830,
+      "probe_html_bytes": 7103
+    },
+    {
+      "id": "sprites",
+      "label": "All sprite bitmap content; keeps decoder and atlas dimensions",
+      "html_bytes_saved": 849,
+      "expanded_bytes_saved": 0,
+      "probe_html_bytes": 7605
+    },
+    {
+      "id": "projectiles",
+      "label": "Weapon attacks, shared projectiles, damage and boss drops",
+      "html_bytes_saved": 639,
+      "expanded_bytes_saved": 1918,
+      "probe_html_bytes": 7815
+    },
+    {
+      "id": "entrance",
+      "label": "Room Zero route, labels and stair/ring painting, including its exclusive art",
+      "html_bytes_saved": 550,
+      "expanded_bytes_saved": 790,
+      "probe_html_bytes": 7904
+    },
+    {
+      "id": "audio",
+      "label": "All music and sound synthesis",
+      "html_bytes_saved": 545,
+      "expanded_bytes_saved": 1430,
+      "probe_html_bytes": 7909
+    },
+    {
+      "id": "input",
+      "label": "Keyboard/focus/visibility handling and dependent player action dispatch",
+      "html_bytes_saved": 437,
+      "expanded_bytes_saved": 1485,
+      "probe_html_bytes": 8017
+    },
+    {
+      "id": "terrain",
+      "label": "Static room painting: walls, stairs, textures, props, palettes and ring",
+      "html_bytes_saved": 391,
+      "expanded_bytes_saved": 1560,
+      "probe_html_bytes": 8063
+    },
+    {
+      "id": "ai",
+      "label": "Enemy/boss decisions, attack timing and shared pathfinding",
+      "html_bytes_saved": 320,
+      "expanded_bytes_saved": 1051,
+      "probe_html_bytes": 8134
+    },
+    {
+      "id": "landmarks",
+      "label": "Exit landmarks and visible room-door drawing",
+      "html_bytes_saved": 230,
+      "expanded_bytes_saved": 972,
+      "probe_html_bytes": 8224
+    },
+    {
+      "id": "enemy_render",
+      "label": "Enemy/boss rendering, squash/bob animation and boss health bar",
+      "html_bytes_saved": 162,
+      "expanded_bytes_saved": 575,
+      "probe_html_bytes": 8292
+    },
+    {
+      "id": "player_render",
+      "label": "Player pose selection, rendering and punch effect",
+      "html_bytes_saved": 139,
+      "expanded_bytes_saved": 516,
+      "probe_html_bytes": 8315
+    },
+    {
+      "id": "movement",
+      "label": "Shared movement integration and tile collision",
+      "html_bytes_saved": 118,
+      "expanded_bytes_saved": 455,
+      "probe_html_bytes": 8336
+    },
+    {
+      "id": "minimap",
+      "label": "Visited-room minimap",
+      "html_bytes_saved": 63,
+      "expanded_bytes_saved": 169,
+      "probe_html_bytes": 8391
+    }
+  ],
+  "sprite_content_descending": [
+    {
+      "name": "environment",
+      "start": 0,
+      "count": 24,
+      "raw_bytes": 432,
+      "html_bytes_saved": 276
+    },
+    {
+      "name": "legend",
+      "start": 43,
+      "count": 18,
+      "raw_bytes": 324,
+      "html_bytes_saved": 194
+    },
+    {
+      "name": "player",
+      "start": 61,
+      "count": 25,
+      "raw_bytes": 450,
+      "html_bytes_saved": 140
+    },
+    {
+      "name": "enemies",
+      "start": 27,
+      "count": 8,
+      "raw_bytes": 144,
+      "html_bytes_saved": 79
+    },
+    {
+      "name": "boss",
+      "start": 35,
+      "count": 4,
+      "raw_bytes": 72,
+      "html_bytes_saved": 59
+    },
+    {
+      "name": "ring",
+      "start": 39,
+      "count": 4,
+      "raw_bytes": 72,
+      "html_bytes_saved": 46
+    },
+    {
+      "name": "weapons",
+      "start": 24,
+      "count": 3,
+      "raw_bytes": 54,
+      "html_bytes_saved": 27
+    }
+  ],
+  "exact_file_breakdown": [
+    {
+      "label": "Compressed game program and embedded art",
+      "bytes": 7637
+    },
+    {
+      "label": "Compressed decompressor",
+      "bytes": 487
+    },
+    {
+      "label": "HTML bootstrap and transport decoder",
+      "bytes": 327
+    },
+    {
+      "label": "Transport escape bytes",
+      "bytes": 3
+    }
+  ],
+  "runtime_known_payloads_descending": [
+    {
+      "label": "Temporary decompression model",
+      "bytes": 9600000,
+      "basis": "Packer-reported allocation; temporary during startup, not measured browser RSS."
+    },
+    {
+      "label": "Main and background canvases",
+      "bytes": 749952,
+      "basis": "Two observed 372×252 canvases × 4 bytes/pixel; RGBA-equivalent storage, not measured GPU/browser allocation."
+    },
+    {
+      "label": "Runtime sprite atlas",
+      "bytes": 49536,
+      "basis": "Observed atlas dimensions × 4 bytes/pixel; RGBA-equivalent storage."
+    },
+    {
+      "label": "Seven room tile grids",
+      "bytes": 4557,
+      "basis": "Exact Uint8Array payload bytes; excludes objects and buffer headers."
+    },
+    {
+      "label": "Active navigation distance field",
+      "bytes": 1302,
+      "basis": "Exact Int16Array payload bytes; excludes headers and temporary BFS queue."
+    },
+    {
+      "label": "Floor graph coordinates",
+      "bytes": 7,
+      "basis": "Exact Uint8Array payload bytes; excludes room/door objects."
+    }
+  ],
+  "runtime_unknown": "JS engine/JIT and browser overhead, model scratch storage, decoded strings, Web Audio internals, GPU buffers, enemies/props/doors/projectile object overhead and transient queues are not measured. No total browser RAM claim."
+}

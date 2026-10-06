@@ -10,6 +10,10 @@ for(let seed=0;seed<fixture.seed_count;seed++)for(const depth of fixture.depths)
  world.nodes=Array.from(world.nodes,n=>[(n&15)-8,(n>>4)-8]);
  let bytes=0;
  for(const room of world.rooms){
+  // Restore the legacy duplicate objects before comparing the immutable hash.
+  room.hazards=require('./hazard-view.cjs')(room);delete room.offset;
+  assert(Number.isInteger(room.spawn)&&room.spawn>=0&&room.spawn<651);
+  room.spawn={x:room.spawn%31+.5,y:Math.floor(room.spawn/31)+.5};
   assert.equal(room.cells.byteLength,651);bytes+=room.cells.byteLength;
   const values=Array.from({length:api.W*api.H},(_,n)=>room.cells[n]);
   room.features=values.map(v=>v>>1);room.cells=values.map(v=>+(v===1));

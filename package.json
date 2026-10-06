@@ -4,13 +4,15 @@
   "description": "Procedural real-time roguelike with a 10,000-byte standalone file budget",
   "scripts": {
     "build": "node tools/build.cjs",
-    "test": "node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs && node tools/check-catalog.cjs && node tools/game-equivalence.cjs --current-source && node tools/check-representation.cjs && node tools/check-landmarks.cjs && node tools/check-packing.cjs && node tools/check-content.cjs && node tools/check-entrance.cjs",
+    "test": "node tools/build-diagnostics.cjs && node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs && node tools/check-catalog.cjs && node tools/game-equivalence.cjs --current-source && node tools/check-representation.cjs && node tools/check-landmarks.cjs && node tools/check-packing.cjs && node tools/check-content.cjs && node tools/check-entrance.cjs && node tools/check-release.cjs",
     "dev": "node tools/serve.cjs",
     "catalog": "node tools/catalog.cjs",
     "test:equivalence": "node tools/game-equivalence.cjs --current-source",
     "measure": "node tools/build.cjs --measure",
     "measure:source": "node tools/build.cjs --source --measure",
-    "measure:content": "node tools/measure-content.cjs"
+    "measure:content": "node tools/measure-content.cjs",
+    "test:checkpoint": "node tools/game-equivalence.cjs --entrance",
+    "measure:inventory": "node tools/measure-inventory.cjs"
   },
   "type": "commonjs",
   "devDependencies": {
@@ -20,7 +22,7 @@
     "esbuild": "^0.28.2",
     "fflate": "^0.8.3",
     "pngjs": "^7.0.0",
-    "roadroller": "^2.1.0",
+    "roadroller": "2.1.0",
     "terser": "^5.51.2"
   },
   "private": true

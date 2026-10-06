@@ -1,3 +1,4 @@
+const hazards=require('./hazard-view.cjs');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const context={fillText(){},fillRect(){},clearRect(){},drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},strokeRect(){}};
 const fields=new Map(),document={createElement:()=>({getContext:()=>context}),getElementById:id=>{if(!fields.has(id))fields.set(id,{getContext:()=>context,setAttribute(){},style:{}});return fields.get(id);}};
@@ -11,7 +12,7 @@ const api=vm.runInNewContext('const DEV=false,assets={letters:"",enemyCount:8,we
  walking(v){walking=v;},
  speed:movementFactor,
  clock(t){worldTime=t;hurt=0;},
- score(){const notes=[];audio={currentTime:0,destination:{},createOscillator(){const o={frequency:{},connect(){},disconnect(){},start(){notes.push(o.frequency.value);},stop(){}};return o;},createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}};muted=false;beat=0;beatClock=0;for(let i=0;i<1200;i++)musicTick(1/60);audio=null;muted=true;return notes;},
+ score(){const notes=[];audio={currentTime:0,destination:{},createOscillator(){const o={frequency:{},connect(){},disconnect(){},start(){notes.push(o.frequency.value);},stop(){}};return o;},createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}};beat=0;beatClock=0;for(let i=0;i<1200;i++)musicTick(1/60);audio=null;return notes;},
  injury(){const calls=[],old=tone;tone=(...args)=>calls.push(args);health=2;hurt=0;hurtPlayer();hurtPlayer();hurt=0;hurtPlayer();tone=old;return calls;},
  aim(a){facing=actionStates.attack.direction=a;},
  clear(){for(const e of room.enemies)if(e.hp>0)hitEnemy(e,10000);},
@@ -31,7 +32,7 @@ for(let seed=0;seed<1000;seed++){
   for(const d of r.doors){doorOffsets.add(d.dir<2?d.y:d.x);assert(d.x===.5||d.x===30.5||d.y===.5||d.y===20.5,'door at screen edge');assert(w.rooms[d.to].doors.some(back=>back.to===i&&back.dir===(d.dir^1)),'reciprocal opposite door');assert(api.canFit(r.cells,d.x,d.y),'door is open floor');const back=w.rooms[d.to].doors.find(b=>b.to===i);assert.equal(d.dir<2?d.y:d.x,d.dir<2?back.y:back.x,'reciprocal door coordinates align');const [dx,dy]=[[1,0],[-1,0],[0,1],[0,-1]][d.dir];assert(api.canFit(r.cells,d.x-dx*1.5,d.y-dy*1.5),'safe arrival throat');}
   const start=10*31+15,q=[start],s=new Set(q);for(let j=0;j<q.length;j++)for(const d of [-1,1,-31,31]){const n=q[j]+d;if(r.cells[n]===1&&Math.abs(n%31-q[j]%31)<=1&&!s.has(n)){s.add(n);q.push(n);}}
   assert.equal(s.size,Array.from({length:api.W*api.H},(_,n)=>r.cells[n]).filter(v=>v===1).length,'every floor tile connects to room center');
-  for(const p of [...r.enemies,...r.hazards,...r.loot,r.gate])assert(api.canFit(r.cells,p.x,p.y),'entities have valid player-sized floor');
+  for(const p of [...r.enemies,...hazards(r),...r.loot,r.gate])assert(api.canFit(r.cells,p.x,p.y),'entities have valid player-sized floor');
   for(const e of r.enemies){assert(e.form>=0&&e.form<8);assert(r.doors.every(d=>Math.hypot(e.x-d.x,e.y-d.y)>3),'door entries remain clear');}
  }
 }
@@ -98,16 +99,16 @@ for(let seed=0;seed<500;seed++){
  const world=api.makeLevel(seed,1);
  for(let i=0;i<7;i++){
   const r=world.rooms[i];
-  if(world.shape===1){assert.equal(r.hazards.length,0,'no Cistern slowdown');assert(!r.props.some(p=>p.t===9),'no mud/debris art');}
-  if(i===world.boss||i===6||world.shape===1){assert.equal(r.hazards.length,0);continue;}
-  assert(r.hazards.length>=24&&r.hazards.length<=60,'large but bounded coverage');assert.equal(new Set(r.hazards.map(h=>h.offset)).size,1,'plate warning is synchronized');
-  const unseen=new Set(r.hazards.map(h=>(h.y|0)*31+(h.x|0)));assert.equal(unseen.size,r.hazards.length,'no duplicate hazard tiles');
-  for(const h of r.hazards){assert(Math.hypot((h.x|0)-15,(h.y|0)-10)>3,'safe arrival pocket');assert(r.doors.every(d=>Math.hypot(d.x-h.x,d.y-h.y)>3),'safe door approaches');assert(r.props.some(p=>p.x===(h.x|0)&&p.y===(h.y|0)&&p.t===world.shape*6+3),'visible tile for every hazard');}
+  if(world.shape===1){assert.equal(hazards(r).length,0,'no Cistern slowdown');assert(!r.props.some(p=>p.t===9),'no mud/debris art');}
+  if(i===world.boss||i===6||world.shape===1){assert.equal(hazards(r).length,0);continue;}
+  assert(hazards(r).length>=24&&hazards(r).length<=60,'large but bounded coverage');assert.equal(new Set(hazards(r).map(h=>h.offset)).size,1,'plate warning is synchronized');
+  const unseen=new Set(hazards(r).map(h=>(h.y|0)*31+(h.x|0)));assert.equal(unseen.size,hazards(r).length,'no duplicate hazard tiles');
+  for(const h of hazards(r)){assert(Math.hypot((h.x|0)-15,(h.y|0)-10)>3,'safe arrival pocket');assert(r.doors.every(d=>Math.hypot(d.x-h.x,d.y-h.y)>3),'safe door approaches');assert(r.props.some(p=>p.x===(h.x|0)&&p.y===(h.y|0)&&p.t===world.shape*6+3),'visible tile for every hazard');}
   while(unseen.size){const q=[unseen.values().next().value];unseen.delete(q[0]);for(const n of q)for(const k of [n-1,n+1,n-31,n+31])if(Math.abs(k%31-n%31)<2&&unseen.delete(k))q.push(k);assert(q.length>=12,'no isolated single-tile hazards');const xs=q.map(n=>n%31),ys=q.map(n=>n/31|0),area=(Math.max(...xs)-Math.min(...xs)+1)*(Math.max(...ys)-Math.min(...ys)+1);if(area>q.length)irregular++;patchesChecked++;}
  }
 }
 assert(irregular>patchesChecked*.9,'patches grow organically instead of filling rectangles');
-api.init(1);api.clear();let plate=api.state.room.hazards[0];assert.equal(api.state.world.shape,0);api.position(plate.x,plate.y);api.health(2);api.clock(6.7-plate.offset);api.step(1);assert.equal(api.state.health,2,'warning does not damage');api.clock(7.1-plate.offset);api.step(1);assert.equal(api.state.health,1,'active needle patch damages');api.step(1);assert.equal(api.state.health,1,'overlapping hazard cells respect immunity');
-api.init(2);api.clear();const web=api.state.room.hazards[0];assert.equal(api.state.world.shape,2);api.position(web.x,web.y);assert.equal(api.speed(),.55,'large web slows');api.position(15.5,10.5);assert.equal(api.speed(),1,'clear route stays full speed');
+api.init(1);api.clear();let plate=hazards(api.state.room)[0];assert.equal(api.state.world.shape,0);api.position(plate.x,plate.y);api.health(2);api.clock(6.7-plate.offset);api.step(1);assert.equal(api.state.health,2,'warning does not damage');api.clock(7.1-plate.offset);api.step(1);assert.equal(api.state.health,1,'active needle patch damages');api.step(1);assert.equal(api.state.health,1,'overlapping hazard cells respect immunity');
+api.init(2);api.clear();const web=hazards(api.state.room)[0];assert.equal(api.state.world.shape,2);api.position(web.x,web.y);assert.equal(api.speed(),.55,'large web slows');api.position(15.5,10.5);assert.equal(api.speed(),1,'clear route stays full speed');
 api.init(0);assert.equal(api.state.world.shape,1);assert.equal(api.speed(),1,'Cistern has no slowdown');
 console.log('PASS large connected hazard patches, synchronized needles, web slowdown, safe routes and mud/debris removal');

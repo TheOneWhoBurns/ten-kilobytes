@@ -1,5 +1,5 @@
-const actionStates={attack:{phase:1,inputs:new Set(),cooldown:0,direction:0},interact:{phase:1,inputs:new Set(),cooldown:0}};
-let action=null,facing=0,moveIntent='',objects=[],collected=0,gait=0,walking=false;
+const actionStates={attack:{type:'attack',phase:1,inputs:new Set(),cooldown:0,direction:0},interact:{type:'interact',phase:1,inputs:new Set(),cooldown:0}};
+let action=null,facing=0,moveIntent=0,objects=[],collected=0,gait=0,walking=false;
 const actor=DEV?document.createElement('canvas'):null,actorArt=DEV?actor.getContext('2d'):null;
 if(DEV){actor.width=12;actor.height=456;}
 function makeActor(){
@@ -24,7 +24,7 @@ function actionRate(type){return DEV?dev.actionRate(type):12;}
 function actionMode(type){return DEV?dev.actionMode(type):type==='attack'?'hold':'press';}
 function attackLocked(){const a=actionStates.attack;return a.phase<1||a.inputs.size>0;}
 function faceMovement(dx,dy){
- const intent=dx+','+dy;
+ const intent=dx+3*dy;
  // A held attack strafes. Releasing it preserves aim until movement input changes.
  if(intent!==moveIntent&&(dx||dy)&&!attackLocked()){
   if(dx&&dy){if(Math.abs(Math.cos(facing))>=Math.abs(Math.sin(facing)))dy=0;else dx=0;}
@@ -33,11 +33,11 @@ function faceMovement(dx,dy){
  moveIntent=intent;
 }
 function updateActionUI(){
- for(const type of ['attack','interact'])$(type).setAttribute('data-active',String(actionStates[type].phase<1));
+ if(DEV/*diagnostics*/)for(const type of ['attack','interact'])$(type).setAttribute('data-active',String(actionStates[type].phase<1));
 }
 function resetActions(){
  for(const state of Object.values(actionStates)){state.phase=1;state.inputs.clear();state.cooldown=0;}
- action=null;facing=0;moveIntent='';gait=0;walking=false;collected=0;
+ action=null;facing=0;moveIntent=0;gait=0;walking=false;collected=0;
  objects=room.loot;
  updateActionUI();
 }
@@ -76,8 +76,7 @@ function tickActions(dt){
   if(state.phase<1){state.phase+=dt*state.rate;if(state.phase>=1){state.phase=1;changed=true;}}
   if(state.inputs.size&&actionMode(type)==='hold'&&state.phase>=1&&state.cooldown<=0&&dt>0){performAction(type);changed=true;}
  }
- const type=Object.keys(actionStates).find(k=>actionStates[k].phase<1);
- action=type?{type,phase:actionStates[type].phase}:null;
+ action=actionStates.attack.phase<1?actionStates.attack:actionStates.interact.phase<1?actionStates.interact:null;
  if(changed)updateActionUI();
  for(const o of objects)if(o.kind!==2){
   const x=Math.round(o.x*12)-6,y=Math.round(o.y*12)-6;tile(ctx,assets.weapon+weaponRules[o.value][W_SPRITE],x,y);
@@ -88,15 +87,15 @@ function actionFrame(){return action?1+(action.type==='interact'?3:0)+Math.min(2
 function actorDirection(){return Math.abs(Math.sin(facing))>Math.abs(Math.cos(facing))?(facing>0?2:3):(Math.cos(facing)<0?1:0);}
 function drawActor(x,y){
  if(!health){tile(ctx,assets.actor+24,x,y);return;}
- const frame=actionFrame(),left=DEV&&Math.cos(facing)<0,jab=action?.type==='attack'?[0,2,1,0][frame]:0;
+ const frame=actionFrame(),left=DEV&&Math.cos(facing)<0,jab=action?.type==='attack'?3-frame:0;
  let phase=DEV?frame+(left?7:0):0;
  if(!DEV||sprite===104){
-  const step=Math.floor(gait)%4,column=action?[0,3,4,0,5,5,0][frame]:walking?(step===1?1:step===3?2:0):0;
+  const step=gait|0,column=action?[0,3,4,0,5,5,0][frame]:walking?(step===1?1:step===3?2:0):0;
   phase=14+actorDirection()*6+column;
  }
  drawPlayerFrame(phase,x+Math.round(Math.cos(facing)*jab),y+Math.round(Math.sin(facing)*jab));
  if(action?.type==='attack'){
-  const reach=[0,10,8,6][frame],px=Math.round(player.x*12+Math.cos(facing)*reach),py=Math.round(player.y*12+Math.sin(facing)*reach);
+  const reach=12-frame*2,px=Math.round(player.x*12+Math.cos(facing)*reach),py=Math.round(player.y*12-4+Math.sin(facing)*reach);
   ctx.fillStyle='#efefdb';ctx.fillRect(px-1,py-1,3,3);
  }
 }

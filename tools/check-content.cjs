@@ -1,16 +1,18 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),data=require('./content-data.cjs'),examples=require('./content-examples.cjs');
 const runtime=['room','actions','world'].map(n=>fs.readFileSync('src/'+n+'.js','utf8')).join('\n')+'\n'+fs.readFileSync('src/game.js','utf8').split('function choose(')[0];
-function boot(catalog,specialize){
+function boot(catalog,specialize,release=false){
  const c=data.compile(catalog,{specialize}),context={fillText(){},fillRect(){},clearRect(){},drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){}},fields=new Map();
  const document={createElement:()=>({getContext:()=>context}),getElementById:id=>{if(!fields.has(id))fields.set(id,{getContext:()=>context,setAttribute(){},style:{}});return fields.get(id);}};
- return vm.runInNewContext('const DEV=false,assets={actor:160,pantry:1,enemies:28,enemyCount:20,weapon:25,weaponCount:3,bosses:38};'+c.source+require('./landmark-data.cjs')()+c.transform(runtime)+`;({
+ return vm.runInNewContext('const DEV=false,assets={actor:160,pantry:1,enemies:28,enemyCount:20,weapon:25,weaponCount:3,bosses:38};'+c.source+require('./landmark-data.cjs')()+c.transform(release?require('./specialize-release.cjs')(runtime,{nativeRandom:false}):runtime)+`;({
  init(n){seed=n;reset();level=1;world=makeLevel(seed,level);enterRoom();},level:makeLevel,
  get state(){return {room,world,player,health,shots,weapon};},
  isolate(e){room.enemies=e?[e]:[];shots=[];player={x:15.5,y:10.5};health=2;hurt=0;travel=0;},
  step:tickWorld,take:takeLoot,fire,attack:worldAttack,
- aim(a){facing=actionStates.attack.direction=a;},walk(v){walking=v;},speed:movementFactor,draw:drawWorld,
- startAttack(){performAction('attack');return actionStates.attack.cooldown;},
+ aim(a){${release?'facing=a':'facing=actionStates.attack.direction=a'};},walk(v){walking=v;},speed:movementFactor,draw:drawWorld,
+ startAttack(){performAction('attack');return ${release?'cooldown':'actionStates.attack.cooldown'};},
  drop:bossWeapon,rule:enemyRule,
+ kind(e){return ${release?'enemyRules.indexOf(e.rule)':'e.kind'};},
+ prepare(e){${release?'e.rule=enemyRules[e.kind+(e.boss?ENEMY_COUNT:0)];':''}return e;},
  definitions(){return JSON.stringify([enemyRules,weaponRules]);}
  })`,{atob,document,Set,Uint8Array,Int16Array});
 }
@@ -18,11 +20,11 @@ const catalog=data.load(),npc=examples.enemy(catalog,true),gun=examples.weapon(c
 catalog.enemies[npc].biomes=[0];catalog.enemies[npc].weight=3;
 catalog.weapons.push({id:'test-spear',name:'Test spear',sprite:[28,8],attack:{count:0},reach:2,cooldown:1.5});
 const reports=[];
-for(const specialize of [false,true]){
- const api=boot(catalog,specialize),definitions=api.definitions();let found,appearances=0;
+for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
+ const api=boot(catalog,specialize,release),definitions=api.definitions();let found,appearances=0;
  for(let seed=0;seed<120;seed++){
   const world=api.level(seed,1);
-  for(const room of world.rooms)for(const e of room.enemies)if(!e.boss&&e.kind===npc){assert.equal(world.shape,0,'spawn biome mask');assert.equal(e.form,8,'new art offset');found=e;appearances++;}
+  for(const room of world.rooms)for(const e of room.enemies)if(!e.boss&&api.kind(e)===npc){assert.equal(world.shape,0,'spawn biome mask');assert.equal(e.form,8,'new art offset');found=e;appearances++;}
  }
  assert(appearances>0,'new recipe is reachable');
  api.init(1);const e={...found,x:18.5,y:10.5,phase:1,wait:0,angle:0,cycle:0,pattern:0};api.isolate(e);
@@ -43,13 +45,13 @@ for(const specialize of [false,true]){
  assert.equal(api.definitions(),definitions,'simulation never mutates definitions');
  reports.push(JSON.stringify(api.state.shots));
 }
-assert.equal(reports[0],reports[1],'column specialization preserves simulation');
+for(const report of reports)assert.equal(report,reports[0],'column and release specialization preserve simulation');
 const sequenceCatalog=data.load(),sequenceId=examples.enemy(sequenceCatalog);
 Object.assign(sequenceCatalog.enemies[sequenceId].attack,{mode:['charge','ring','fan'],speed:3,chargeSpeed:11.5,count:5,countStep:0});
 const sequences=[];
-for(const specialize of [false,true]){
- const api=boot(sequenceCatalog,specialize);api.init(1);
- const e={boss:false,kind:sequenceId,form:6,x:16.5,y:10.5,hp:9,phase:1,wait:0,angle:0,cycle:0,pattern:0,flash:0};
+for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
+ const api=boot(sequenceCatalog,specialize,release);api.init(1);
+ const e=api.prepare({boss:false,kind:sequenceId,form:6,x:16.5,y:10.5,hp:9,phase:1,wait:0,angle:0,cycle:0,pattern:0,flash:0});
  api.isolate(e);api.step(.01);assert.equal(e.cycle,1);assert.equal(api.state.shots.length,0,'first sequence move charges');
  const x=e.x;api.step(.01);assert(e.x>x,'charge stays selected throughout active phase');
  e.phase=3;e.wait=0;api.step(.01);assert.equal(e.phase,0);
@@ -61,6 +63,6 @@ for(const specialize of [false,true]){
  sequences.push(JSON.stringify(api.state.shots));
  e.phase=3;e.wait=0;api.step(.01);e.phase=1;e.wait=0;api.isolate(e);api.step(.01);assert.equal(e.cycle,4);assert.equal(api.state.shots.length,0,'sequence wraps back to charge');
 }
-assert.equal(sequences[0],sequences[1],'sequence specialization preserves attacks');
+for(const sequence of sequences)assert.equal(sequence,sequences[0],'sequence and release specialization preserve attacks');
 for(const mutate of [c=>c.weapons[1].traits=['typo'],c=>c.enemies[0].attack.windupp=.1,c=>c.bosses[0].drop=['missing'],c=>c.enemies[0].art.base=999,c=>c.enemies[0].weight=0,c=>c.enemies[0].attack.mode=[],c=>c.enemies[1].attack.countStep=.5]){const c=data.load();mutate(c);assert.throws(()=>data.compile(c),/Content:/);}
 console.log('PASS recipe extension: new IDs, art, biome/weight pools, charge/ring/fan sequences, ring/piercing/melee, cadence, reward reachability, shot cap, shared immutable rows and specialization');

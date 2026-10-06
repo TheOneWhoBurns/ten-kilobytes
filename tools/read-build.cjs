@@ -6,7 +6,10 @@ function unpack(bytes,depth=0){
  if(plainOffset>=0){
   const decoder=bytes.subarray(0,plainOffset).toString('ascii').match(/onload='([^']*)'/)?.[1];
   if(!decoder)throw Error('Missing plaintext bootstrap');
-  return unpack(inflateSync(decodeBytes(bytes.subarray(plainOffset+plaintext.length),decoder)),depth+1);
+  const payload=decodeBytes(bytes.subarray(plainOffset+plaintext.length),decoder),size=decoder.match(/a\.splice\(0,(\d+)\)/)?.[1];
+  if(size)return unpackProgram(inflateSync(payload.subarray(0,+size)).toString(),depth+1,{a:Array.from(payload.subarray(+size))});
+  const data=inflateSync(payload);
+  return decoder.includes('eval(h)')?unpackProgram(data.toString(),depth+1):unpack(data,depth+1);
  }
  const start=Buffer.from('<script id=p type=x>'),offset=bytes.indexOf(start);
  if(offset>=0){
@@ -15,15 +18,20 @@ function unpack(bytes,depth=0){
  }
  const html=/charset=["']?(?:l1|windows-1252)\b/i.test(bytes.subarray(0,256).toString('ascii'))?new TextDecoder('windows-1252').decode(bytes):bytes.toString(),legacy=html.match(/data-game="([^"]+)"/);if(legacy)return unpack(inflateSync(Buffer.from(legacy[1],'base64')),depth+1);
  const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
- if(script&&/^(?:eval|document\.write)\(Function\(/.test(script)){
-  let program,written;vm.runInNewContext(script,{eval:s=>program=s,document:{write:s=>written=s}},{timeout:10000});
-  if(written!==undefined)return unpack(Buffer.from(written),depth+1);
-  const first=acorn.parse(program,{ecmaVersion:2020}).body[0],call=first.expression;
-  if(call?.callee?.object?.name!=='document'||call.callee.property.name!=='write'||typeof call.arguments[0]?.value!=='string')throw Error('Unknown game bootstrap');
-  const shell=call.arguments[0].value,code=program.slice(first.end);
-  return shell.replace('</html>',()=>'<script>'+code+'</script></html>');
- }
+ if(script&&/^(?:eval|document\.write)\(Function\(/.test(script))return unpackProgram(script,depth+1);
  return html;
+}
+function unpackProgram(script,depth,scope={}){
+ let program=script;
+ if(/^eval\(|^document\.write\(Function\(/.test(script)){
+  let written;vm.runInNewContext(script,{...scope,TextDecoder,eval:s=>program=s,document:{write:s=>written=s,close(){}}},{timeout:10000});
+  if(written!==undefined)return unpack(Buffer.from(written),depth+1);
+ }
+ const first=acorn.parse(program,{ecmaVersion:2020}).body[0],call=first?.expression;
+ if(call?.callee?.object?.name!=='document'||call.callee.property.name!=='write'||typeof call.arguments[0]?.value!=='string')throw Error('Unknown game bootstrap');
+ const shell=call.arguments[0].value,code=program.slice(first.end);
+ if(!code)return shell;
+ return shell.replace('</html>',()=>'<script>'+code+'</script></html>');
 }
 function decodeBytes(encoded,decoder){
  const escape=+(decoder.match(/n===(\d+)\?e=32/)?.[1]??27),xor=+(decoder.match(/a\.push\(n\^e\^(\d+)\)/)?.[1]??0),raw=[];

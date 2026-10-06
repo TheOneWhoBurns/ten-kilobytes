@@ -1,0 +1,477 @@
+{
+  "status": "pass_finished_target_not_achieved",
+  "objective": {
+    "baseline_html_bytes": 9601,
+    "target_html_bytes": 960,
+    "active_work_limit_seconds": 7200,
+    "resumed_at_utc": "2026-10-05T23:33:13Z",
+    "goal_achieved": false
+  },
+  "baseline": {
+    "html_bytes": 9601,
+    "zip_bytes": 9616,
+    "expanded_source_bytes": 22459,
+    "fixture": "tools/fixtures/game-spiral-before-optimization.html",
+    "sha256": "8c9f994a94c0e9715b818fd281444e9a22eed4609a1e81c519b32477562b8b99"
+  },
+  "current_release": {
+    "enemy_definitions": 2,
+    "weapon_definitions": 4,
+    "boss_definitions": 1,
+    "power_definitions": 0,
+    "definition_source_bytes": 790,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html_and_submission_zip",
+    "compliant": true,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 9.1552734375,
+    "source_bytes": 20187,
+    "html_bytes": 8454,
+    "unpacked_html_bytes": 20187,
+    "zip_bytes": 8493,
+    "sprite_count": 1,
+    "enemy_sprite_count": 8,
+    "pantry_tiles": 24,
+    "sprite_data_bytes": 1548,
+    "atlas_tiles": 86,
+    "remaining_file_bytes": 1507
+  },
+  "html_bytes_saved": 1147,
+  "zip_bytes_saved": 1123,
+  "loss_introduced": "No art/audio reduction. User-requested footer removal, automatic audio, entrance labels/route, stair-colored ring and feet anchor intentionally change UI/gameplay. Release switches to native randomness; seeded dev controls remain.",
+  "adopted": [
+    "One authoritative record per hazard tile, plus one timing offset per room",
+    "Tile-index spawns and shared tile-center conversion",
+    "Reuse existing action state; numeric movement intent; shared direction table",
+    "Build-time asset constants and six-pixel character encoding",
+    "Base-253 rANS byte stream with a separately deflated decoder",
+    "Reversible ISO-8859-5 transport with exhaustive byte checks",
+    "Measured function placement and compressor parameters",
+    "Fixed release controller with one held-key flag; fully configurable dev controller preserved",
+    "Direct immutable enemy recipe references",
+    "Native random source in release; seeded dev generation preserved"
+  ],
+  "alternate_small_model": {
+    "html_bytes": 9712,
+    "zip_bytes": 9751,
+    "decoder_model_mib": 0.762939453125,
+    "default_decoder_model_mib": 9.1552734375,
+    "model_reduction_factor": 12,
+    "default": false,
+    "options": {
+      "sparseSelectors": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        10,
+        11,
+        13,
+        40,
+        81
+      ],
+      "maxMemoryMB": 1,
+      "precision": 8,
+      "modelMaxCount": 4,
+      "modelRecipBaseCount": 3,
+      "recipLearningRate": 496,
+      "numAbbreviations": 34,
+      "dynamicModels": 1
+    },
+    "note": "Temporary decoder model allocation only; total browser RAM has not been measured.",
+    "sha256": "d074854378200356247f5be2fd8e9c6c500f4ecc015d63f5af9346db64776e89",
+    "function_order": [
+      "releaseAction",
+      "holdAction",
+      "tone",
+      "drawWorld",
+      "fire",
+      "worldAttack",
+      "generate",
+      "resize",
+      "actionMode",
+      "faceMovement",
+      "drawActor",
+      "cycle",
+      "enterRoom",
+      "actionFrame",
+      "makeEntrance",
+      "hurtPlayer",
+      "effect",
+      "musicTick",
+      "writeTiles",
+      "performAction",
+      "nextRoom",
+      "hitEnemy",
+      "randomFor",
+      "tickWorld",
+      "makeLevel",
+      "updateActionUI",
+      "resetActions",
+      "volley",
+      "takeLoot",
+      "movePlayer",
+      "worldInteract",
+      "choose",
+      "canFit",
+      "tilePoint",
+      "drawGate",
+      "makeActor",
+      "frame",
+      "enemyRule",
+      "actorDirection",
+      "releaseActions",
+      "tile",
+      "actionRate",
+      "growHazards",
+      "attackLocked",
+      "reset",
+      "tickActions",
+      "movementFactor",
+      "clearShot",
+      "drawPlayerFrame",
+      "bossWeapon",
+      "worldColor"
+    ],
+    "checkpoint_comparison": "passed"
+  },
+  "rejected_experiments": [
+    "General drawing bytecode and AST grammar: interpreter/data overhead exceeded savings",
+    "Sprite cropping, mirror folding, microtile dictionaries and delta coding: larger complete files",
+    "Native image-based code packing: larger complete files",
+    "251/252-symbol byte alphabets: no smaller HTML and larger ZIP",
+    "Additional color/music/room simplification: insufficient savings to justify changed gameplay or appearance",
+    "Reversed sprite bits and alternate spiral alphabets: no improvement after final packing"
+  ],
+  "verification": {
+    "full_suite": "passed on final 8454-byte artifact",
+    "checkpoint_seeds": [
+      1,
+      2,
+      7,
+      19,
+      83,
+      104,
+      2026
+    ],
+    "checkpoint_pixels_hud_audio_atlas": "Final release matches the intentional feet/entrance checkpoint for pixels/audio/atlas; production footer is absent.",
+    "historical_world_snapshots": 2000,
+    "rooms_checked": 2000,
+    "floors_checked": 1000,
+    "landmark_frames": 80,
+    "binary_envelopes": 64,
+    "split_bootstraps": 8,
+    "browser_boot": "Encore release loaded; readyState complete, 372px canvas, first I input accepted; no browser console errors",
+    "final_bootstrap": "passed; document readyState complete, canvas width 372, no browser console errors",
+    "reproducible_build": "HTML and ZIP byte-for-byte identical on final encore rebuild",
+    "checkpoint_command": "npm run test:checkpoint",
+    "pre_ui_checkpoint": "9008-byte candidate matched original 9601-byte checkpoint pixels/HUD/audio/atlas across seven controlled streams",
+    "current_checkpoint": "tools/fixtures/game-feet-entrance.html",
+    "current_checkpoint_sha256": "335e6eba65875ea495793387e8c3de0d9720b2fbc1f08dec2d17d37fd2bcac06",
+    "actual_release_controls": "passed: no footer/toggle, first key/pointer enables audio, WASD/I/O, restart and full staircase traversal",
+    "release_diagnostics": "Hidden DOM probes exist only in an ignored test build. Actual release separately tested."
+  },
+  "last_pushed_commit": "cb9d742",
+  "new_changes_committed": false,
+  "source_file_reduction_percent": 11.946672221643578,
+  "release_sha256": "7db379c8fc35603bad5a00bcc40728345a1625126a7e26d0596d29fc4d327555",
+  "zip_sha256": "9bcbc1379f41e77c369a71abd730f15fab6ae91edc9195d3d2253c7aea31be57",
+  "expanded_source_sha256": "b42796a5cb897be20f69d9a8618b3704eead3818e06b79f2ae2d426f47b08643",
+  "stopped_because": "Encore finished with verified savings; remaining unproven ideas documented instead of shipped.",
+  "stopped_at_utc": "2026-10-06T02:46:18.449Z",
+  "previous_pass": {
+    "html_bytes": 9188,
+    "zip_bytes": 9228,
+    "finished_at_utc": "2026-10-06T01:33:28.713Z",
+    "html_bytes_saved": 413,
+    "zip_bytes_saved": 388
+  },
+  "latest_pass": {
+    "name": "encore",
+    "baseline_html_bytes": 8485,
+    "baseline_zip_bytes": 8524,
+    "final_html_bytes": 8454,
+    "final_zip_bytes": 8493,
+    "html_bytes_saved": 31,
+    "zip_bytes_saved": 31,
+    "expanded_source_bytes_saved": 77,
+    "loss_introduced": "none",
+    "adopted": [
+      "Remove obsolete footer button references from release focus handler",
+      "Combine projectile return/pierce persistence checks into one mask",
+      "Retune compression contexts and abbreviations without increasing model allocation"
+    ],
+    "expanded_benchmark_html_bytes": 8608,
+    "expanded_benchmark_delta_html": 154,
+    "expanded_benchmark_total_improvement": 24,
+    "finished_at_utc": "2026-10-06T02:46:18.447Z"
+  },
+  "previous_passes": [
+    {
+      "started_at_utc": "2026-10-06T01:34:44Z",
+      "finished_at_utc": "2026-10-06T02:39:25.447Z",
+      "baseline_html_bytes": 9188,
+      "baseline_zip_bytes": 9228,
+      "html_bytes_saved": 703,
+      "zip_bytes_saved": 704,
+      "optimization_before_ui_html_bytes": 9008,
+      "footer_removed_html_bytes": 8446,
+      "entrance_changes_html_bytes": 8516,
+      "final_html_bytes": 8485,
+      "ten_enemies_six_weapons_delta_html": 147
+    }
+  ],
+  "encore_candidates": {
+    "local_source": [
+      {
+        "name": "bool",
+        "html_bytes": 8488,
+        "source_bytes": 20262
+      },
+      {
+        "name": "focus",
+        "html_bytes": 8472,
+        "source_bytes": 20200
+      },
+      {
+        "name": "actorDirection",
+        "html_bytes": 8489,
+        "source_bytes": 20234
+      },
+      {
+        "name": "unclamp",
+        "html_bytes": 8488,
+        "source_bytes": 20258
+      },
+      {
+        "name": "round",
+        "html_bytes": 8485,
+        "source_bytes": 20264
+      },
+      {
+        "name": "actions",
+        "html_bytes": 8491,
+        "source_bytes": 20261
+      }
+    ],
+    "alphabet_trials": [
+      {
+        "offset": 32,
+        "html": 8546,
+        "source": 20331
+      },
+      {
+        "offset": 33,
+        "html": 8543,
+        "source": 20312
+      },
+      {
+        "offset": 34,
+        "html": 8529,
+        "source": 20294
+      },
+      {
+        "offset": 35,
+        "html": 8512,
+        "source": 20268
+      },
+      {
+        "offset": 36,
+        "html": 8525,
+        "source": 20325
+      },
+      {
+        "offset": 37,
+        "html": 8516,
+        "source": 20273
+      },
+      {
+        "offset": 38,
+        "html": 8500,
+        "source": 20270
+      },
+      {
+        "offset": 39,
+        "html": 8483,
+        "source": 20264
+      },
+      {
+        "offset": 40,
+        "html": 8501,
+        "source": 20287
+      },
+      {
+        "offset": 41,
+        "html": 8509,
+        "source": 20272
+      },
+      {
+        "offset": 42,
+        "html": 8488,
+        "source": 20264
+      },
+      {
+        "offset": 43,
+        "html": 8494,
+        "source": 20264
+      },
+      {
+        "offset": 44,
+        "html": 8523,
+        "source": 20388
+      },
+      {
+        "offset": 45,
+        "html": 8506,
+        "source": 20270
+      },
+      {
+        "offset": 46,
+        "html": 8493,
+        "source": 20264
+      },
+      {
+        "offset": 47,
+        "html": 8498,
+        "source": 20266
+      },
+      {
+        "offset": 48,
+        "html": 8497,
+        "source": 20267
+      },
+      {
+        "offset": 49,
+        "html": 8504,
+        "source": 20268
+      },
+      {
+        "offset": 50,
+        "html": 8502,
+        "source": 20279
+      },
+      {
+        "offset": 51,
+        "html": 8484,
+        "source": 20266
+      },
+      {
+        "offset": 52,
+        "html": 8497,
+        "source": 20292
+      },
+      {
+        "offset": 53,
+        "html": 8497,
+        "source": 20265
+      },
+      {
+        "offset": 54,
+        "html": 8502,
+        "source": 20271
+      },
+      {
+        "offset": 55,
+        "html": 8497,
+        "source": 20267
+      },
+      {
+        "offset": 56,
+        "html": 8511,
+        "source": 20281
+      },
+      {
+        "offset": 57,
+        "html": 8497,
+        "source": 20264
+      },
+      {
+        "offset": 58,
+        "html": 8505,
+        "source": 20279
+      },
+      {
+        "offset": 59,
+        "html": 8502,
+        "source": 20269
+      },
+      {
+        "offset": 60,
+        "html": 8524,
+        "source": 20356
+      },
+      {
+        "offset": 61,
+        "html": 8506,
+        "source": 20292
+      },
+      {
+        "offset": 62,
+        "html": 8506,
+        "source": 20282
+      },
+      {
+        "offset": 63,
+        "html": 8522,
+        "source": 20283
+      },
+      {
+        "offset": 64,
+        "html": 8511,
+        "source": 20279
+      }
+    ],
+    "combinations": [
+      {
+        "name": "42-1-1",
+        "html_bytes": 8458,
+        "zip_bytes": 8497
+      },
+      {
+        "name": "39-1-1",
+        "html_bytes": 8459,
+        "zip_bytes": 8498
+      },
+      {
+        "name": "39-0-1",
+        "html_bytes": 8465,
+        "zip_bytes": 8504
+      },
+      {
+        "name": "42-0-1",
+        "html_bytes": 8472,
+        "zip_bytes": 8511
+      },
+      {
+        "name": "42-1-0",
+        "html_bytes": 8474,
+        "zip_bytes": 8513
+      },
+      {
+        "name": "39-1-0",
+        "html_bytes": 8477,
+        "zip_bytes": 8516
+      },
+      {
+        "name": "39-0-0",
+        "html_bytes": 8480,
+        "zip_bytes": 8519
+      },
+      {
+        "name": "42-0-0",
+        "html_bytes": 8485,
+        "zip_bytes": 8524
+      }
+    ],
+    "final_with_mask": {
+      "html_bytes": 8454,
+      "zip_bytes": 8493
+    }
+  },
+  "unproven_ideas": "README.md: Optimization ideas parked for later"
+}
