@@ -50,7 +50,7 @@ function effect(type){
  }else{
   if(worldInteract())return;
   let target,distance=1.6;for(const o of objects){const d=Math.hypot(o.x-player.x,o.y-player.y);if(o.kind>=3&&d<distance&&canFit(room.cells,(o.x+player.x)/2,(o.y+player.y)/2)){target=o;distance=d;}}
-  if(target){if(!attackLocked())facing=Math.atan2(target.y-player.y,target.x-player.x);takeLoot(target);target.kind=2;collected++;}
+  if(target){if(!attackLocked())facing=Math.atan2(target.y-player.y,target.x-player.x);takeLoot(target);target.kind=2;if(DEV)collected++;}
  }
 }
 function performAction(type){
@@ -88,7 +88,7 @@ function drawActor(x,y){
  let phase=DEV?frame+(left?7:0):0;
  if(!DEV||sprite===104){
   const step=gait|0,column=frame?[0,3,4,0,5,5,0][frame]:walking?(step===1?1:step===3?2:0):0;
-  phase=14+actorDirection()*6+column;
+  phase=(DEV?14:0)+actorDirection()*6+column;
  }
  drawPlayerFrame(phase,x+Math.round(Math.cos(facing)*jab),y+Math.round(Math.sin(facing)*jab));
  if(action?.type==='attack'&&(weaponType===0||weaponType===5)){
@@ -96,4 +96,4 @@ function drawActor(x,y){
   ctx.fillStyle='#efefdb';ctx.fillRect(px-1,py-1,3,3);
  }
 }
-function drawPlayerFrame(phase,x,y){if(DEV)ctx.drawImage(actor,0,phase*12,12,12,x,y,12,12);else tile(ctx,assets.actor+phase-14,x,y);}
+function drawPlayerFrame(phase,x,y){if(DEV)ctx.drawImage(actor,0,phase*12,12,12,x,y,12,12);else tile(ctx,assets.actor+phase,x,y);}

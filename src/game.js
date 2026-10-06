@@ -74,7 +74,7 @@ if(DEV){onkeydown=e=>{
 };
 onkeyup=e=>{const k=e.key.toLowerCase();keys.delete(k);if(DEV)dev.keyup(k);else{if(k==='i')releaseAction('attack');if(k==='o')releaseAction('interact');}};
 }else{
- onkeydown=e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;startAudio();const k=e.keyCode;keys[k]=1;if([37,38,39,40,65,68,73,79,82,83,87].includes(k))e.preventDefault();if(!e.repeat){if(k===73)holdAction('attack');if(k===79)performAction('interact');if(k===82)reset(true);}};
+ onkeydown=e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;startAudio();const k=e.keyCode;keys[k]=1;if(k>36&&k<91)e.preventDefault();if(!e.repeat){if(k===73)holdAction('attack');if(k===79)performAction('interact');if(k===82)reset(true);}};
  onkeyup=e=>{keys[e.keyCode]=0;if(e.keyCode===73)releaseAction('attack');};
 }
 onblur=()=>{clearKeys();releaseActions();};

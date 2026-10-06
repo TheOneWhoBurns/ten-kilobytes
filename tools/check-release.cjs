@@ -17,7 +17,7 @@ for(const file of ['dist/index.html','dev/play.html']){
 {
  const g=boot('dist/index.html',undefined,true,false),keys=[37,38,39,40,65,68,73,79,82,83,87];
  assert.equal(g.handlers.focusin,undefined,'standalone release has no form-focus handler');
- for(let keyCode=0;keyCode<256;keyCode++){let prevented=false;g.key('keydown','?',undefined,{keyCode,preventDefault(){prevented=true;}});assert.equal(prevented,keys.includes(keyCode),'only game keys suppress browser defaults: '+keyCode);g.key('keyup','?',undefined,{keyCode});}
+ for(let keyCode=0;keyCode<256;keyCode++){let prevented=false;g.key('keydown','?',undefined,{keyCode,preventDefault(){prevented=true;}});assert.equal(prevented,keyCode>36&&keyCode<91,'arrows, letters and digits suppress browser defaults: '+keyCode);assert(!keys.includes(keyCode)||prevented,'game key suppressed: '+keyCode);g.key('keyup','?',undefined,{keyCode});}
  for(const event of ['blur','visibilitychange']){g.key('keydown','d');g.tick(3);g.handlers[event]();const x=g.x;g.tick(3);assert.equal(g.x,x,event+' clears held movement');}
  let prevented=false;g.key('keydown','w',undefined,{ctrlKey:true,preventDefault(){prevented=true;}});assert.equal(prevented,false,'browser modifier shortcuts remain available');g.key('keyup','w');
  console.log('PASS native handlers: all 256 key codes, modifier shortcuts, blur and visibility clearing');

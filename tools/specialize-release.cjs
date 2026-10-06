@@ -23,7 +23,7 @@ function specialize(source){
  const bodies={
  attackLocked:'return !!dash||blows.length>0||attackPhase<1||heldAttack>0;',
  updateActionUI:"if(DEV/*diagnostics*/)for(const type of ['attack','interact'])$(type).setAttribute('data-active',String((type==='attack'?attackPhase:interactPhase)<1));",
- resetActions:'attackPhase=interactPhase=1;cooldown=0;heldAttack=false;action=0;facing=0;moveIntent=0;gait=0;walking=false;collected=0;objects=room.loot;updateActionUI();',
+ resetActions:'attackPhase=interactPhase=1;cooldown=0;heldAttack=false;action=0;facing=0;moveIntent=0;gait=0;walking=false;objects=room.loot;updateActionUI();',
  releaseActions:'heldAttack=false;',
  releaseAction:"if(type==='attack')heldAttack=false;",
  holdAction:"if(type==='attack')heldAttack=true;performAction(type);",

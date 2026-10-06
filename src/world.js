@@ -204,31 +204,19 @@ function drawGate(){
 }
 let audio,beatClock=0,beat=0;
 function startAudio(){if(!audio)audio=new AudioContext();if(audio.state!=='running')audio.resume();}
-// String types select SFX waveforms; numeric types select FM bass, pluck or lead.
+// One plain oscillator per note; music uses triangle bass, square pluck and sine lead.
 function tone(hz,duration,type='square',volume=.02,delay=0){
  if(!audio)return;
- const voice=+type,o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+delay;
- o.type=voice?'sine':type;o.frequency.value=hz;
- g.gain.setValueAtTime(voice?.0001:volume,t);
- if(voice)g.gain.linearRampToValueAtTime(volume,t+(voice===3?.04:.006));
- g.gain.exponentialRampToValueAtTime(.0001,t+duration);
- o.connect(g);g.connect(audio.destination);
- let m,a;
- if(voice){
-  m=audio.createOscillator();a=audio.createGain();m.frequency.value=hz*(voice===2?2.01:1);
-  a.gain.setValueAtTime(hz*(voice===2?2:voice===3?.7:.35),t);
-  a.gain.exponentialRampToValueAtTime(.01,t+duration*.8);
-  m.connect(a);a.connect(o.frequency);m.start(t);m.stop(t+duration);
- }
- o.start(t);o.stop(t+duration);o.onended=()=>{for(const n of [o,g,m,a])n?.disconnect();};
+ const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+delay;
+ o.type=type;o.frequency.value=hz;
+ g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+ o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+duration);
 }
+// A four-bar minor loop: triangle bass, square arpeggio and a floor-seeded sine melody.
 function musicTick(dt){
  if(!audio)return;beatClock-=dt;if(beatClock>0)return;beatClock+=.24+world.shape*.02;
- const bar=Math.floor(beat/8)%8,step=beat%8,root=[0,5,3,7,5,3,7,0][bar],scale=[0,2,3,5,7,8,11],key=world.hue%12;
- const play=(n,d,v,g)=>{const hz=65.4*2**((n+key)/12);tone(hz,d,v,g);if(v>1)tone(hz,d,v,g*.16,.18);};
- if(step%4===0)play(root,.7,1,.045);
- play(root+[0,7,12,root%5?16:15][step%4],.36,2,.024);
- const note=Math.floor(world.motif/5**(step<4?step:7-step))%5,degree=step<4?note:6-note;
- if(step%2===0||bar%2)play(24+(bar===7&&step>5?0:step%4===0?root:scale[degree]),.6,3,.018);
- beat++;
+ const step=beat++%8,root=[0,8,3,7][beat>>3&3]+world.hue%12,play=(n,d,v,g)=>tone(65.4*2**((n+root)/12),d,v,g);
+ if(!(step%4))play(0,.7,'triangle',.045);
+ play([12,19,24,15][step%4],.3,'square',.012);
+ if(world.motif>>step&1)play(24+[0,3,5,7,10][(world.motif>>step+3)%5],.5,'sine',.02);
 }

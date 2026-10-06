@@ -70,7 +70,7 @@ api.init('boss-no-repeat');api.setRoom(api.state.world.boss);let target=api.stat
 api.health(0);api.hitEnemy(target,9999);assert.equal(api.state.health,0,'late boss death cannot resurrect player');
 console.log('PASS two-hit survival, invulnerability, no powers, all boss weapons, 5x boss scaling and returning-shot hit memory');
 
-api.init('music');const score=Array.from(api.score());assert(score.length>200);assert(score.every(n=>Number.isFinite(n)&&n>40&&n<2000),'synthesis remains within useful pitch bounds');assert.deepEqual(Array.from(api.score()),score,'music reproduces its motif and harmonic cycle');api.init('different music');assert.notDeepEqual(Array.from(api.score()),score,'different seed changes the generated score');console.log('PASS audio: bounded pitches, multiple voices, deterministic motif and seed variation');
+api.init('music');const score=Array.from(api.score());assert(score.length>100,"twenty seconds of bass, arpeggio and melody");assert(score.every(n=>Number.isFinite(n)&&n>40&&n<2000),'synthesis remains within useful pitch bounds');assert.deepEqual(Array.from(api.score()),score,'music reproduces its motif and harmonic cycle');api.init('different music');assert.notDeepEqual(Array.from(api.score()),score,'different seed changes the generated score');console.log('PASS audio: bounded pitches, multiple voices, deterministic motif and seed variation');
 
 const injury=api.injury();assert.deepEqual(Array.from(injury,n=>n[0]),[220,70,220,70,45]);assert.equal(injury[1][4],.025);console.log('PASS distinct two-part hit sound and death tone; invulnerability suppresses duplicate cues');
 
