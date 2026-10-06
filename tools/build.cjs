@@ -57,7 +57,7 @@ const corpses=[0,6,18,26,33].map(y=>({x:201,y}));
 const title=[[79,48],[80,48],[87,48],[86,48],[99,47],[89,48],[101,47],[85,48],[101,47]].map(([x,y])=>({x,y}));
 for(const dev of development?[true,false]:[false]){
  const enemyColumns=enemyTiles;
- const letters='@',font=[{x:80,y:36}];
+ const letters='',font=[];
  const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...corpses,...title,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,dev?characterBits:Buffer.concat([characterBits.subarray(0,6*18),characterBits.subarray(12*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
  const encodedBitmap=dev?undefined:spriteEncoder(bits),bitText=encodedBitmap?.text??bits.toString('base64');
  const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,corpses:enemies+enemyTiles.length+armorTiles.length+effects.length+4,title:enemies+enemyTiles.length+armorTiles.length+effects.length+9,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,actor:tiles.length+5});
