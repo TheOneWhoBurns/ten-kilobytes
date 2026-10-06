@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const schema={
  E:['MODE','COUNT','COUNT_STEP','SPEED','WIND','ACTIVE','COOL','COOL_STEP','MOVE','SPREAD','ART','THEME','FRAMES','ANIM','RECOVER','RANGE','STANDOFF','CONTACT','LIFE','CHARGE'],
- W:['FLAGS','COUNT','SPEED','LIFE','REACH_LIFE','TEMPER_LIFE','SPREAD','TEMPER_SPREAD','CURVE','PITCH','SPRITE','DAMAGE','REACH','COOLDOWN','TYPE']
+ W:['FLAGS','COUNT','SPEED','LIFE','REACH_LIFE','TEMPER_LIFE','SPREAD','TEMPER_SPREAD','CURVE','PITCH','SPRITE','DAMAGE','REACH','COOLDOWN','TYPE','RATE']
 };
 const load=()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/content.json'),'utf8'));
 function compile(catalog=load(),{specialize=false,usedFields}={}){
@@ -22,11 +22,11 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
  const flags=(traits,known)=>{let bits=0;if(traits&&!Array.isArray(traits))fail('traits must be an array');for(const t of traits||[]){if(!Object.hasOwn(known,t))fail('unknown trait '+t);bits|=known[t];}return bits;};
  const weaponForms=[];
  const weaponRows=catalog.weapons.map((w,i)=>{
-  keys(w,['id','name','sprite','traits','attack','pitch','damage','reach','cooldown','type','sprites'],'weapon');
+  keys(w,['id','name','sprite','traits','attack','pitch','damage','reach','cooldown','type','sprites','rate'],'weapon');
   if(typeof w.name!=='string'||!w.name)fail('weapon name');const a=w.attack||{};
   keys(a,['count','speed','life','reachLife','temperLife','spread','temperSpread','curve'],'weapon attack');
   const forms=i?(w.sprites||[w.sprite]).map(sprite):[0];weaponForms.push(forms);
-  const row=[flags(w.traits,{pierce:1,return:2,ring:4}),a.count??1,a.speed??16,a.life??.6,a.reachLife??.1,a.temperLife??.08,a.spread??.3,a.temperSpread??.04,a.curve??0,w.pitch??95+i*45,forms[0],w.damage??1,w.reach??1,w.cooldown??1,w.type??0];
+  const row=[flags(w.traits,{pierce:1,return:2,ring:4}),a.count??1,a.speed??16,a.life??.6,a.reachLife??.1,a.temperLife??.08,a.spread??.3,a.temperSpread??.04,a.curve??0,w.pitch??95+i*45,forms[0],w.damage??1,w.reach??1,w.cooldown??1,w.type??0,w.rate??12];
   row.forEach((n,j)=>number(n,0,1000,'weapon '+w.id+' '+schema.W[j]));integer(row[1],0,32,'weapon count');if(row[11]<=0||row[12]<=0||row[13]<=0)fail('weapon multipliers');return row;
  });
  // Projectile parameters of melee-only recipes are unobservable; normalize them before constant-column elimination.
@@ -47,7 +47,7 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
  });
  // Normalize fields that a behavior never reads. Future recipes retain every field
  // used by any mode in their sequence; constant-column specialization can then fold it.
- const uses={COUNT:[0,2,3,4,6],COUNT_STEP:[0,2,3,4,6],SPEED:[0,2],WIND:[0,1,2],ACTIVE:[0,1,2],COOL:[0,1,2],COOL_STEP:[0,1,2],MOVE:[0,1,2,3,5,8],SPREAD:[0,2],RECOVER:[0,1,2],RANGE:[0,1,2],STANDOFF:[0,2],LIFE:[0,2],CHARGE:[1,7]};
+ const uses={COUNT:[0,2,3,4,6],COUNT_STEP:[0,2,3,4,6],SPEED:[0,2],WIND:[0,1,2],ACTIVE:[0,1,2],COOL:[0,1,2],COOL_STEP:[0,1,2],MOVE:[0,1,2,3,5,6,8],SPREAD:[0,2],RECOVER:[0,1,2],RANGE:[0,1,2],STANDOFF:[0,2],LIFE:[0,2],CHARGE:[1,7]};
  for(const [name,modes] of Object.entries(uses)){
   const column=schema.E.indexOf(name),used=row=>(Array.isArray(row[0])?row[0]:[row[0]]).some(m=>modes.includes(m)),counts=new Map();
   for(const row of enemyRows)if(used(row))counts.set(row[column],(counts.get(row[column])||0)+1);

@@ -17,7 +17,7 @@ for(let seed=0;seed<fixture.seed_count;seed++)for(const depth of fixture.depths)
   const values=Array.from({length:api.W*api.H},(_,n)=>room.cells[n]);
   room.props=require('./prop-view.cjs')(room);room.cells=values.map(v=>v&1);
  }
- assert.equal(bytes,4557);hash.update(JSON.stringify(stable(world)));
+ assert.equal(bytes,3906);hash.update(JSON.stringify(stable(world)));
 }
 const digest=hash.digest('hex');if(capture){fs.writeFileSync(file,JSON.stringify({...fixture,sha256:digest},null,2)+'\n');console.log('Captured reviewed shared-stream world baseline');process.exit(0);}
 assert.equal(digest,fixture.sha256,'all geometry, props, enemies, hazards, loot, palettes, doors and bosses match');

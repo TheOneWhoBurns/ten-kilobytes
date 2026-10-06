@@ -20,14 +20,15 @@ function makeActor(){
  if(DEV){actorArt.save();actorArt.translate(12,84);actorArt.scale(-1,1);actorArt.drawImage(actor,0,0,12,84,0,0,12,84);actorArt.restore();}
  if(!DEV||sprite===104)for(let i=0;i<24;i++)actorArt.drawImage(atlas,(assets.actor+i)*12,0,12,12,0,168+i*12,12,12);
 }
-function actionRate(type){return DEV?dev.actionRate(type):12;}
+// Each weapon swings at its own rate; interaction keeps the shared pace.
+function actionRate(type){return DEV?dev.actionRate(type):type==='attack'?weaponRules[weapon][W_RATE]:12;}
 function actionMode(type){return DEV?dev.actionMode(type):type==='attack'?'hold':'press';}
 function attackLocked(){const a=actionStates.attack;return !!dash||blows.length>0||a.phase<1||a.inputs.size>0;}
 function faceMovement(dx,dy){
  const intent=dx+3*dy;
  // A held attack strafes. Releasing it preserves aim until movement input changes.
+ // Two held directions face (and attack) diagonally.
  if(intent!==moveIntent&&(dx||dy)&&!attackLocked()){
-  if(dx&&dy){if(Math.abs(Math.cos(facing))>=Math.abs(Math.sin(facing)))dy=0;else dx=0;}
   facing=Math.atan2(dy,dx);
  }
  moveIntent=intent;

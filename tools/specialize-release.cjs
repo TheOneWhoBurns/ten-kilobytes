@@ -28,7 +28,7 @@ function specialize(source){
  releaseAction:"if(type==='attack')heldAttack=false;",
  holdAction:"if(type==='attack')heldAttack=true;performAction(type);",
  performAction:`if(type==='interact'&&!health){worldInteract();return;}if(!health||travel>0)return;if(type==='attack'){if(attackPhase<1||cooldown>0)return;attackPhase=0;cooldown=${cool};}else{if(interactPhase<1)return;interactPhase=0;}effect(type);updateActionUI();`,
- tickActions:"cooldown=Math.max(0,cooldown-dt);if(attackPhase<1)attackPhase=Math.min(1,attackPhase+dt*12);if(interactPhase<1)interactPhase=Math.min(1,interactPhase+dt*12);if(heldAttack&&attackPhase>=1&&cooldown<=0&&dt>0)performAction('attack');action=attackPhase<1?1:interactPhase<1?2:0;updateActionUI();drawLoot();",
+ tickActions:"cooldown=Math.max(0,cooldown-dt);if(attackPhase<1)attackPhase=Math.min(1,attackPhase+dt*actionRate('attack'));if(interactPhase<1)interactPhase=Math.min(1,interactPhase+dt*12);if(heldAttack&&attackPhase>=1&&cooldown<=0&&dt>0)performAction('attack');action=attackPhase<1?1:interactPhase<1?2:0;updateActionUI();drawLoot();",
  actionFrame:'return action?1+(action===2?3:0)+Math.min(2,Math.floor((action===1?attackPhase:interactPhase)*3)):0;'
  };
  const ast=acorn.parse(source,{ecmaVersion:2020}),edits=[];

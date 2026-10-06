@@ -364,11 +364,11 @@
         "base": 26,
         "variants": 4
       },
-      "move": 2.2,
+      "move": 1.6,
       "attack": {
         "mode": "conga",
-        "count": 8,
-        "countStep": 4
+        "count": 5,
+        "countStep": 3
       }
     },
     {
@@ -465,7 +465,8 @@
         "count": 0
       },
       "pitch": 95,
-      "cooldown": 2
+      "cooldown": 2,
+      "rate": 14
     },
     {
       "id": "needle",
@@ -481,7 +482,8 @@
         "temperLife": 0
       },
       "pitch": 140,
-      "cooldown": 2
+      "cooldown": 2.4,
+      "rate": 12
     },
     {
       "id": "fang",
@@ -500,7 +502,8 @@
         "temperLife": 0
       },
       "pitch": 230,
-      "cooldown": 3
+      "cooldown": 3.4,
+      "rate": 10
     },
     {
       "id": "nunchucks",
@@ -513,7 +516,8 @@
       "attack": {
         "count": 0
       },
-      "cooldown": 3.6
+      "cooldown": 3.6,
+      "rate": 9
     },
     {
       "id": "spin",
@@ -526,7 +530,8 @@
       "sprite": [
         36,
         9
-      ]
+      ],
+      "rate": 7
     },
     {
       "id": "double",
@@ -535,11 +540,12 @@
       "attack": {
         "count": 0
       },
-      "cooldown": 2.8,
+      "cooldown": 3,
       "sprite": [
         92,
         33
-      ]
+      ],
+      "rate": 14
     },
     {
       "id": "thrust",
@@ -548,11 +554,12 @@
       "attack": {
         "count": 0
       },
-      "cooldown": 6,
+      "cooldown": 6.5,
       "sprite": [
         31,
         8
-      ]
+      ],
+      "rate": 6
     },
     {
       "id": "heavy",
@@ -561,11 +568,12 @@
       "attack": {
         "count": 0
       },
-      "cooldown": 5,
+      "cooldown": 7.5,
       "sprite": [
         26,
         7
-      ]
+      ],
+      "rate": 4
     },
     {
       "id": "magic",
@@ -578,7 +586,8 @@
       "sprite": [
         47,
         13
-      ]
+      ],
+      "rate": 6
     }
   ],
   "armorSprites": [

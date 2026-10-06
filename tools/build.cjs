@@ -8,8 +8,9 @@ const spec=JSON.parse(read('assets/selection.json'));
 const characterSheet=PNG.sync.read(fs.readFileSync(path.join(root,'assets/generated/104-sheet.png')));
 if(characterSheet.width!==72||characterSheet.height!==48)throw Error('104 sheet must be 6 × 4 tiles');
 const characterBits=Buffer.alloc(25*18);
+// The sheet's side-view idle/walk columns look backwards relative to its attack columns; flip them.
 for(let t=0;t<24;t++)for(let p=0;p<144;p++){
- const n=((Math.floor(t/6)*12+Math.floor(p/12))*72+(t%6)*12+p%12)*4;
+ const flip=t<12&&t%6<3,n=((Math.floor(t/6)*12+Math.floor(p/12))*72+(t%6)*12+(flip?11-p%12:p%12))*4;
  if(characterSheet.data[n+3]>127)characterBits[t*18+(p>>3)]|=128>>(p&7);
 }
 const death=JSON.parse(read('assets/player-death.json'));
@@ -50,12 +51,14 @@ const fireBits=Buffer.alloc(5*18);
 const masks=[['............','.....#......','............','..#.....#...','............','.....#......','....###.....','...#####....','..#######...','.#########..','............','............'],['............','..#.....#...','.###...###..','..#.....#...','.....#......','....###.....','.....#......','..#.....#...','.###...###..','..#.....#...','............','............'],['.....#......','.....##.....','....###.....','....##..#...','...###..#...','.#.##..##...','.####.###...','.###..####..','..##.#####..','..#######...','...#####....','....###.....'],['......#.....','.....##.....','.....##.....','..#..###....','..##.###....','..#####.#...','.####..##...','.###..####..','.###.#####..','..#######...','...#####....','....###.....'],['....#.......','....##......','....###.....','.#..###.....','.##..###....','.###.###.#..','..####.###..','..###..###..','.####.####..','..#######...','...#####....','....###.....']];
 for(let i=0;i<5;i++)for(let p=0;p<144;p++)if(masks[i][p/12|0][p%12]==='#')fireBits[i*18+(p>>3)]|=128>>(p&7);
 const ring=[65,66,67,68].map(x=>({x,y:4}));
+// Fallen bodies left where enemies die (column 201 of the sheet).
+const corpses=[0,6,18,26,33].map(y=>({x:201,y}));
 for(const dev of development?[true,false]:[false]){
  const enemyColumns=enemyTiles;
  const letters='@',font=[{x:80,y:36}];
- const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,dev?characterBits:Buffer.concat([characterBits.subarray(0,6*18),characterBits.subarray(12*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
+ const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...corpses,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,dev?characterBits:Buffer.concat([characterBits.subarray(0,6*18),characterBits.subarray(12*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
  const encodedBitmap=dev?undefined:spriteEncoder(bits),bitText=encodedBitmap?.text??bits.toString('base64');
- const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,actor:tiles.length+5});
+ const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,corpses:enemies+enemyTiles.length+armorTiles.length+effects.length+4,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,actor:tiles.length+5});
  if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,ring,font},null,2)+'\n');}
  let template=quantizeColors(read(dev?'src/dev.html':'src/index.html'));
  if(!dev&&diagnostics)template=template.replace('<script>','<aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button><button id="interact"></button></aside><script>');

@@ -7,10 +7,10 @@ const background=DEV?document.createElement('canvas'):canvas.cloneNode();if(DEV)
 const floor=background.getContext('2d');
 let room,player,sprite=104,last=0,seed,dev;
 function tile(c,index,x,y){c.drawImage(atlas,index*12,0,12,12,x,y,12,12);}
-function writeTiles(text,x,y){
- ctx.font='bold 16px monospace';ctx.fillStyle='#efefdb';
- if(DEV&&text[0]==='@'){tile(ctx,assets.font,x*12,y*12);text='  '+text.slice(1);}
- ctx.fillText(text,x*12,y*12+12);
+// Centred lettering with a hard drop shadow.
+function writeTiles(text,y,font='bold 14px monospace'){
+ ctx.font=font;ctx.textAlign='center';
+ for(const d of [2,0]){ctx.fillStyle=d?'#101722':'#efefdb';ctx.fillText(text,186+d,y*12+12+d);}
 }
 
 function reset(fresh=false){
@@ -22,14 +22,14 @@ function enterRoom(from){
   const door=room.doors.find(d=>d.to===from);if(door){const [dx,dy]=directions[door.dir];player.x=door.x-dx*1.5;player.y=door.y-dy*1.5;facing=Math.atan2(-dy,-dx);}
   if(!level)facing=0;
   art.globalCompositeOperation='source-atop';
-  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.effects+1,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
+  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.corpses,5,'#8f7d86'],[assets.effects+1,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
   floor.imageSmoothingEnabled=false;
   for(let n=0;n<W*H;n++){
    const x=n%W*12,y=(n/W|0)*12,open=room.cells[n]&1;
    floor.fillStyle=level?worldColor(open?14:8):open?'#324957':'#101722';floor.fillRect(x,y,12,12);
    if(level){floor.globalAlpha=open?.09:.25;tile(floor,assets.pantry+(open?18:21)+world.shape,x,y);floor.globalAlpha=1;}
   }
-  if(!level)for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,156+i%2*24,108+(i>>1)*24,24,24);
+  if(!level)for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,150+i%2*24,102+(i>>1)*24,24,24);
   for(let n=0;n<W*H;n++)if(room.cells[n]>>1)tile(floor,assets.pantry+(room.cells[n]>>1)-1,n%W*12,(n/W|0)*12);
   if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
   if(DEV){$('room-select').value=level?chamber:-1;$('weapon-test').value=weapon;$('enemy-test').value=room.enemies[0]&&!room.enemies[0].boss?room.enemies[0].kind:-1;}
@@ -73,7 +73,7 @@ if(DEV){onkeydown=e=>{
 };
 onkeyup=e=>{const k=e.key.toLowerCase();keys.delete(k);if(DEV)dev.keyup(k);else{if(k==='i')releaseAction('attack');if(k==='o')releaseAction('interact');}};
 }else{
- onkeydown=e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;startAudio();const k=e.keyCode;keys[k]=1;if(k>36&&k<91)e.preventDefault();if(!e.repeat){if(k===73)holdAction('attack');if(k===79)performAction('interact');if(k===82)reset(true);}};
+ onkeydown=e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;startAudio();const k=e.keyCode;keys[k]=1;if(k>31&&k<91)e.preventDefault();if(!e.repeat){if(k===73)holdAction('attack');if(k===79)performAction('interact');if(k===82)reset(true);}};
  onkeyup=e=>{keys[e.keyCode]=0;if(e.keyCode===73)releaseAction('attack');};
 }
 onblur=()=>{clearKeys();releaseActions();};
@@ -89,7 +89,8 @@ function frame(time){
     const down=(a,b)=>keys[a]|keys[b];
     if(health&&travel<=0&&!dash){if(DEV)dev.move(dt);else{
       const dx=down(68,39)-down(65,37),dy=down(83,40)-down(87,38);
-      faceMovement(dx,dy);movePlayer(room.cells,player,dx,dy,dt,10*movementFactor());
+      // Holding Space plants the feet; direction keys still turn.
+      faceMovement(dx,dy);if(!keys[32])movePlayer(room.cells,player,dx,dy,dt,10*movementFactor());
     }}
     const distance=Math.hypot(player.x-oldX,player.y-oldY);
     if(!(DEV&&dev.paused)){walking=distance>.00001;if(walking){const old=gait;gait=(gait+distance*2.5)%4;if(Math.floor(old)!==Math.floor(gait)&&Math.floor(gait)%2===0)tone(world.shape===1?150:80,.025,'triangle',.004);}else gait=0;}
@@ -99,7 +100,7 @@ function frame(time){
     const x=Math.round(player.x*12)-6,y=Math.round(player.y*12)-10;
     ctx.fillStyle='#090c08';ctx.fillRect(x+2,y+10,8,3);ctx.globalAlpha=hurt>0&&Math.floor(hurt*12)%2?.45:1;drawActor(x,y);ctx.globalAlpha=1;drawCombat();
     if(hitFlash){ctx.fillStyle='#df5665';ctx.globalAlpha=hitFlash;ctx.fillRect(0,0,W*12,H*12);ctx.globalAlpha=1;}
-    if(!health)writeTiles('SCORE '+score,12,1);
+    if(!health)writeTiles('SCORE '+score,1);
     if(DEV)dev.draw(dt,time);
     if(DEV)canvas.dataset.action=action? action.type:'idle';
     if(DEV)canvas.dataset.frame=actionFrame();
