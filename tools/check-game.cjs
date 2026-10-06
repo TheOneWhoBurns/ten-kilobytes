@@ -1,13 +1,13 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 function boot(file,saved,peaceful=true,dungeon=true){
  const handlers={},fields={},raf=[],storage=new Map(saved?[['room-zero-dev-v1',saved]]:[]);let entropy=0,time=0,lastDraw,strokes=0,hitFrames=0,actorSprite=104,mapCount=0,lettering=[],ink=[];
- class Element{constructor(tagName='BUTTON',value=''){this.tagName=tagName;this.value=value;this.checked=false;this.style={};this.dataset={};}setAttribute(k,v){this[k]=v;}click(){this.onclick?.();}focus(){}setPointerCapture(){}}
+ class Element{constructor(tagName='BUTTON',value=''){this.tagName=tagName;this.value=value;this.checked=false;this.style={};this.dataset={};}appendChild(){}setAttribute(k,v){this[k]=v;}click(){this.onclick?.();}focus(){}setPointerCapture(){}}
  class Input extends Element{constructor(value){super('INPUT',value);}}
  let html=require('./read-build.cjs')(file);
  for(const match of html.matchAll(/<(input|button|select|span|div|canvas|p)[^>]*\bid="([^"]+)"[^>]*>/g)){
   fields[match[2]]=match[1]==='input'?new Input(match[0].match(/value="([^"]*)"/)?.[1]||''):new Element(match[1].toUpperCase());
  }
- const context={fillText(text){lettering.push(text);},clearRect(){},save(){},restore(){},rotate(){},translate(){},scale(){},fillRect(x,y,w,h){if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){lastDraw=args;const letters=(fields.seed?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''))+'@"->',i=args[1]/12-(args[0].width/12-25-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
+ const context={fillText(text){lettering.push(text);},clearRect(){},save(){},restore(){},rotate(){},translate(){},scale(){},fillRect(x,y,w,h){if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){if(args[0].width===12||args[1]/12>=args[0].width/12-25)lastDraw=args;const letters=(fields.seed?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''))+'@"->',i=args[1]/12-(args[0].width/12-30-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
  const canvas=fields.game;canvas.getContext=()=>context;canvas.parentElement={getBoundingClientRect:()=>({width:1200,height:650})};
  const document={getElementById:id=>fields[id],createElement:()=>{const node={};node.getContext=()=>({...context,drawImage(...args){if(node.width===12&&node.height===456&&args[0]!==node&&args[6]===0)actorSprite=args[1]/12+103;}});return node;},addEventListener:(name,fn)=>handlers[name]=fn};
  let audioContexts=0,audioNotes=0;
@@ -51,7 +51,7 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
 const g=boot('dev/play.html'),f=g.fields;
 const run=(k,n=6)=>{const x=g.x;g.key('keydown',k);g.tick(n);g.key('keyup',k);return g.x-x;};
 const normal=run('d');f.respawn.click();g.tick();
-f.speed.value='10';f.speed.oninput({target:f.speed});assert.equal(+f['speed-range'].value,10);
+f.speed.value='20';f.speed.oninput({target:f.speed});assert.equal(+f['speed-range'].value,20);
 const fast=run('d');assert.equal(fast,normal*2,'live speed doubles distance');
 f.pause.click();assert.equal(run('d'),0,'pause blocks movement');f.pause.click();
 f.layout.value='arrows';f.layout.onchange({target:f.layout});assert.equal(run('d'),0,'preset removes old key');f.respawn.click();g.tick();assert(run('ArrowRight')>0,'arrow preset works');
@@ -59,9 +59,9 @@ f['bind-right'].click();g.key('keydown','ArrowUp');assert(f['binding-status'].te
 g.key('keydown','ArrowRight',f.layout);g.tick();g.key('keyup','ArrowRight');
 f.grid.checked=true;f.grid.onchange({target:f.grid});f.hitbox.checked=true;f.hitbox.onchange({target:f.hitbox});g.tick();assert(g.strokes>=2,'debug overlays draw');
 f['dev-toggle'].click();assert.equal(f['dev-panel'].hidden,true,'bar collapses');
-const saved=g.storage.get('room-zero-dev-v1'),restored=boot('dev/play.html',saved);assert.equal(+restored.fields.speed.value,10);assert.equal(restored.fields['bind-right'].textContent,'T');assert(restored.fields['dev-panel'].hidden,'collapse persisted');
+const saved=g.storage.get('room-zero-dev-v1'),restored=boot('dev/play.html',saved);assert.equal(+restored.fields.speed.value,20);assert.equal(restored.fields['bind-right'].textContent,'T');assert(restored.fields['dev-panel'].hidden,'collapse persisted');
 f.collision.checked=false;f.collision.onchange({target:f.collision});g.key('keydown','ArrowUp');run('t',300);g.key('keyup','ArrowUp');assert(g.x>330,'collision disabled allows wall crossing');f.collision.checked=true;f.collision.onchange({target:f.collision});g.tick();assert.equal(g.x,180,'collision restore returns embedded player to spawn');
-f.defaults.click();assert.equal(+f.speed.value,5);assert.equal(f.layout.value,'wasd');assert(!f.grid.checked&&!f.hitbox.checked&&!f['dev-panel'].hidden,'defaults restore settings');
+f.defaults.click();assert.equal(+f.speed.value,10);assert.equal(f.layout.value,'wasd');assert(!f.grid.checked&&!f.hitbox.checked&&!f['dev-panel'].hidden,'defaults restore settings');
 assert(!fs.readFileSync('dev/release-diagnostics.html','utf8').includes('room-zero-dev-v1'),'dev preferences removed from release');
 const migrated=boot('dev/play.html',JSON.stringify({speed:10,layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:' ',interact:'e'}}),true,false);assert.equal(migrated.fields['bind-attack'].textContent,'I');assert.equal(migrated.fields['bind-interact'].textContent,'O');assert.equal(+migrated.fields.speed.value,10);
 console.log('PASS dev controls: speed, pause, presets, custom/duplicate/reserved bindings, overlays, collapse, persistence, collision and defaults');
@@ -73,9 +73,9 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  for(let i=0;i<10;i++){g.tick();poses.add(g.pose);assert.equal(g.sprite,idle,'character identity preserved');}
  assert(poses.size>=3,'strike and recovery have separate poses');assert.equal(f.attack['data-active'],'false','fast recovery');
  if(f.pause){
-  f['attack-rate'].value='2';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(20);assert.equal(f.attack['data-active'],'true','slower timing applied');g.tick(11);assert.equal(f.attack['data-active'],'false','slow cycle completes');
+  g.tick(10);f['attack-rate'].value='2';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(20);assert.equal(f.attack['data-active'],'true','slower timing applied');g.tick(11);assert.equal(f.attack['data-active'],'false','slow cycle completes');
   f['attack-rate'].value='20';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(4);assert.equal(f.attack['data-active'],'false','fast timing applied');
-  g.key('keydown','i');let starts=0,active=false;for(let i=0;i<30;i++){g.tick();const next=f.attack['data-active']==='true';if(next&&!active)starts++;active=next;}assert(starts>=2,'held input repeats through cooldown gaps');g.key('keyup','i');g.tick(10);assert.equal(f.attack['data-active'],'false','release ends repeat');
+  g.key('keydown','i');let starts=0,active=false;for(let i=0;i<60;i++){g.tick();const next=f.attack['data-active']==='true';if(next&&!active)starts++;active=next;}assert(starts>=2,'held input repeats through cooldown gaps');g.key('keyup','i');g.tick(10);assert.equal(f.attack['data-active'],'false','release ends repeat');
   f['attack-rate'].value='2';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(2);f.pause.click();const pose=g.pose;g.tick(30);assert.equal(g.pose,pose,'pause freezes action');f.pause.click();g.tick(40);
   f['bind-attack'].click();g.key('keydown','q');g.key('keyup','q');g.key('keydown','q');g.key('keyup','q');g.tick();assert.equal(f.game.dataset.action,'attack','remapped attack works');
   const restored=boot(file,g.storage.get('room-zero-dev-v1'));assert.equal(+restored.fields['attack-rate'].value,2,'action rate persists');
@@ -129,7 +129,7 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  // Pointer release must not cancel a simultaneous keyboard hold.
  g.key('keydown','i');f.attack.onpointerdown({button:0,pointerId:7,preventDefault(){}});
  f.attack.onpointerup({pointerId:7});g.tick(15);let repeated=false;
- for(let i=0;i<12;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'pointer release preserves keyboard input');
+ for(let i=0;i<24;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'pointer release preserves keyboard input');
  g.key('keyup','i');g.tick(10);assert.equal(f.attack['data-active'],'false');
  f.attack.onpointerdown({button:0,pointerId:8,preventDefault(){}});g.key('keyup','i');g.tick(15);repeated=false;
  for(let i=0;i<12;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'keyup preserves pointer input');
@@ -143,7 +143,7 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  if(f.pause){
   f['attack-cooldown'].value='500';f['attack-cooldown'].oninput({target:f['attack-cooldown']});
   const restored=boot(file,g.storage.get('room-zero-dev-v1'));assert.equal(+restored.fields['attack-cooldown'].value,500,'cooldown persists');
-  g.key('keydown','i');g.tick(6);assert.equal(f.attack['data-active'],'false');g.tick(20);assert.equal(f.attack['data-active'],'false','cooldown independent of animation');g.tick(5);assert.equal(f.attack['data-active'],'true','held attack resumes when ready');
+  g.key('keydown','i');g.tick(6);assert.equal(f.attack['data-active'],'false');g.tick(20);assert.equal(f.attack['data-active'],'false','cooldown independent of animation');g.tick(35);assert.equal(f.attack['data-active'],'true','held attack resumes when ready');
   f.pause.click();g.key('keydown','i');g.tick(30);f.pause.click();g.tick(40);assert.equal(f.attack['data-active'],'false','paused input does not latch a repeat');
   f['attack-mode'].value='press';f['attack-mode'].onchange({target:f['attack-mode']});g.key('keydown','i');g.tick(90);assert.equal(f.attack['data-active'],'false','press mode never auto-repeats');g.key('keyup','i');
  }
@@ -160,11 +160,11 @@ console.log('PASS simultaneous actions: captured hit direction, punch priority a
 
 for(const fps of [30,60,144]){
  const g=boot('dev/release-diagnostics.html');g.key('keydown','i');let active=true,starts=1,lastStart=0;
- for(let i=1;i<=fps;i++){g.tick(1,1000/fps);const next=g.fields.attack['data-active']==='true';if(next&&!active){const time=i*1000/fps;assert(time-lastStart>=150-1e-6,'repeat respects cooldown across frame rates');lastStart=time;starts++;}active=next;}
- assert(starts>=6&&starts<=7,'repeat cadence stays close across frame rates');
+ for(let i=1;i<=fps;i++){g.tick(1,1000/fps);const next=g.fields.attack['data-active']==='true';if(next&&!active){const time=i*1000/fps;assert(time-lastStart>=300-1e-6,'repeat respects cooldown across frame rates');lastStart=time;starts++;}active=next;}
+ assert(starts>=3&&starts<=4,'repeat cadence stays close across frame rates');
 }
 {
- const g=boot('dev/release-diagnostics.html');g.key('keydown','i');g.tick(4,30);assert.equal(g.fields.attack['data-active'],'false');
+ const g=boot('dev/release-diagnostics.html');g.key('keydown','i');g.tick(9,30);assert.equal(g.fields.attack['data-active'],'false');
  g.tick(1,5000);assert.equal(g.fields.attack['data-active'],'true','long frame triggers at most the next ready strike');
  g.key('keyup','i');g.tick(30);assert.equal(g.fields.attack['data-active'],'false','long frame creates no catch-up queue');
 }

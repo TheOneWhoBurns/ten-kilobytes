@@ -2,7 +2,7 @@ const hazards=require('./hazard-view.cjs');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const context={fillText(){},fillRect(){},clearRect(){},drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},strokeRect(){}};
 const fields=new Map(),document={createElement:()=>({getContext:()=>context}),getElementById:id=>{if(!fields.has(id))fields.set(id,{getContext:()=>context,setAttribute(){},style:{}});return fields.get(id);}};
-const src=require('./content-data.cjs')()+require('./landmark-data.cjs')()+['room','actions','world'].map(n=>fs.readFileSync('src/'+n+'.js','utf8')).join('\n')+'\n'+fs.readFileSync('src/game.js','utf8').split('function choose(')[0];
+const src=require('./content-data.cjs')()+require('./landmark-data.cjs')()+['room','actions','world','combat'].map(n=>fs.readFileSync('src/'+n+'.js','utf8')).join('\n')+'\n'+fs.readFileSync('src/game.js','utf8').split('function choose(')[0];
 const api=vm.runInNewContext('const DEV=false,assets={letters:"",enemyCount:8,weaponCount:3,pantry:0,actor:160,weapon:70,enemies:73};'+src+`;({makeLevel,canFit,W,H,reset,enterRoom,worldInteract,tickWorld,worldAttack,takeLoot,hitEnemy,fire,hurtPlayer,drawWorld,
  init(v){seed=v;reset();level=1;world=makeLevel(seed,level);enterRoom();},
  get state(){return {world,room,player,level,chamber,health,hurt,hitFlash,weapon,shots,objects,travel,worldTime,temper};},
@@ -33,7 +33,8 @@ for(let seed=0;seed<1000;seed++){
   const start=10*31+15,q=[start],s=new Set(q);for(let j=0;j<q.length;j++)for(const d of [-1,1,-31,31]){const n=q[j]+d;if(r.cells[n]===1&&Math.abs(n%31-q[j]%31)<=1&&!s.has(n)){s.add(n);q.push(n);}}
   assert.equal(s.size,Array.from({length:api.W*api.H},(_,n)=>r.cells[n]).filter(v=>v===1).length,'every floor tile connects to room center');
   for(const p of [...r.enemies,...hazards(r),...r.loot,r.gate])assert(api.canFit(r.cells,p.x,p.y),'entities have valid player-sized floor');
-  for(const e of r.enemies){assert(e.form>=0&&e.form<8);assert(r.doors.every(d=>Math.hypot(e.x-d.x,e.y-d.y)>3),'door entries remain clear');}
+  if(r.enemies.length&&!r.enemies[0].boss){const name=require('../assets/content.json').enemies[r.enemies[0].kind].id,n=r.enemies.length;if(name==='swarm')assert(n>=20&&n<=27);if(name==='shield-wall')assert(n>=4&&n<=9);if(name==='conga'){assert(n>=8&&n<=12);assert.equal(new Set(r.enemies.map(e=>e.x+','+e.y)).size,n,'conga starts with distinct adjacent tiles');for(let k=1;k<n;k++)assert.equal(Math.hypot(r.enemies[k].x-r.enemies[k-1].x,r.enemies[k].y-r.enemies[k-1].y),1);}}
+  for(const e of r.enemies){assert(e.form>=0&&e.form<require('../assets/content.json').enemySprites.length);assert(r.doors.every(d=>Math.hypot(e.x-d.x,e.y-d.y)>3),'door entries remain clear');}
  }
 }
 assert(branching>100);assert(deadEnds>100,'dead-end branches are allowed');assert(doorOffsets.size>=20,'doors use varied edge positions');assert.equal(variants.size,10,'all exit landmarks generated');
@@ -41,7 +42,7 @@ console.log('PASS 1,000 complete levels: determinism, seven connected rooms, rec
 api.init(1);
 let s=api.state,door=s.room.doors[0];api.position(door.x,door.y);api.step(25);assert.equal(api.state.chamber,0,'combat locks doors');api.clear();api.position(door.x,door.y);api.step(25);assert.equal(api.state.chamber,door.to,'walk through edge changes room');const back=api.state.room.doors.find(d=>d.to===0);assert(Math.hypot(api.state.player.x-back.x,api.state.player.y-back.y)>1,'arrive inside opposite doorway');api.clear();api.position(back.x,back.y);api.step(25);assert.equal(api.state.chamber,0);assert(api.state.room.enemies.every(e=>e.hp<=0),'cleared enemies remain dead on revisit');assert(api.state.objects.every(o=>o.kind!==0),'no barrels');
 api.init('combat');s=api.state;let e=s.room.enemies[0];api.position(e.x-1,e.y);api.aim(0);const hp=e.hp;api.worldAttack();assert(e.hp<hp,'fist hits immediately');
-api.takeLoot({kind:3,value:2});const shotCount=api.state.shots.length;api.worldAttack();assert.equal(api.state.shots.length,shotCount+3,'fan has three shots');api.takeLoot({kind:3,value:3});api.worldAttack();assert(api.state.shots.some(s=>(s.traits&2)),'returning disc');for(let i=0;i<200;i++)api.fire(api.state.player,0,5,1,2);assert(api.state.shots.length<=96,'bounded projectile budget');
+api.takeLoot({kind:3,value:1});const shotCount=api.state.shots.length;api.worldAttack();assert.equal(api.state.shots.length,shotCount+1,'arrow has one shot');api.takeLoot({kind:3,value:2});api.worldAttack();assert(api.state.shots.some(s=>(s.traits&2)),'returning disc');for(let i=0;i<200;i++)api.fire(api.state.player,0,5,1,2);assert(api.state.shots.length<=96,'bounded projectile budget');
 api.init('boss');const previousFloor=api.state.world;const boss=api.state.world.boss;api.setRoom(6);let gate=api.state.room.gate;api.position(gate.x,gate.y);assert.equal(api.worldInteract(),false,'cannot exit before boss death');api.setRoom(boss);api.clear();api.setRoom(6,boss);gate=api.state.room.gate;api.position(gate.x,gate.y);assert(api.worldInteract());api.step(25);assert.equal(api.state.level,2,'only dedicated exit advances dungeon level');assert.notEqual(api.state.world,previousFloor,'descent replaces current floor');assert.equal(api.state.world.rooms.length,7);assert(!api.state.world.rooms.some(r=>previousFloor.rooms.includes(r)),'no previous rooms retained in current floor');assert.notDeepEqual(api.state.world.nodes,previousFloor.nodes,'next depth generates a new layout');assert.equal(api.state.chamber,0);
 api.health(1);api.hurtPlayer();assert.equal(api.state.health,0);assert(api.worldInteract());assert.equal(api.state.health,2);assert.equal(api.state.level,0,'death returns to safe entrance');
 api.health(2);const before=JSON.stringify(api.state);api.tickWorld(0);assert.equal(JSON.stringify(api.state),before,'zero dt freezes combat');api.draw();
@@ -67,7 +68,7 @@ for(let seed=0;seed<20;seed++){
 console.log('PASS navigation cache: sub-cell reuse, cell/room/level invalidation, backtracking and exact flood-fill distances');
 api.init('projectile-hit');api.position(15.5,10.5);api.aim(0);let victim=api.state.room.enemies[0];victim.x=18.5;victim.y=10.5;victim.kind=1;victim.wait=999;const oldHP=victim.hp;api.takeLoot({kind:3,value:1});api.worldAttack();api.step(18);assert(victim.hp<oldHP,'moving projectile actually damages an enemy');
 api.init('wall-impact');api.clear();api.position(15.5,10.5);api.fire(api.state.player,0,14,1,10,true);api.step(180);assert.equal(api.state.shots.length,0,'projectiles stop at the screen boundary');
-api.init('disc-return');api.setRoom(6);api.position(15.5,10.5);api.aim(0);api.takeLoot({kind:3,value:3});api.worldAttack();api.step(27);assert(api.state.shots[0].dx<0,'disc reverses towards the player');
+api.init('disc-return');api.setRoom(6);api.position(15.5,10.5);api.aim(0);api.takeLoot({kind:3,value:2});api.worldAttack();api.step(27);assert(api.state.shots[0].dx<0,'disc reverses towards the player');
 console.log('PASS combat integration: projectile damage, wall collision and returning disc steering');
 
 // Reward provenance and snapshot behavior, independent of rendering.
@@ -78,14 +79,14 @@ for(let seed=0;seed<60;seed++){
  api.hitEnemy(boss,100);assert.equal(api.state.objects.filter(o=>o.kind===3).length,1,'dead boss cannot duplicate its reward');
  api.takeLoot(rewards[0]);assert.equal(api.state.temper,boss.pattern,'reward inherits generated boss variation');
 }
-api.init('needle');api.clear();api.takeLoot({kind:3,value:1});api.worldAttack();assert((api.state.shots[0].traits&1));api.takeLoot({kind:3,value:2});assert((api.state.shots[0].traits&1),'existing shot retains its piercing after weapon swap');
+api.init('needle');api.clear();api.takeLoot({kind:3,value:2});api.worldAttack();assert((api.state.shots[0].traits&2));api.takeLoot({kind:3,value:1});assert((api.state.shots[0].traits&2),'existing shot retains its returning trait after weapon swap');
 console.log('PASS redesign: boss-only single rewards, single Skull, generated reward variations, no powerups and projectile snapshots');
 
 // Two-hit survival, feedback, immunity, persistent corpse and all boss rewards.
 api.init('two-hit');api.clear();api.health(2);api.hurtPlayer();assert.equal(api.state.health,1);assert.equal(api.state.hitFlash,.18);api.hurtPlayer();assert.equal(api.state.health,1,'one hit during immunity');api.step(60);api.hurtPlayer();assert.equal(api.state.health,0);api.step(120);assert.equal(api.state.health,0,'death persists');assert(api.worldInteract());assert.equal(api.state.health,2);
-const drops=new Set();for(let n=0;n<120;n++){api.init(n);api.setRoom(api.state.world.boss);api.clear();drops.add(api.state.objects[0].value);}assert.deepEqual([...drops].sort(),[1,2,3],'all three weapons remain boss rewards');
+const drops=new Set();for(let n=0;n<120;n++){api.init(n);api.setRoom(api.state.world.boss);api.clear();drops.add(api.state.objects[0].value);}assert.deepEqual([...drops].sort(),[1,2,3,4,5,6,7,8],'all eight upgraded weapons remain boss rewards');
 for(const depth of [1,2,10]){const w=api.makeLevel(4,depth);for(const r of w.rooms)for(const e of r.enemies)assert.equal(e.hp,e.boss?120+20*depth:1);}
-api.init('boss-no-repeat');api.setRoom(api.state.world.boss);let target=api.state.room.enemies[0];target.x=17;target.y=10.5;target.wait=999;api.position(15.5,10.5);api.aim(0);api.takeLoot({kind:3,value:3});api.worldAttack();api.step(45);assert.equal(target.hp,138,'returning fang hits the same boss once');
+api.init('boss-no-repeat');api.setRoom(api.state.world.boss);let target=api.state.room.enemies[0];target.x=17;target.y=10.5;target.wait=999;api.position(15.5,10.5);api.aim(0);api.takeLoot({kind:3,value:2});api.worldAttack();api.step(45);assert.equal(target.hp,138,'returning fang hits the same boss once');
 api.health(0);api.hitEnemy(target,9999);assert.equal(api.state.health,0,'late boss death cannot resurrect player');
 console.log('PASS two-hit survival, invulnerability, no powers, all boss weapons, 5x boss scaling and returning-shot hit memory');
 

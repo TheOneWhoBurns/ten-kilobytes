@@ -4,7 +4,7 @@
   "description": "Procedural real-time roguelike with a 10,000-byte standalone file budget",
   "scripts": {
     "build": "node tools/build.cjs",
-    "test": "node tools/build-diagnostics.cjs && node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs && node tools/check-catalog.cjs && node tools/game-equivalence.cjs --current-source && node tools/check-representation.cjs && node tools/check-landmarks.cjs && node tools/check-packing.cjs && node tools/check-content.cjs && node tools/check-entrance.cjs && node tools/check-release.cjs",
+    "test": "node tools/build-diagnostics.cjs && node tools/check-room.cjs && node tools/check-game.cjs && node tools/check-level.cjs && node tools/check-catalog.cjs && node tools/game-equivalence.cjs --current-source && node tools/check-representation.cjs && node tools/check-landmarks.cjs && node tools/check-packing.cjs && node tools/check-content.cjs && node tools/check-entrance.cjs && node tools/check-release.cjs && node tools/check-score.cjs && node tools/check-combat.cjs",
     "dev": "node tools/serve.cjs",
     "catalog": "node tools/catalog.cjs",
     "test:equivalence": "node tools/game-equivalence.cjs --current-source",

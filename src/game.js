@@ -10,15 +10,15 @@ function writeTiles(text,x,y){
 }
 function reset(fresh=false){
   if(fresh){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];if(DEV)$('seed').value=seed;}
-  level=0;chamber=0;health=2;hitFlash=0;weapon=0;temper=0;world=makeEntrance();makeActor();enterRoom();
+  level=0;chamber=0;score=0;maxHealth=health=2;weaponArt=0;hitFlash=0;weapon=0;temper=0;world=makeEntrance();makeActor();enterRoom();
 }
 function enterRoom(from){
-  keys.clear();navSolid=navDistances=null;room=world.rooms[chamber];player=tilePoint(room.spawn);shots=[];hurt=1;travel=0;resetActions();
+  keys.clear();navSolid=navDistances=null;room=world.rooms[chamber];player=tilePoint(room.spawn);shots=[];fields=[];blows=[];dash=null;gaze=0;hurt=1;travel=0;resetActions();
   const door=room.doors.find(d=>d.to===from);if(door){const [dx,dy]=directions[door.dir];player.x=door.x-dx*1.5;player.y=door.y-dy*1.5;facing=Math.atan2(-dy,-dx);}
   if(!level)facing=0;
   room.visited=true;
   art.globalCompositeOperation='source-atop';
-  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
+  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.effects+2,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
   floor.fillStyle='#080c14';floor.fillRect(0,0,372,252);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
    const n=y*W+x,px=x*12,py=y*12;
@@ -41,7 +41,7 @@ function enterRoom(from){
   if(!level){floor.fillStyle='#324957';floor.fillRect(156,108,48,48);for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,156+i%2*24,108+(i>>1)*24,24,24);}
   for(const p of room.props){const x=p.x*12,y=p.y*12;if(p.t%6<3){floor.fillStyle='#050a1077';floor.fillRect(x+2,y+10,10,3);}tile(floor,assets.pantry+p.t,x,y-(p.t%6<3?2:0));}
   if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
-  if(DEV)$('room-select').value=level?chamber:-1;
+  if(DEV){$('room-select').value=level?chamber:-1;$('weapon-test').value=weapon;$('enemy-test').value=room.enemies[0]&&!room.enemies[0].boss?room.enemies[0].kind:-1;}
 }
 function choose(value){sprite=Number.isFinite(+value)?Math.max(104,Math.min(assets.last,Math.round(+value))):104;if(DEV)$('sprite').value=sprite;makeActor();}
 function nextRoom(){reset(true);}
@@ -53,6 +53,13 @@ if(DEV){
  $('sprite').onchange=e=>choose(e.target.value);
  $('prev').onclick=()=>cycle(-1);$('next').onclick=()=>cycle(1);
  $('room-select').onchange=e=>{if(+e.target.value<0)reset();else{if(!level){level=1;world=makeLevel(seed,level);}chamber=+e.target.value;enterRoom();}canvas.focus();};
+ for(const [id,names] of [['enemy-test',enemyNames],['weapon-test',weaponNames]])names.forEach((name,i)=>{const option=document.createElement('option');option.value=i;option.textContent=name;$(id).appendChild(option);});
+ $('enemy-test').onchange=e=>{const kind=+e.target.value;if(kind<0)return;let found;
+  for(let n=0;n<100&&!found;n++){const candidate=makeLevel(seed+':preview:'+kind+':'+n,Math.max(1,level));const i=candidate.rooms.findIndex(r=>r.enemies.some(e=>!e.boss&&e.kind===kind));if(i>=0){world=candidate;chamber=i;found=true;}}
+  if(found){level=Math.max(1,level);health=maxHealth=2;enterRoom();}canvas.focus();
+ };
+ $('weapon-test').onchange=e=>{takeLoot({kind:3,value:+e.target.value});canvas.focus();};
+ $('armor-test').onclick=()=>{if(health)takeLoot({kind:4,value:0});canvas.focus();};
  $('clear-room').onclick=()=>{for(const e of room.enemies)if(e.hp>0)hitEnemy(e,10000);canvas.focus();};
 }
 if(DEV/*diagnostics*/)for(const type of ['attack','interact']){
@@ -84,7 +91,7 @@ function frame(time){
   {
     const oldX=player.x,oldY=player.y;
     const down=(a,b)=>+(keys.has(a)||keys.has(b));
-    if(health&&travel<=0){if(DEV)dev.move(dt);else{
+    if(health&&travel<=0&&!dash){if(DEV)dev.move(dt);else{
       const dx=down('d','arrowright')-down('a','arrowleft'),dy=down('s','arrowdown')-down('w','arrowup');
       faceMovement(dx,dy);movePlayer(room.cells,player,dx,dy,dt,10*movementFactor());
     }}
@@ -94,8 +101,9 @@ function frame(time){
     const step=DEV&&dev.paused?0:Math.min(dt,.05);
     tickActions(health?step:0);tickWorld(step);drawWorld();
     const x=Math.round(player.x*12)-6,y=Math.round(player.y*12)-10;
-    ctx.fillStyle='#090c08';ctx.fillRect(x+2,y+10,8,3);ctx.globalAlpha=hurt>0&&Math.floor(hurt*12)%2?.45:1;drawActor(x,y);ctx.globalAlpha=1;
+    ctx.fillStyle='#090c08';ctx.fillRect(x+2,y+10,8,3);ctx.globalAlpha=hurt>0&&Math.floor(hurt*12)%2?.45:1;drawActor(x,y);ctx.globalAlpha=1;drawCombat();
     if(hitFlash){ctx.fillStyle='#df5665';ctx.globalAlpha=hitFlash;ctx.fillRect(0,0,W*12,H*12);ctx.globalAlpha=1;}
+    if(!health){ctx.fillStyle='#101722';ctx.fillRect(116,14,140,20);ctx.fillStyle='#efefdb';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText('SCORE '+score,186,28);ctx.textAlign='start';}
     if(DEV)dev.draw(dt,time);
     if(DEV)canvas.dataset.action=action? action.type:'idle';
     if(DEV)canvas.dataset.frame=actionFrame();

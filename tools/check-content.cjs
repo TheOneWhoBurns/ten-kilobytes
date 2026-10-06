@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),data=require('./content-data.cjs'),examples=require('./content-examples.cjs');
-const runtime=['room','actions','world'].map(n=>fs.readFileSync('src/'+n+'.js','utf8')).join('\n')+'\n'+fs.readFileSync('src/game.js','utf8').split('function choose(')[0];
+const runtime=['room','actions','world','combat'].map(n=>fs.readFileSync('src/'+n+'.js','utf8')).join('\n')+'\n'+fs.readFileSync('src/game.js','utf8').split('function choose(')[0];
 function boot(catalog,specialize,release=false){
  const c=data.compile(catalog,{specialize}),context={fillText(){},fillRect(){},clearRect(){},drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){}},fields=new Map();
  const document={createElement:()=>({getContext:()=>context}),getElementById:id=>{if(!fields.has(id))fields.set(id,{getContext:()=>context,setAttribute(){},style:{}});return fields.get(id);}};
@@ -24,7 +24,7 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  const api=boot(catalog,specialize,release),definitions=api.definitions();let found,appearances=0;
  for(let seed=0;seed<120;seed++){
   const world=api.level(seed,1);
-  for(const room of world.rooms)for(const e of room.enemies)if(!e.boss&&api.kind(e)===npc){assert.equal(world.shape,0,'spawn biome mask');assert.equal(e.form,8,'new art offset');found=e;appearances++;}
+  for(const room of world.rooms)for(const e of room.enemies)if(!e.boss&&api.kind(e)===npc){assert.equal(world.shape,0,'spawn biome mask');assert.equal(e.form,catalog.enemies[npc].art.base,'new art offset');found=e;appearances++;}
  }
  assert(appearances>0,'new recipe is reachable');
  api.init(1);const e={...found,x:18.5,y:10.5,phase:1,wait:0,angle:0,cycle:0,pattern:0};api.isolate(e);
@@ -39,9 +39,9 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  api.init(1);api.isolate();api.aim(0);api.take({kind:3,value:catalog.weapons.length-1});
  const spearTarget={...found,x:18.5,y:10.5,hp:9,wait:999};api.isolate(spearTarget);api.attack();assert(spearTarget.hp<9,'data-defined melee reach');
  assert.equal(api.startAttack(),.15*1.5,'data-defined weapon cadence');
- api.init(1);api.isolate();api.take({kind:3,value:2});api.aim(0);
+ api.init(1);api.isolate();api.take({kind:3,value:gun});api.aim(0);
  for(let j=0;j<95;j++)api.fire(api.state.player,0,1,1,1);const old=[...api.state.shots];api.attack();
- assert.equal(api.state.shots.length,96);assert(old.every(s=>s.curve===undefined),'full volley cannot modify earlier bullets');assert(api.state.shots[95].curve,'accepted new shot gets curvature');
+ assert.equal(api.state.shots.length,96);assert(old.every(s=>s.curve===undefined),'full volley cannot modify earlier bullets');assert(api.state.shots[95].traits&1,'accepted new shot gets the selected traits');
  assert.equal(api.definitions(),definitions,'simulation never mutates definitions');
  reports.push(JSON.stringify(api.state.shots));
 }

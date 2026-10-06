@@ -22,7 +22,7 @@ function makeActor(){
 }
 function actionRate(type){return DEV?dev.actionRate(type):12;}
 function actionMode(type){return DEV?dev.actionMode(type):type==='attack'?'hold':'press';}
-function attackLocked(){const a=actionStates.attack;return a.phase<1||a.inputs.size>0;}
+function attackLocked(){const a=actionStates.attack;return !!dash||blows.length>0||a.phase<1||a.inputs.size>0;}
 function faceMovement(dx,dy){
  const intent=dx+3*dy;
  // A held attack strafes. Releasing it preserves aim until movement input changes.
@@ -49,7 +49,7 @@ function effect(type){
 
  }else{
   if(worldInteract())return;
-  let target,distance=1.6;for(const o of objects){const d=Math.hypot(o.x-player.x,o.y-player.y);if(o.kind===3&&d<distance&&canFit(room.cells,(o.x+player.x)/2,(o.y+player.y)/2)){target=o;distance=d;}}
+  let target,distance=1.6;for(const o of objects){const d=Math.hypot(o.x-player.x,o.y-player.y);if(o.kind>=3&&d<distance&&canFit(room.cells,(o.x+player.x)/2,(o.y+player.y)/2)){target=o;distance=d;}}
   if(target){if(!attackLocked())facing=Math.atan2(target.y-player.y,target.x-player.x);takeLoot(target);target.kind=2;collected++;}
  }
 }
@@ -78,23 +78,20 @@ function tickActions(dt){
  }
  action=actionStates.attack.phase<1?actionStates.attack:actionStates.interact.phase<1?actionStates.interact:null;
  if(changed)updateActionUI();
- for(const o of objects)if(o.kind!==2){
-  const x=Math.round(o.x*12)-6,y=Math.round(o.y*12)-6;tile(ctx,assets.weapon+weaponRules[o.value][W_SPRITE],x,y);
-
- }
+ drawLoot();
 }
 function actionFrame(){return action?1+(action.type==='interact'?3:0)+Math.min(2,Math.floor(action.phase*3)):0;}
 function actorDirection(){return Math.abs(Math.sin(facing))>Math.abs(Math.cos(facing))?(facing>0?2:3):(Math.cos(facing)<0?1:0);}
 function drawActor(x,y){
  if(!health){tile(ctx,assets.actor+24,x,y);return;}
- const frame=actionFrame(),left=DEV&&Math.cos(facing)<0,jab=action?.type==='attack'?3-frame:0;
+ const frame=actionFrame()||((dash||blows.length)?2:0),weaponType=weaponRules[weapon][W_TYPE],left=DEV&&Math.cos(facing)<0,jab=(weaponType===0||weaponType===5)&&action?.type==='attack'?3-frame:0;
  let phase=DEV?frame+(left?7:0):0;
  if(!DEV||sprite===104){
-  const step=gait|0,column=action?[0,3,4,0,5,5,0][frame]:walking?(step===1?1:step===3?2:0):0;
+  const step=gait|0,column=frame?[0,3,4,0,5,5,0][frame]:walking?(step===1?1:step===3?2:0):0;
   phase=14+actorDirection()*6+column;
  }
  drawPlayerFrame(phase,x+Math.round(Math.cos(facing)*jab),y+Math.round(Math.sin(facing)*jab));
- if(action?.type==='attack'){
+ if(action?.type==='attack'&&(weaponType===0||weaponType===5)){
   const reach=12-frame*2,px=Math.round(player.x*12+Math.cos(facing)*reach),py=Math.round(player.y*12-4+Math.sin(facing)*reach);
   ctx.fillStyle='#efefdb';ctx.fillRect(px-1,py-1,3,3);
  }

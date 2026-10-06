@@ -5,14 +5,14 @@ const acorn=require('acorn'),{createHash}=require('node:crypto');
 // Fail closed if future gameplay edits change a controller function. Update this
 // adapter and its extension/equivalence tests together; never silently drop logic.
 const controllerHashes={
-  "attackLocked": "3c1400bb590c06979120228fa3e08c1d429a1de33ccc8492b957dcf1e561bdff",
+  "attackLocked": "4eabae3c931c948a9c46c3b37d0013e2ab203c24e9f3f2de08f9731f96703aa9",
   "updateActionUI": "e763f2b1954f160fde25545197400f48b01b756f671b0eb187597e203c29f908",
   "resetActions": "0e2d851afb38f754c59c0cd7f8177f54e7ca923296301b123ab405580ce13cd2",
   "releaseActions": "62e0a72d18bccc889cd70e3b800d554f3630b75ac87f6d62f25379cbd7413492",
   "releaseAction": "2a79319c70112afbb17659de0cbc008a7da301dc090a825066dc8810a0c00633",
   "performAction": "55f7b77be8e517e13ed274e3e995abcb6286f2510c35197dcab0b5bfb519420c",
   "holdAction": "1c4fa5859b9b0afe23e9011d2f23b51245cbf869b1078ac195f7929664231c08",
-  "tickActions": "979863bfff6e97ba5fc3081224e484249ba58b52cbf26ac31d73edb7effcefdd",
+  "tickActions": "a5e58c57d469d3b76888986f1b15f4bb86d9986feeb412244941dc16da42b17c",
   "actionFrame": "eb5d2931d18bcdbf5a8f26129a9d1bb425d9d7b97554defdd54eb0009178ec13"
 };
 
@@ -21,14 +21,14 @@ function specialize(source){
  const match=source.slice(node.start,node.end).match(/state\.cooldown=([^;]+);/);if(!match)throw Error('Missing cooldown expression');
  const cool=match[1].replace('(DEV?dev.attackCooldown()/1000:.15)','.15');
  const bodies={
- attackLocked:'return attackPhase<1||heldAttack>0;',
+ attackLocked:'return !!dash||blows.length>0||attackPhase<1||heldAttack>0;',
  updateActionUI:"if(DEV/*diagnostics*/)for(const type of ['attack','interact'])$(type).setAttribute('data-active',String((type==='attack'?attackPhase:interactPhase)<1));",
  resetActions:'attackPhase=interactPhase=1;cooldown=0;heldAttack=false;action=0;facing=0;moveIntent=0;gait=0;walking=false;collected=0;objects=room.loot;updateActionUI();',
  releaseActions:'heldAttack=false;',
  releaseAction:"if(type==='attack')heldAttack=false;",
  holdAction:"if(type==='attack')heldAttack=true;performAction(type);",
  performAction:`if(type==='interact'&&!health){worldInteract();return;}if(!health||travel>0)return;if(type==='attack'){if(attackPhase<1||cooldown>0)return;attackPhase=0;cooldown=${cool};}else{if(interactPhase<1)return;interactPhase=0;}effect(type);updateActionUI();`,
- tickActions:"cooldown=Math.max(0,cooldown-dt);if(attackPhase<1)attackPhase=Math.min(1,attackPhase+dt*12);if(interactPhase<1)interactPhase=Math.min(1,interactPhase+dt*12);if(heldAttack&&attackPhase>=1&&cooldown<=0&&dt>0)performAction('attack');action=attackPhase<1?1:interactPhase<1?2:0;updateActionUI();for(const o of objects)if(o.kind!==2){tile(ctx,assets.weapon+weaponRules[o.value][W_SPRITE],Math.round(o.x*12)-6,Math.round(o.y*12)-6);}",
+ tickActions:"cooldown=Math.max(0,cooldown-dt);if(attackPhase<1)attackPhase=Math.min(1,attackPhase+dt*12);if(interactPhase<1)interactPhase=Math.min(1,interactPhase+dt*12);if(heldAttack&&attackPhase>=1&&cooldown<=0&&dt>0)performAction('attack');action=attackPhase<1?1:interactPhase<1?2:0;updateActionUI();drawLoot();",
  actionFrame:'return action?1+(action===2?3:0)+Math.min(2,Math.floor((action===1?attackPhase:interactPhase)*3)):0;'
  };
  const ast=acorn.parse(source,{ecmaVersion:2020}),edits=[];

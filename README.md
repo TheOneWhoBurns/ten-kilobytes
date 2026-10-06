@@ -1,6 +1,6 @@
 # Ten kilobytes — Room zero
 
-**Standalone HTML: 8,454 bytes. Submission ZIP: 8,493 bytes. HTML headroom: 1,546 bytes; ZIP headroom: 1,507 bytes.**
+**Expanded preview: 13,610-byte standalone HTML; 13,712-byte ZIP.** The preview exceeds the eventual 10,000-byte budget, explicitly approved to retain the requested art and behaviors. See `dist/size-report.json` for the latest measured artifact. Baseline commit `b4a5653` preserves the 8,454-byte pre-expansion game.
 
 A real-time procedural dungeon prototype. Every new run and death restart begins in a safe, fixed room: one-tile-wide stairs winding inward from the left edge, with a detour around the title and controls in the gaps. The route reaches a walkable 4×4 spell ring built from road corners (65–68, 4), enlarged 2×. Press O near its center to align the player exactly and descend into level 1. The title and control labels use the gothic sprite alphabet beginning at (97, 47). The control legend reads `(80,36 icon) -> WASD`, `"I" -> ATTACK` and `"O" -> INTERACT`, with half-tile clear margins and stepped corridor detours. The ring shares the stairs’ base color. Player coordinates anchor the feet; the sprite is drawn above that collision position. The prologue is outside the dungeon floor count. Each floor has five ordinary combat rooms, one boss room and one dedicated exit room behind the boss. Rooms connect through reciprocal screen-edge doors; the complete floor is generated before exploration.
 
@@ -11,25 +11,36 @@ A real-time procedural dungeon prototype. Every new run and death restart begins
 - Tile pantry: http://127.0.0.1:8010/dev/tiles.html
 - Sprite catalogue: http://127.0.0.1:8010/dev/catalog.html
 - WASD/arrows move. I attacks and O interacts in both builds. Development preserves custom bindings and speed; legacy Space/E defaults migrate to I/O.
-- Hold attack to repeat and strafe with locked facing. The default attack interval is 150 ms, independent of the roughly 83 ms animation. Interact picks up a weapon, activates the dungeon exit or restarts after death. R begins a fresh run.
+- Hold attack to repeat and strafe with locked facing. The starting attack interval is 300 ms, independent of the roughly 83 ms animation. Interact picks up a weapon or armor, activates the dungeon exit or restarts after death. R begins a fresh run.
 - Music and effects are enabled automatically on the first key press or pointer interaction. There is no sound toggle or bottom status strip.
+
+The run score stays hidden while alive and appears only on death. Player kills award 10 points per ordinary enemy and 100 per boss, once per kill. Score carries across rooms and floors, freezes on death and resets with a new run.
 
 ## Current combat
 
 The player has **2 HP**. One unprotected hit removes one HP and triggers a short red screen flash, a two-part impact sound and 0.8 seconds of invulnerability with blinking. The second hit kills the player. A dedicated 12×12 fallen pose remains visible until restart; movement and attacks stop on death. The pose is code-native pixel art in `assets/player-death.json`, packed as one extra binary frame. Room entry grants one second of protection without showing a damage flash.
 
-There are **two ordinary enemy types**, each with **1 HP at every depth**:
+There are **13 ordinary enemy recipes across nine families**, each with **1 body HP**:
 
-- **Sentinel:** approaches, captures aim, compresses into a windup, then charges along that fixed line and recovers. Six appearance variants cover the three areas.
-- **Slime:** animates between two poses and fires a five-shot aimed fan.
+- **Swarm:** 20–27 slow pursuers.
+- **Arrow shooters:** single short-range arrow, five-arrow fan, double-speed unlimited-range single arrow with slow cadence, and rapid fan. Boss projectiles retain their old appearance.
+- **Shield wall:** 4–9 side-by-side enemies. Five additional frontal armor points; rear hits bypass armor. The formation validates the space needed before advancing or slowly turning.
+- **Kamikaze:** slowly approaches, warns a 3×3 area, then burns it and dies.
+- **Conga:** 8–12 enemies following traveled paths at speed 11. Dead leaders are skipped; trails are bounded.
+- **Charge:** the previous windup and committed melee charge, with the requested replacement art.
+- **Horse:** immediate straight charges at speed 12; the slow variant moves at speed 3.
+- **Mage:** progressively marks a line, cross, fork, expanding rings, distant 3×3 patch, or self-centered patch. Marks brighten, briefly disappear, then ignite with three generated fire frames.
+- **Medusa:** a forward gaze cone blocked by walls. Four overhead icons progress across six seconds of continuous exposure, then deal one hit. Leaving the cone or taking cover resets exposure.
 
-The **Skull is the only boss**, used across all areas. It fires a ring with one moving opening. Generated density gives 6, 8 or 10 actual projectiles. Its health is five times its previous scaling: **120 + 20 × depth**, starting at **140 HP**. It retains a health bar and hit flash, with one phase throughout the fight. Watcher, Serpent and Spider definitions and their unused artwork have been removed from the live build.
+The **Skull remains the only boss**, with **120 + 20 × depth HP** (140 on floor one), one phase, a health bar and its ring with one moving opening.
 
-All four weapons remain: **Fist**, **Bone needle** (piercing), **Silk bow** (three curving shots) and **Returning fang** (outward then homing back). The Skull drops exactly one of the three reward weapons, chosen when that floor is generated. Normal enemies drop no items. Equipment replaces the previous weapon. Boss pattern still modifies the reward's damage and applicable spread/lifetime. Returning shots can hit several ordinary enemies but damage the single boss only once per projectile.
+There are **nine weapons including the starting fist**: Fist, Arrow, Returning fang, Nunchucks, Whirlwind, One-two, Thrust, Heavy hit, and Rune line. Nunchucks sweep continuously in front; Whirlwind surrounds the player; One-two hits immediately and again after 70 ms; Thrust charges for 240 ms then dashes in its locked direction; Heavy hit covers a large frontal area; Rune line uses the mage's forward spell. Arrow projectiles have no short lifetime cutoff and end at walls or room bounds. Returning fang uses tile 43,10 for its pickup and projectile. Each projectile remembers which enemies it has hit and keeps its own traits when weapons change.
 
-**All powerups are removed.** There are no potions, cursed effects, transformation modifiers, power trails, orbiting effects or power HUD slot. A future power system needs a new design.
+**Weapons are boss-only drops.** Each boss drops one of the eight upgrades; a new weapon replaces the current one. Pickup artwork is selected independently of weapon type so all 43 nonempty weapon icons can appear. All requested nonempty enemy art is retained in 246 pool entries. The coordinate manifest records the complete supplied ranges and explicitly identifies blank source cells.
 
-Boss victory refills a surviving player's health to 2; descending refills to 2 again. A late projectile killing a boss cannot revive a dead player. Weapons carry between floors. Page loads, R and death restarts begin a fresh run. Interact after death resets equipment and health and returns to the safe starting room. There is no final victory floor or persistent upgrade progression yet.
+**All old powerups are removed. Armor is the only health gain:** each pickup grants +1 current HP and +1 maximum HP. Twelve nonempty armor icons are available. In this preview, ordinary room clears have a 25% chance of awarding armor, selected during floor generation and awarded once. Boss kills and floor changes do not heal. Health, maximum health, equipment and score carry between floors; a new run returns to 2 HP and Fist. There is no final victory floor.
+
+The supplied ranges contain empty cells, including magic (48,13) and armor (29,12); they stay recorded in the manifest but cannot be invisible drops. The charge range typo is interpreted as column 111, rows 3–28. The full implementation requirements and assumptions are in [PRD.md](PRD.md).
 
 ## Rooms and atmosphere
 
@@ -57,28 +68,27 @@ The [master gameplay document](https://chatgpt.com/space/page_00aa60efc2908191b9
 
 ## Development
 
-The collapsible dev bar controls movement, bindings, animation rates, cooldown, Press/Hold modes, pause, collision, grid, hitbox, seed and character. Room selection and Clear room support inspection. These controls do not ship in release.
+The collapsible dev bar controls movement, bindings, animation rates, cooldown, Press/Hold modes, pause, collision, grid, hitbox, seed and character. Room selection, Clear room, enemy/weapon preview selectors, and +1 armor support inspection. Movement defaults to 10 tiles/s. The cooldown control is a base multiplied by the selected weapon cadence. These controls do not ship in release.
 
 Character 104 retains 24 directional idle, walking, punch, recovery and pickup frames plus the new death frame. Horizontal idle/walk corrections are preserved. Original sheets and generation provenance remain in `assets/source/` and `assets/generated/`.
 
 ```sh
 npm ci
-npm run build
+npm run measure
 npm test
-npm run test:checkpoint
 npm run dev
 npm run measure:content
 npm run catalog
 node tools/preview-rooms.cjs
 ```
 
-`src/room.js` owns geometry/collision, `src/world.js` owns levels/combat/audio, `src/actions.js` owns action timing/facing/poses, and `src/game.js` handles input/rendering. `assets/content.json` supplies the current enemy and weapon recipes. Its compiler validates fields, deduplicates weapon icons and removes uniform rule columns. Extra enemy recipes can reuse shared charge, fan and ring behavior; optional sequences and biome/weight pools only enter the release when used. The live roster uses one characteristic attack per type. `tools/specialize-release.cjs` replaces the configurable dev controller with fixed release defaults and gives each enemy a direct reference to its immutable recipe. It runs before column specialization, so future weapons retain their data-defined cadence and art. Guards reject controller source drift: update the adapter and its tests together when changing those functions.
+`src/room.js` owns geometry/collision, `src/world.js` owns levels/encounters/audio, `src/combat.js` owns shared spell and melee geometry and expanded behaviors, `src/actions.js` owns action timing/facing/poses, and `src/game.js` handles input/rendering. `assets/content.json` supplies the current enemy and weapon recipes. Its compiler validates fields, deduplicates weapon icons and removes uniform rule columns. Extra enemy recipes can reuse shared charge, fan and ring behavior; optional sequences and biome/weight pools only enter the release when used. The expanded roster adds pack formations, path following, charges, ground spells and occluded gaze to those primitives. `tools/specialize-release.cjs` replaces the configurable dev controller with fixed release defaults and gives each enemy a direct reference to its immutable recipe. It runs before column specialization, so future weapons retain their data-defined cadence and art. Guards reject controller source drift: update the adapter and its tests together when changing those functions.
 
 The build outputs `dev/play.html`, `dist/index.html`, `dist/game.zip` and `dist/size-report.json`. It fails if either HTML or ZIP exceeds **10,000 bytes**. All assets, audio synthesis, game code and startup decoding are embedded, without external runtime dependencies. `npm run measure` reports an over-budget candidate without failing. `npm run measure:source` builds the optional expanded-source experiment; run the normal build afterwards to restore release.
 
 ## Size and memory
 
-The previous shared engine increased the ZIP from 8,804 to 9,199 bytes to make later recipes inexpensive. This revision removes the unwanted content and the associated power engine, HP tables, art and effects.
+The historical optimization checkpoints below precede the expanded roster. The previous shared engine increased the ZIP from 8,804 to 9,199 bytes to make later recipes inexpensive. This revision removes the unwanted content and the associated power engine, HP tables, art and effects.
 
 | Checkpoint | HTML | ZIP |
 | --- | ---: | ---: |
@@ -96,14 +106,16 @@ The previous shared engine increased the ZIP from 8,804 to 9,199 bytes to make l
 | Spaced entrance legends and feet anchor | 8,516 | 8,555 |
 | Final function order and keyboard-only held flag | 8,485 | 8,524 |
 | Encore: obsolete focus references, trait mask and compressor tuning | 8,454 | 8,493 |
+| Death-only score | 8,527 | 8,566 |
+| Expanded enemies, weapons, armor and score | 13,610 | 13,712 |
 
 The two-hit revision saved **622 HTML bytes / 622 ZIP bytes** before the entrance was added. The entrance and visited-only map add **345 HTML bytes / 344 ZIP bytes**. Most comes from the requested scope reduction. Retuning the compressor and the final projectile representation save **18 HTML bytes / 17 ZIP bytes** after those gameplay changes. Flattening recipe tables measured larger and was rejected. No further art color reduction or music simplification was introduced.
 
-Projectiles no longer allocate a Set of previously hit enemies. Ordinary enemies die on their first hit; a single boss-hit flag prevents repeat damage to the surviving boss. Returning and piercing flags share one integer, and positive player damage also identifies friendly projectiles. This removes redundant per-shot fields. There can be at most 96 shots. Exact JS object/allocator overhead varies by engine, so file savings are not presented as total browser RAM savings.
+The pre-expansion optimization replaced projectile hit sets with a single boss-hit flag. The expanded roster restores per-projectile hit memory because shields can now survive ordinary hits; returning shots must not repeatedly drain armor while overlapping a creature. Returning and piercing flags share one integer, and positive player damage also identifies friendly projectiles. The shared trait mask still avoids separate boolean fields. There can be at most 96 shots. Exact JS object/allocator overhead varies by engine, so file savings are not presented as total browser RAM savings.
 
 Rooms share a byte grid for appearance and collision: 0 wall, 1 floor, 2 fixture, 4 water; only floor is walkable. Seven grids for the current floor occupy 4,557 bytes. Seven room coordinates occupy seven bytes. Previous floor references and navigation grids are released on transitions. A four-note music motif is packed into one base-5 integer (0–624); playback extracts notes without reseeding a generator or allocating a motif array each beat. These changes reduce temporary allocation; they do not shrink the room grids or imply a measured total-browser-memory saving. Navigation reuses its distance field until the player changes cell or the room changes. The grid and coordinate representations remain unchanged.
 
-The release atlas has **86 slots / 1,548 binary bitmap bytes**, including the new 18-byte death frame. Player poses are drawn directly from that atlas in release; development keeps a separate sheet for character selection. Expanded minified HTML is **20,187 bytes**. The ring and lettering add four road tiles and eighteen legend tiles used by release (396 raw bitmap bytes); development includes the full uppercase alphabet. The entrance path uses twenty-one bytes, each combining direction and corridor length, rather than an allocated coordinate array. The irregular-room revision adds 132 bytes to both packed HTML and ZIP without additional art. Roadroller's temporary decode model remains approximately **9.16 MiB**. Packed file size, expanded source and runtime memory are different metrics.
+The release atlas has **387 slots / 6,966 binary bitmap bytes**, including the new 18-byte death frame. Player poses are drawn directly from that atlas in release; development keeps a separate sheet for character selection. Expanded minified HTML is **35,596 bytes**. The ring and lettering add four road tiles and eighteen legend tiles used by release (396 raw bitmap bytes); development includes the full uppercase alphabet. The entrance path uses twenty-one bytes, each combining direction and corridor length, rather than an allocated coordinate array. The irregular-room revision adds 132 bytes to both packed HTML and ZIP without additional art. Roadroller's temporary decode model remains approximately **9.16 MiB**. Packed file size, expanded source and runtime memory are different metrics.
 
 The earlier lossless pass saved **413 HTML bytes / 388 ZIP bytes** from the 9,601-byte checkpoint. Hazard tiles now serve both rendering and collision: each room stores one timing offset instead of allocating a second set of hazard objects. Room spawns use one tile index, with a shared tile-center conversion. Actions reuse their existing state object; movement intent is an integer rather than a newly constructed string. The tunnelling brush reuses the door direction table. Existing worlds, sprite pixels, HUD and scheduled audio remain unchanged.
 
@@ -119,13 +131,13 @@ An alternative measured before the latest UI changes uses **0.763 MiB** for the 
 
 ## Verification and reference fixtures
 
-`npm test` first builds an ignored release diagnostic variant with hidden DOM probes for control/combat assertions. These probes, their strings and pointer buttons do not ship. Separate tests exercise the actual canvas-only release, including automatic audio, keyboard actions, restart and entrance traversal. `npm test` also checks 2,000 generated rooms; 1,000 complete floors with connected geometry, branching/dead ends, offset reciprocal doors, clear arrivals and one boss/exit; all ten landmarks; controls at 30/60/144 fps; attack locking, cooldown, pause and focus; all weapons and their boss-only rewards; 1-HP ordinary enemies; 5× boss scaling; 2-HP survival, invulnerability, hit cues, dedicated corpse and restart; single boss hits from returning projectiles; 500 levels of connected hazard patches, safe routes, Cistern removal, web slowdown and synchronized needle damage; navigation caching; deterministic audio; and compiler specialization with new recipe IDs.
+`npm test` first builds an ignored release diagnostic variant with hidden DOM probes for control/combat assertions. These probes, their strings and pointer buttons do not ship. Separate tests exercise the actual canvas-only release, including automatic audio, keyboard actions, restart and entrance traversal. `npm test` also checks 2,000 generated rooms; 1,000 complete floors with connected geometry, branching/dead ends, offset reciprocal doors, clear arrivals and one boss/exit; all ten landmarks; controls at 30/60/144 fps; attack locking, cooldown, pause and focus; all weapons and their boss-only rewards; 1-HP ordinary enemies; 5× boss scaling; 2-HP survival, invulnerability, hit cues, dedicated corpse and restart; single boss hits from returning projectiles; 500 levels of connected hazard patches, safe routes, Cistern removal, web slowdown and synchronized needle damage; navigation caching; deterministic audio; and compiler specialization with new recipe IDs. Expanded combat tests exercise all thirteen recipes and nine weapons in authoring, compact-table, and release-controller forms, including directional shields, trail following, all six spell geometries, gaze cover/timing, armor persistence and death-only score.
 
-Gameplay changes intentionally supersede the old combat/visual fixtures. `game-two-hit-before-optimization.html` captures the revised game before the final lossless pass, and `world-two-hit.json` preserves the earlier world snapshot hash. `world-large-hazards.json` records the intentional hazard-generation revision over 2,000 whole-world snapshots. The new prologue and minimap intentionally change pixels and startup behavior again. `world-organic.json` preserves the first irregular-room revision. The current `world-stream.json` captures the shared random stream and spacious boss arenas over 2,000 whole-world snapshots. Older fixtures remain intact. Current equivalence tests compare the packed release with its expanded build source across seven seeds, physically traversing the entrance before exercising combat, and checking pixels, HUD and audio scheduling. Historical visual fixtures remain intact. Dedicated tests check safe waiting, full narrow stair traversal, blocked shortcuts, sprite control labels, exact centering within the walkable ring, interaction to level 1, restart, and visited-only minimap state in both builds. The independent 80-frame landmark checks remain. Packing tests exercise 64 binary envelopes, eight split code/data bootstraps (including the actual byte-rANS decoder), all 256 byte values, Unicode and exact recovery through the native asynchronous loader. `npm run test:checkpoint` compares seven controlled random streams against `tools/fixtures/game-feet-entrance.html`, captured after the requested footer/audio, entrance-label and feet-anchor changes. The older 9,601-byte spiral fixture remains unchanged. The 9,008-byte optimization candidate matched that older fixture before the intentional UI/gameplay changes. Test-only random injection gives the seeded engine and native-random release the same choices. Keep these historical fixtures unchanged when intentionally extending gameplay.
+Gameplay changes intentionally supersede the old combat/visual fixtures. `game-two-hit-before-optimization.html` captures the revised game before the final lossless pass, and `world-two-hit.json` preserves the earlier world snapshot hash. `world-large-hazards.json` records the intentional hazard-generation revision over 2,000 whole-world snapshots. The new prologue and minimap intentionally change pixels and startup behavior again. `world-organic.json` preserves the first irregular-room revision. `world-stream.json` preserves the pre-expansion shared stream. The current `world-roster.json` captures the intentionally expanded encounter generator over 2,000 whole-world snapshots. Older fixtures remain intact. Current equivalence tests compare the packed release with its expanded build source across seven seeds, physically traversing the entrance before exercising combat, and checking pixels, HUD and audio scheduling. Historical visual fixtures remain intact. Dedicated tests check safe waiting, full narrow stair traversal, blocked shortcuts, sprite control labels, exact centering within the walkable ring, interaction to level 1, restart, and visited-only minimap state in both builds. The independent 80-frame landmark checks remain. Packing tests exercise 64 binary envelopes, eight split code/data bootstraps (including the actual byte-rANS decoder), all 256 byte values, Unicode and exact recovery through the native asynchronous loader. `npm run test:checkpoint` is a historical optimization comparison, expected to differ after this gameplay expansion. It compares seven controlled random streams against `tools/fixtures/game-feet-entrance.html`, captured after the requested footer/audio, entrance-label and feet-anchor changes. The older 9,601-byte spiral fixture remains unchanged. The 9,008-byte optimization candidate matched that older fixture before the intentional UI/gameplay changes. Test-only random injection gives the seeded engine and native-random release the same choices. Keep these historical fixtures unchanged when intentionally extending gameplay.
 
 The sprite catalogue inventories all 10,300 pantry slots: 5,552 occupied sprites, 4,548 empty slots and 200 separators. Exact metadata matches are distinguished from inferred families and uncertain animation groupings. The live build uses only selected art; the full source catalogue remains available for future design.
 
-## Size inventory snapshot
+## Historical size inventory snapshot
 
 Measured against the 8,454-byte release (7db379c8fc35). Reproduce with `npm run measure:inventory`; machine-readable scope and evidence are in `dev/size-inventory.json`. The release and ZIP are checked unchanged after measurement.
 

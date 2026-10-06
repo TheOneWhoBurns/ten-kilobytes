@@ -1,6 +1,6 @@
 // Generate only the current floor, using one seeded stream; visits retain room state.
 const exitNames=['Tiny palace','Portal','Giant mirror','Hole','Giant mouth','Hollow tree','Skull stairs','Buried elevator','Whirlpool','Folded doorway'];
-let world,level=1,chamber=0,health=2,hurt=0,hitFlash=0,weapon=0,temper=0,shots=[],worldTime=0,travel=0,destination=-1;
+let world,level=1,chamber=0,score=0,health=2,hurt=0,hitFlash=0,weapon=0,temper=0,shots=[],worldTime=0,travel=0,destination=-1;
 // A safe, fixed prologue. The dungeon is generated only when its doorway is crossed.
 function makeEntrance(){
  // Each byte packs a corridor length and its two-bit direction.
@@ -36,14 +36,31 @@ function makeLevel(value,depth){
   for(let n=0;n<r.cells.length;n++)if(r.cells[n]===1&&Math.hypot(n%W-15,Math.floor(n/W)-10)>5&&r.doors.every(d=>Math.hypot(n%W+.5-d.x,Math.floor(n/W)+.5-d.y)>3))spots.push(n);
   const spot=()=>{const n=spots.splice(pick(spots.length),1)[0]??325;return tilePoint(n);};
   r.gate=tilePoint(i===6?232:325);r.enemies=[];
-  for(let j=0;j<(i===6?0:i===result.boss?1:Math.min(5,1+depth+Math.floor(i/2)));j++){
-   const boss=i===result.boss,kind=boss?0:enemyPools?enemyPools[theme][pick(enemyPools[theme].length)]:pick(ENEMY_COUNT),rule=enemyRules[kind+(boss?ENEMY_COUNT:0)],e={...spot(),boss,kind,pattern:pick(3),form:rule[E_ART]+theme*rule[E_THEME]+pick(rule[E_FRAMES]),phase:0,wait:1+rnd(),angle:0,cycle:0};
-   if(boss){e.x=15.5;e.y=6.5+pick(3);}
-   e.hp=boss?120+20*depth:1;r.enemies.push(e);
+  const boss=i===result.boss,kind=boss?0:enemyPools?enemyPools[theme][pick(enemyPools[theme].length)]:pick(ENEMY_COUNT),rule=enemyRules[kind+(boss?ENEMY_COUNT:0)],mode=rule[E_MODE];
+  const count=i===6?0:boss?1:[3,4,6].includes(mode)?rule[E_COUNT]+pick(rule[E_COUNT_STEP]+1):Math.min(4,1+depth+(i>>1));
+  for(let j=0;j<count;j++){
+   const e={...spot(),boss,kind,pattern:pick(mode===8?6:3),form:rule[E_ART]+theme*rule[E_THEME]+pick(rule[E_FRAMES]),phase:0,wait:mode===7||mode===9?0:1+rnd(),angle:0,cycle:0};
+   if(boss){e.x=15.5;e.y=6.5+pick(3);e.prize=rnd();}
+   e.hp=boss?120+20*depth:1;e.guard=mode===4?5:0;e.slot=j;r.enemies.push(e);
   }
-  r.props=r.props.filter(p=>p.t!==theme*6+3);
+  if(mode===4&&count){
+   // Find a genuine contiguous line before falling back to a short carved gallery.
+   const candidates=[];
+   for(let n=2*W+2;n<(H-2)*W-2;n++)for(const d of [1,W])if(Array.from({length:count},(_,j)=>n+j*d).every(k=>k%W>1&&k%W<W-2&&(k/W|0)<H-2&&r.cells[k]===1&&r.doors.every(o=>Math.hypot(k%W+.5-o.x,(k/W|0)+.5-o.y)>3)))candidates.push([n,d]);
+   const [n,d]=candidates.length?candidates[pick(candidates.length)]:[6*W+10,1],a=d===1?Math.PI/2:0;if(!candidates.length)for(let y=6;y<=10;y++)r.cells[y*W+15]=1;
+   for(const e of r.enemies){const k=n+e.slot*d;r.cells[k]=1;Object.assign(e,tilePoint(k));e.slot=(d===1?-1:1)*(e.slot-(count-1)/2);e.angle=a;}
+   r.formation={x:r.enemies[0].x+(d===1?(count-1)/2:0),y:r.enemies[0].y+(d===W?(count-1)/2:0),a};
+  }
+  if(mode===6&&count){
+   const first=r.enemies[0],path=[(first.y|0)*W+(first.x|0)],seen=new Set(path);let attempts=0;
+   const extend=()=>{if(path.length===count)return true;if(attempts++>2000)return false;const n=path[path.length-1],options=[-1,1,-W,W];while(options.length){const k=n+options.splice(pick(options.length),1)[0];if(seen.has(k)||r.cells[k]!==1||Math.abs(k%W-n%W)>1||r.doors.some(o=>Math.hypot(k%W+.5-o.x,(k/W|0)+.5-o.y)<=3)||Math.hypot(k%W-15,(k/W|0)-10)<3)continue;seen.add(k);path.push(k);if(extend())return true;path.pop();seen.delete(k);}return false;};
+   for(let trial=0;trial<count;trial++){if(extend())break;attempts=0;const p=r.enemies[(trial+1)%count],n=(p.y|0)*W+(p.x|0);path.splice(0,path.length,n);seen.clear();seen.add(n);}
+   for(const e of r.enemies){Object.assign(e,tilePoint(path[Math.min(e.slot,path.length-1)]));e.follow=r.enemies[e.slot-1];e.trail=[{x:e.x,y:e.y}];}
+  }
+
+  r.props=r.props.filter(p=>p.t!==theme*6+3&&(p.t%6>=2||r.cells[p.y*W+p.x]===2));
   if(i!==6&&i!==result.boss&&theme!==1)growHazards(r,theme,rnd);
-  r.loot=[];
+  r.loot=[];r.reward=i!==6&&!boss&&ARMOR_COUNT&&rnd()<.25?pick(ARMOR_COUNT):-1;
   result.rooms.push(r);
  }
  return result;
@@ -65,9 +82,13 @@ function enemyRule(e){return enemyRules[e.kind+(e.boss?ENEMY_COUNT:0)];}
 function movementFactor(){return (world?.shape===2&&room.props.some(h=>h.t%6===3&&Math.hypot(h.x+.5-player.x,h.y+.5-player.y)<.8)?.55:1);}
 function worldAttack(){
  const w=weaponRules[weapon],a=actionStates.attack.direction,damage=(2+temper*.25)*w[W_DAMAGE],reach=2*w[W_REACH];
- if(!w[W_COUNT]){
-  for(const e of room.enemies)if(e.hp>0&&Math.hypot(e.x-player.x,e.y-player.y)<reach+(e.boss?.5:0)&&Math.cos(Math.atan2(e.y-player.y,e.x-player.x)-a)>.2&&clearShot(player,e))hitEnemy(e,damage);
- }else volley(player,a,w[W_COUNT],w[W_SPEED],damage,w[W_LIFE]+reach*w[W_REACH_LIFE]+temper*w[W_TEMPER_LIFE],true,w[W_FLAGS],w[W_SPREAD]+temper*w[W_TEMPER_SPREAD],w[W_CURVE]);
+ const type=w[W_TYPE];
+ if(type===3||type===4||type===7)strike(type,a,damage,type===4?2.5:reach);
+ else if(type===5){melee(a,reach,damage);strike(5,a,damage,reach,.07);}
+ else if(type===6)dash={a,age:0,damage,hit:new Set()};
+ else if(type===8)cast(player,a,0,true);
+ else if(!w[W_COUNT])melee(a,reach,damage);
+ else volley(player,a,w[W_COUNT],w[W_SPEED],damage,w[W_LIFE]+reach*w[W_REACH_LIFE]+temper*w[W_TEMPER_LIFE],true,w[W_FLAGS],w[W_SPREAD]+temper*w[W_TEMPER_SPREAD],w[W_CURVE]);
  tone(w[W_PITCH],.045);
 }
 // A shared fan/ring primitive. Every shot snapshots its own motion traits.
@@ -78,29 +99,32 @@ function volley(p,a,count,speed,damage,life,friendly=false,flags=0,spread=.23,cu
  }
 }
 function clearShot(a,b){const d=Math.hypot(b.x-a.x,b.y-a.y);for(let t=.2;t<d;t+=.2)if(!canFit(room.cells,a.x+(b.x-a.x)*t/d,a.y+(b.y-a.y)*t/d))return false;return true;}
-function fire(p,a,speed,damage,life,friendly=false,disc=false){if(shots.length>=96)return;const s={x:p.x,y:p.y,dx:Math.cos(a)*speed,dy:Math.sin(a)*speed,damage:friendly?damage:0,life,age:0,traits:(disc?2:0)|(friendly?weaponRules[weapon][W_FLAGS]&1:0)};shots.push(s);return s;}
+function fire(p,a,speed,damage,life,friendly=false,disc=false){if(shots.length>=96)return;const s={x:p.x,y:p.y,dx:Math.cos(a)*speed,dy:Math.sin(a)*speed,damage:friendly?damage:0,life,age:0,boss:p.boss,art:friendly&&disc?weaponArt:-1,hit:new Set(),traits:(disc?2:0)|(friendly?weaponRules[weapon][W_FLAGS]&1:0)};shots.push(s);return s;}
 function bossWeapon(e){const pool=bossDrops[e.kind];return pool[Math.floor(world.reward*pool.length)];}
-function hitEnemy(e,damage){
- if(e.hp<=0)return;e.hp=Math.max(0,e.hp-damage);if(e.hp){e.flash=.12;tone(80,.045,'triangle',.025);return;}tone(e.boss?110:75,e.boss?.5:.12,'triangle',.04);
- if(e.boss){objects.push({x:e.x,y:e.y,kind:3,value:bossWeapon(e),temper:e.pattern});if(health)health=2;}
+function hitEnemy(e,damage,origin=player){
+ if(e.hp<=0)return;
+ if(e.guard>0&&Math.cos(Math.atan2(origin.y-e.y,origin.x-e.x)-e.angle)>.2){const blocked=Math.min(e.guard,damage);e.guard-=blocked;damage-=blocked;e.flash=.12;tone(350,.045,'triangle',.03);if(!damage)return;}
+e.hp=Math.max(0,e.hp-damage);if(e.hp){e.flash=.12;tone(80,.045,'triangle',.025);return;}tone(e.boss?110:75,e.boss?.5:.12,'triangle',.04);
+ if(health)score+=e.boss?100:10;
+ if(e.boss){const value=bossWeapon(e),forms=weaponForms[value];objects.push({x:e.x,y:e.y,kind:3,value,art:forms[Math.floor((e.prize??world.reward)*forms.length)],temper:e.pattern});}
 }
 function hurtPlayer(){if(hurt<=0&&health>0){
  health--;hurt=.8;hitFlash=.18;tone(220,.04,'square',.05);tone(70,.16,'sawtooth',.04,.025);
- if(!health){keys.clear();resetActions();tone(45,.35,'triangle',.04,.08);}
+ if(!health){keys.clear();resetActions();fields=[];blows=[];dash=null;gaze=0;tone(45,.35,'triangle',.04,.08);}
 }}
 function worldInteract(){
  if(!health){reset(true);return true;}
  if((!level||chamber===6&&world.rooms[world.boss].enemies.every(e=>e.hp<=0))&&Math.hypot(player.x-room.gate.x,player.y-room.gate.y)<1.8){if(!level){player.x=room.gate.x;player.y=room.gate.y;}destination=-1;travel=.35;releaseActions();return true;}
  return false;
 }
-function takeLoot(o){weapon=o.value;temper=o.temper||0;tone(550,.08,'triangle',.03);}
+function takeLoot(o){if(o.kind===4){health++;maxHealth++;}else{weapon=o.value;weaponArt=o.art??weaponRules[weapon][W_SPRITE];temper=o.temper||0;if(DEV)$('weapon-test').value=weapon;}tone(550,.08,'triangle',.03);}
 // Collision is immutable during a room visit. Rebuild navigation only on a cell/grid change.
 let navSolid,navCell,navDistances;
 function tickWorld(dt){
  if(dt<=0)return;
  worldTime+=dt;hitFlash=Math.max(0,hitFlash-dt);hurt=Math.max(0,hurt-dt);
  if(travel<=0&&health&&room.enemies.every(e=>e.hp<=0)){const d=room.doors.find(d=>{const [x,y]=directions[d.dir],a=player.x-d.x,b=player.y-d.y;return a*x+b*y>-.2&&Math.abs(a*y+b*x)<.8;});if(d){destination=d.to;travel=.35;releaseActions();tone(100,.12,'triangle',.03);}}
- if(travel>0){travel-=dt;if(travel<=0){const from=chamber;if(destination<0){level++;world=makeLevel(seed,level);chamber=0;health=2;enterRoom();}else{chamber=destination;enterRoom(from);}}return;}
+ if(travel>0){travel-=dt;if(travel<=0){const from=chamber;if(destination<0){level++;world=makeLevel(seed,level);chamber=0;enterRoom();}else{chamber=destination;enterRoom(from);}}return;}
  if(!health)return;
  // One distance field lets all creatures navigate the same generated geometry.
  const start=Math.floor(player.y)*W+Math.floor(player.x);
@@ -110,9 +134,16 @@ function tickWorld(dt){
   for(let i=0;i<queue.length;i++)for(const d of [-1,1,-W,W]){const n=queue[i]+d;if(room.cells[n]===1&&navDistances[n]===999&&Math.abs(n%W-queue[i]%W)<2){navDistances[n]=navDistances[queue[i]]+1;queue.push(n);}}
  }
  const dist=navDistances;
+ room.looking=false;
+ if(room.formation){const g=room.formation,a=Math.atan2(player.y-g.y,player.x-g.x),turn=Math.atan2(Math.sin(a-g.a),Math.cos(a-g.a)),angle=g.a+Math.max(-dt*.12,Math.min(dt*.12,turn)),alive=room.enemies.filter(e=>e.hp>0);
+  const fits=(x,y,a)=>alive.every(e=>canFit(room.cells,x-Math.sin(a)*e.slot,y+Math.cos(a)*e.slot));
+  if(fits(g.x,g.y,angle))g.a=angle;
+  const x=g.x+Math.cos(g.a)*dt*1.6,y=g.y+Math.sin(g.a)*dt*1.6;if(fits(x,y,g.a)){g.x=x;g.y=y;}
+ }
  // Identity determines the attack grammar; seeds vary cadence and density within it.
  for(const e of room.enemies)if(e.hp>0){
   e.flash=Math.max(0,(e.flash||0)-dt);e.wait-=dt;
+  if(specialEnemy(e,dt))continue;
   const d=Math.hypot(e.x-player.x,e.y-player.y),a=Math.atan2(player.y-e.y,player.x-e.x),rule=enemyRule(e),mode=SEQUENCED_ENEMIES?rule[E_MODE][(e.cycle-(e.phase>1))%rule[E_MODE].length]:rule[E_MODE],lunge=mode===1;
   if(e.phase===0){
    if(lunge||d>rule[E_STANDOFF]||!clearShot(e,player)){
@@ -134,6 +165,9 @@ function tickWorld(dt){
   if(e.phase===2&&lunge)movePlayer(room.cells,e,Math.cos(e.angle),Math.sin(e.angle),dt,rule[E_CHARGE]);
   if(d<rule[E_CONTACT])hurtPlayer();
  }
+ gaze=room.looking?gaze+dt:0;if(gaze>=6){hurtPlayer();gaze=0;}
+ tickCombat(dt);
+ if(room.enemies.every(e=>e.hp<=0)&&room.reward>=0){objects.push({x:player.x,y:player.y,kind:4,value:room.reward});room.reward=-1;}
  for(const h of room.props)if(h.t%6===3){const pulse=(worldTime+room.offset)%4;
   if(!world.rule&&pulse>3&&Math.hypot(h.x+.5-player.x,h.y+.5-player.y)<.65)hurtPlayer();
  }
@@ -144,7 +178,7 @@ function tickWorld(dt){
   for(let i=0;i<steps&&s.life>0;i++){
    s.x+=s.dx*dt/steps;s.y+=s.dy*dt/steps;
    if(!canFit(room.cells,s.x,s.y)){s.life=0;break;}
-   if(s.damage){for(const e of room.enemies)if(e.hp>0&&(!e.boss||!s.bossHit)&&Math.hypot(e.x-s.x,e.y-s.y)<(e.boss?.85:.5)){if(e.boss)s.bossHit=true;hitEnemy(e,s.damage);if(!(s.traits&3))s.life=0;}}
+   if(s.damage){for(const e of room.enemies)if(e.hp>0&&!s.hit.has(e)&&Math.hypot(e.x-s.x,e.y-s.y)<(e.boss?.85:.5)){s.hit.add(e);hitEnemy(e,s.damage,{x:s.x-s.dx*.03,y:s.y-s.dy*.03});if(!(s.traits&3))s.life=0;}}
    else if(Math.hypot(s.x-player.x,s.y-player.y)<.4){hurtPlayer();s.life=0;}
   }
  }
@@ -162,14 +196,14 @@ function drawWorld(){
   ctx.restore();ctx.globalAlpha=1;
   if(e.boss){ctx.fillStyle='#191b26';ctx.fillRect(126,9,120,3);ctx.fillStyle='#e3a6b2';ctx.fillRect(126,9,120*e.hp/(120+20*level),3);}
  }
- for(const s of shots){const x=Math.round(s.x*12),y=Math.round(s.y*12);ctx.fillStyle='#0a101b';ctx.fillRect(x-3,y-3,7,7);ctx.fillStyle=s.damage?'#bfe9de':'#ff9b87';ctx.fillRect(x-1,y-2,3,5);ctx.fillRect(x-2,y-1,5,3);}
+ for(const s of shots){const x=Math.round(s.x*12),y=Math.round(s.y*12);if(!s.boss){ctx.save();ctx.translate(x,y);ctx.rotate(s.art>=0?s.age*16:Math.atan2(s.dy,s.dx)+Math.PI/4);tile(ctx,s.art>=0?assets.weapon+s.art:assets.effects,-6,-6);ctx.restore();}else{ctx.fillStyle='#ff9b87';ctx.fillRect(x-1,y-2,3,5);ctx.fillRect(x-2,y-1,5,3);}}
  drawGate();
  world.nodes.forEach((n,i)=>{if(!world.rooms[i].visited)return;const x=(n&15)-8,y=(n>>4)-8;ctx.fillStyle=i===chamber?'#fff':i===world.boss?'#e29a63':i===6?worldColor(80,180):'#a0a88a';ctx.fillRect(34+x*6,34+y*6,5,5);});
  if(DEV/*diagnostics*/){
- let near=objects.find(o=>o.kind===3&&Math.hypot(o.x-player.x,o.y-player.y)<1.6);
+ let near=objects.find(o=>o.kind>=3&&Math.hypot(o.x-player.x,o.y-player.y)<1.6);
  const ready=room.enemies.every(e=>e.hp<=0),atGate=Math.hypot(player.x-room.gate.x,player.y-room.gate.y)<1.8;
- $('run-status').textContent=!health?'Fallen · Interact to restart':('HP '+health+' · '+level+' / '+(chamber+1)+' · '+weaponNames[weapon]);
- $('pickup-status').textContent=ready&&atGate&&chamber===6?'Interact: '+exitNames[world.exit]:near?'Take '+weaponNames[near.value]:(ready?'Doors open':'Enemies '+room.enemies.filter(e=>e.hp>0).length);
+ $('run-status').textContent=!health?'Fallen · Interact to restart':('HP '+health+'/'+maxHealth+' · '+level+' / '+(chamber+1)+' · '+weaponNames[weapon]);
+ $('pickup-status').textContent=ready&&atGate&&chamber===6?'Interact: '+exitNames[world.exit]:near?'Take '+(near.kind===4?'Armor':weaponNames[near.value]):(ready?'Doors open':'Enemies '+room.enemies.filter(e=>e.hp>0).length);
  }
  if(!level){
   const controls=DEV?dev.controls():['W A S D','I','O'];

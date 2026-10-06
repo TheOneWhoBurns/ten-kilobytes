@@ -32,18 +32,23 @@ function pack(tiles){
 // Six slots per biome, then textures. Unused second slots in water/archive share art.
 const pantry=[[5,39],[8,39],[7,42],[28,21],[1,38],[34,25], [4,13],[4,13],[4,9],[1,5],[5,10],[6,9], [2,36],[2,36],[16,36],[4,39],[0,39],[32,14], [5,6],[8,6],[10,6],[0,3],[10,3],[1,4]].map(([x,y])=>({x,y}));
 async function build({catalog=contentData.load(),write=true,development=true,sourceOnly=false,diagnostics=false,sourceTransform=s=>s,packingOptions=require('./packing-options.json'),quick=false,packMode='roadroller',functionOrder}={}){
-const content=contentData.compile(catalog,{specialize:true}),{enemyTiles,weaponTiles}=content;
+const content=contentData.compile(catalog,{specialize:true}),{enemyTiles,weaponTiles,armorTiles}=content;
 const bossTiles=[28].flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
-if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
-const runtime=['src/room.js','src/actions.js','src/world.js','src/game.js'].map(read).join('\n');
+if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,armor:armorTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
+const runtime=['src/room.js','src/actions.js','src/world.js','src/combat.js','src/game.js'].map(read).join('\n');
 const reports={},artifacts={};
+const effects=[[33,10],[48,45],[87,34],[88,34],[89,34],[90,34]].map(([x,y])=>({x,y}));
+const fireBits=Buffer.alloc(5*18);
+// Two rising rune masks and three asymmetrical, hollow-tongued fire poses.
+const masks=[['............','.....#......','............','..#.....#...','............','.....#......','....###.....','...#####....','..#######...','.#########..','............','............'],['............','..#.....#...','.###...###..','..#.....#...','.....#......','....###.....','.....#......','..#.....#...','.###...###..','..#.....#...','............','............'],['.....#......','.....##.....','....###.....','....##..#...','...###..#...','.#.##..##...','.####.###...','.###..####..','..##.#####..','..#######...','...#####....','....###.....'],['......#.....','.....##.....','.....##.....','..#..###....','..##.###....','..#####.#...','.####..##...','.###..####..','.###.#####..','..#######...','...#####....','....###.....'],['....#.......','....##......','....###.....','.#..###.....','.##..###....','.###.###.#..','..####.###..','..###..###..','.####.####..','..#######...','...#####....','....###.....']];
+for(let i=0;i<5;i++)for(let p=0;p<144;p++)if(masks[i][p/12|0][p%12]==='#')fireBits[i*18+(p>>3)]|=128>>(p&7);
 const ring=[65,66,67,68].map(x=>({x,y:4}));
 for(const dev of development?[true,false]:[false]){
  const enemyColumns=enemyTiles;
  const letters=(dev?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''))+'@"->',font=[...letters].map(c=>{const special={'@':[80,36],'"':[85,47],'-':[99,46],'>':[97,46]}[c],n=c.charCodeAt(0)-65;return special?{x:special[0],y:special[1]}:{x:n<6?97+n:72+n,y:n<6?47:48};});
- const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...bossTiles,...ring,...font],bits=Buffer.concat([pack(tiles),characterBits]),enemies=characters.length+pantry.length+weaponTiles.length;
+ const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,characterBits]),enemies=characters.length+pantry.length+weaponTiles.length;
  const encodedBitmap=dev?undefined:require('./sprite-data.cjs')(bits),bitText=encodedBitmap?.text??bits.toString('base64');
- const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,bosses:enemies+enemyTiles.length,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,actor:tiles.length});
+ const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,actor:tiles.length+5});
  if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,ring,font},null,2)+'\n');}
  let template=quantizeColors(read(dev?'src/dev.html':'src/index.html'));
  if(!dev&&diagnostics)template=template.replace('</main>','</main><aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button><button id="interact"></button></aside>');

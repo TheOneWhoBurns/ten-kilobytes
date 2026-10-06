@@ -1,6 +1,6 @@
 // Included only in the development build; no editor code ships in dist/.
 function setupDev(){
- const defaults=()=>({speed:5,attackRate:12,attackCooldown:150,interactRate:12,attackMode:'hold',interactMode:'press',layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:'i',interact:'o'},grid:false,hitbox:false,collapsed:false});
+ const defaults=()=>({speed:10,attackRate:12,attackCooldown:150,interactRate:12,attackMode:'hold',interactMode:'press',layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:'i',interact:'o'},grid:false,hitbox:false,collapsed:false});
  const presets={wasd:{up:'w',left:'a',down:'s',right:'d'},arrows:{up:'arrowup',left:'arrowleft',down:'arrowdown',right:'arrowright'},ijkl:{up:'i',left:'j',down:'k',right:'l'}};
  const directions=['up','left','down','right'],bindings=[...directions,'attack','interact'],reserved=['r','[',']','p'];
  const validKey=k=>typeof k==='string'&&(k===' '||/^[a-z0-9]$/.test(k)||/^arrow(up|left|down|right)$/.test(k))&&!reserved.includes(k);
