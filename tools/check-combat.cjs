@@ -12,11 +12,11 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  for(const [name,count,speed,life] of [['arrow-single',1,3.2,2.5],['arrow-fan',5,3.2,2.5],['arrow-sniper',1,6.4,1000],['arrow-rapid',5,3.2,2.5]]){g.init();e=g.enemy(id[name],5.5,10.5,{phase:1,wait:0,angle:0});g.tick(1);assert.equal(g.state.shots.length,count,name);const s=g.state.shots[0];assert(Math.abs(Math.hypot(s.dx,s.dy)-speed)<1e-8);assert(s.life>life-.02);assert(!s.boss);}
  const cadence={};for(const name of ['arrow-fan','arrow-rapid','arrow-sniper']){g.init();e=g.enemy(id[name],5.5,10.5);g.tick(800);cadence[name]=e.cycle;}assert(cadence['arrow-rapid']>cadence['arrow-fan']*1.5);assert(cadence['arrow-sniper']<cadence['arrow-fan']);
  // Six spell shapes use the same warning/blank/fire timing and finite room cells.
- const signatures=new Set();for(let shape=0;shape<6;shape++){g.init();g.cast({x:6.5,y:10.5},0,shape);const f=g.state.fields[0];assert(f.cells.size>0);signatures.add([...f.cells.keys()].sort().join(','));for(const [n]of f.cells)assert(n>=0&&n<31*21&&g.state.room.cells[n]===1);f.age=f.burn-.3;assert(g.frameSprites().every(n=>n===338),'bright warning');f.age=f.burn-.1;assert.equal(g.frameSprites().length,0,'blank beat before fire');f.age=f.burn+.1;assert(g.frameSprites().every(n=>n>=339&&n<=341),'generated animated fire');}assert.equal(signatures.size,6,'six distinct spell geometries');
+ const signatures=new Set();for(const shape of [0,1,4,5]){g.init();g.cast({x:6.5,y:10.5},0,shape);const f=g.state.fields[0];assert(f.cells.size>0);signatures.add([...f.cells.keys()].sort().join(','));for(const [n]of f.cells)assert(n>=0&&n<31*21&&g.state.room.cells[n]===1);f.age=f.burn-.3;assert(g.frameSprites().every(n=>n===338),'bright warning');f.age=f.burn-.1;assert.equal(g.frameSprites().length,0,'blank beat before fire');f.age=f.burn+.1;assert(g.frameSprites().every(n=>n>=339&&n<=341),'generated animated fire');}assert.equal(signatures.size,4,'four distinct spell geometries');
  g.init();g.cast(g.state.player,0,5);g.combat(79);assert.equal(g.state.health,20,'warning does not hurt');g.combat(2);assert.equal(g.state.health,19,'burn damages');g.combat(100);assert.equal(g.state.fields.length,0,'expired spell storage released');
  g.init();e=g.enemy(id.kamikaze,14.75,10.5);g.tick(1);assert.equal(g.state.fields[0].cells.size,9);g.tick(81);assert.equal(e.hp,0,'kamikaze dies with explosion');assert.equal(g.state.health,19);
  // Six seconds of sight, with real wall and cone occlusion.
- g.init();e=g.enemy(id.medusa,5.5,10.5);g.tick(599);assert.equal(g.state.health,20);assert(g.state.gaze>5.9);assert(g.frameSprites().includes(336));g.tick(2);assert.equal(g.state.health,19);assert(g.state.gaze<.02);
+ g.init();e=g.enemy(id.medusa,5.5,10.5);g.tick(599);assert.equal(g.state.health,20);assert(g.state.gaze>5.9);assert(g.frameSprites().includes(335));g.tick(2);assert.equal(g.state.health,19);assert(g.state.gaze<.02);
  g.init();g.enemy(id.medusa,5.5,10.5);g.tick(300);g.wall(10,10);g.tick(1);assert.equal(g.state.gaze,0,'cover resets accumulated gaze');g.tick(800);assert.equal(g.state.health,20,'walls occlude gaze');
  g.init();g.enemy(id.medusa,5.5,10.5);g.tick(100);g.position(5.5,16.5);g.tick(1);assert.equal(g.state.gaze,0,'leaving locked cone resets gaze');
  // Weapon actions, immediate cadence, art, damage envelopes, and per-shot hit memory.
@@ -37,7 +37,7 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
 // Compare the actual binary art inputs to the user-coordinate manifest.
 const catalog=data.load(),manifest=require('../assets/roster-pools.json'),art=new Set(catalog.enemySprites.map(p=>p.join(','))),empty=new Set([...Object.values(manifest.omittedEmptyTiles),...Object.values(manifest.trimmedEnemyTiles)].flat().map(p=>p.join(',')));
 for(const pool of Object.values(manifest.requestedEnemyPools))for(const p of pool)assert(art.has(p.join(','))||empty.has(p.join(',')),'requested enemy tile retained '+p);
-const compiled=data.compile(),weapons=new Set(compiled.weaponTiles.map(p=>p.x+','+p.y));for(const pool of manifest.weaponPools)for(const p of pool.tiles)assert(weapons.has(p.join(','))||manifest.omittedEmptyWeaponTiles.some(q=>q.join(',')===p.join(',')),'requested weapon art retained '+p);assert.equal(compiled.armorTiles.length,12);
+const compiled=data.compile(),weapons=new Set(compiled.weaponTiles.map(p=>p.x+','+p.y));for(const pool of manifest.weaponPools)for(const p of pool.tiles)assert(weapons.has(p.join(','))||[...manifest.omittedEmptyWeaponTiles,...manifest.trimmedWeaponTiles].some(q=>q.join(',')===p.join(',')),'requested weapon art retained or recorded as trimmed '+p);assert.equal(compiled.armorTiles.length,4);
 console.log('PASS complete requested enemy, weapon and armor sprite pools');
 
 // Every boss-drop artwork candidate remains selectable after range encoding.
@@ -49,8 +49,8 @@ for(const release of [false,true]){
    g.init();g.state.world.reward=(k+.5)/drops.length;
    const boss=g.enemy(0,5.5,5.5,{boss:true,kind:0,hp:140,pattern:0,prize:(j+.5)/forms.length});g.hit(boss,200);
    const loot=g.state.room.loot[0],expected=compiled.weaponTiles.findIndex(p=>p.x===forms[j][0]&&p.y===forms[j][1]);
-   assert.equal(loot.value,value);assert.equal(loot.art,expected,'boss drop preserves every requested weapon artwork');
+   assert.equal(loot.value,value);assert.equal(compiled.weaponRows[value][10],expected,'each boss drop shows its weapon icon');
   }
  }
 }
-console.log('PASS compact weapon-art ranges: every boss pickup variant remains reachable');
+console.log('PASS compact weapon-art ranges: every boss weapon shows its single icon');

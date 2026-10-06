@@ -6,8 +6,7 @@ function stable(v){if(ArrayBuffer.isView(v)||Array.isArray(v))return Array.from(
 // world-roster.json and world-compact.json preserve earlier generators; the shared placement pass intentionally changes layouts.
 const hash=crypto.createHash('sha256');
 for(let seed=0;seed<fixture.seed_count;seed++)for(const depth of fixture.depths){
- const world=api.makeLevel(seed,depth);assert.equal(world.nodes.byteLength,7);
- world.nodes=Array.from(world.nodes,n=>[(n&15)-8,(n>>4)-8]);
+ const world=api.makeLevel(seed,depth);
  let bytes=0;
  for(const room of world.rooms){
   // Expand cell tags into observable geometry and decoration for the fixture.

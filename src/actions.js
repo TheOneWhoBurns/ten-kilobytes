@@ -83,7 +83,7 @@ function tickActions(dt){
 function actionFrame(){return action?1+(action.type==='interact'?3:0)+Math.min(2,Math.floor(action.phase*3)):0;}
 function actorDirection(){return Math.abs(Math.sin(facing))>Math.abs(Math.cos(facing))?(facing>0?2:3):(Math.cos(facing)<0?1:0);}
 function drawActor(x,y){
- if(!health){tile(ctx,assets.actor+24,x,y);return;}
+ if(!health){tile(ctx,assets.actor+(DEV?24:18),x,y);return;}
  const frame=actionFrame()||((dash||blows.length)?2:0),weaponType=weaponRules[weapon][W_TYPE],left=DEV&&Math.cos(facing)<0,jab=(weaponType===0||weaponType===5)&&action?.type==='attack'?3-frame:0;
  let phase=DEV?frame+(left?7:0):0;
  if(!DEV||sprite===104){
@@ -96,4 +96,7 @@ function drawActor(x,y){
   ctx.fillStyle='#efefdb';ctx.fillRect(px-1,py-1,3,3);
  }
 }
-function drawPlayerFrame(phase,x,y){if(DEV)ctx.drawImage(actor,0,phase*12,12,12,x,y,12,12);else tile(ctx,assets.actor+phase,x,y);}
+function drawPlayerFrame(phase,x,y){if(DEV)ctx.drawImage(actor,0,phase*12,12,12,x,y,12,12);else{
+ // Release ships one side view; facing left draws the right-facing row mirrored.
+ const row=phase/6|0;if(row===1){ctx.save();ctx.translate(x+12,y);ctx.scale(-1,1);tile(ctx,assets.actor+phase%6,0,0);ctx.restore();}else tile(ctx,assets.actor+(row&&row-1)*6+phase%6,x,y);
+}}

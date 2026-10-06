@@ -15,15 +15,14 @@ function writeTiles(text,x,y){
 
 function reset(fresh=false){
   if(fresh){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];if(DEV)$('seed').value=seed;}
-  level=0;chamber=0;score=0;maxHealth=health=2;weaponArt=0;hitFlash=0;weapon=0;temper=0;world=makeEntrance();makeActor();enterRoom();
+  level=0;chamber=0;score=0;maxHealth=health=2;weaponArt=0;hitFlash=0;weapon=0;world=makeEntrance();makeActor();enterRoom();
 }
 function enterRoom(from){
   clearKeys();room=world.rooms[chamber];player=tilePoint(room.spawn);shots=[];fields=[];blows=[];dash=null;gaze=0;hurt=1;travel=0;resetActions();
   const door=room.doors.find(d=>d.to===from);if(door){const [dx,dy]=directions[door.dir];player.x=door.x-dx*1.5;player.y=door.y-dy*1.5;facing=Math.atan2(-dy,-dx);}
   if(!level)facing=0;
-  room.visited=true;
   art.globalCompositeOperation='source-atop';
-  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.effects+2,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
+  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.effects+1,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
   floor.imageSmoothingEnabled=false;
   for(let n=0;n<W*H;n++){
    const x=n%W*12,y=(n/W|0)*12,open=room.cells[n]&1;

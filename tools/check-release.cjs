@@ -8,7 +8,7 @@ for(const file of ['dist/index.html','dev/play.html']){
  g.key('keydown','i');g.tick();assert.equal(g.pose,17,'I attacks');g.key('keyup','i');g.tick(12);assert.equal(g.pose,14,'attack recovers');
  g.key('keydown','o');g.tick();assert.equal(g.pose,19,'O uses pickup pose');g.key('keyup','o');g.tick(12);
  g.key('keydown','r');g.key('keyup','r');g.tick();assert.equal(g.x,36,'restart restores entrance');assert.equal(g.audioContexts,1,'restart preserves one audio context');
- g.walkEntrance();assert.equal(g.mapCount,1,'actual release enters first dungeon room');assert(g.randomCalls>0||g.fields.seed,'dungeon is generated');
+ g.walkEntrance();assert(!g.lettering.includes('ROOM ZERO'),'actual release enters first dungeon room');assert(g.randomCalls>0||g.fields.seed,'dungeon is generated');
  const pointer=boot(file,undefined,true,false);pointer.handlers.pointerdown();pointer.tick(2);assert.equal(pointer.audioContexts,1,'click also starts audio');assert(pointer.audioNotes>0,'click starts music');
  console.log('PASS '+file+': no footer/toggle, automatic audio, WASD/I/O, restart, entrance traversal and dungeon entry');
 }
