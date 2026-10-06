@@ -1,12 +1,12 @@
 {
-  "measured_at_utc": "2026-10-06T11:36:30.857Z",
-  "release_sha256": "fe91b81b7d23d0983bc8a5cf12c2e561b120241afde8dd446e0ad0742f30c24e",
+  "measured_at_utc": "2026-10-06T13:28:45.449Z",
+  "release_sha256": "e68624009b5da2fd64d43ae7265ee51a3886c88164fefc405aaac384adbc7cf3",
   "baseline": {
-    "enemy_definitions": 13,
+    "enemy_definitions": 12,
     "weapon_definitions": 9,
     "boss_definitions": 1,
     "power_definitions": 0,
-    "definition_source_bytes": 1495,
+    "definition_source_bytes": 1456,
     "visual_profile": "rgb444",
     "limit": 10000,
     "budget_metric": "standalone_html",
@@ -14,185 +14,185 @@
     "packing": "roadroller-byte-stream+deflate",
     "source_encoding": "iso-8859-5",
     "decoder_model_mb": 7,
-    "source_bytes": 28924,
-    "html_bytes": 11220,
-    "unpacked_html_bytes": 28924,
-    "zip_bytes": 11260,
+    "source_bytes": 25550,
+    "html_bytes": 10376,
+    "unpacked_html_bytes": 25550,
+    "zip_bytes": 10416,
     "sprite_count": 1,
-    "enemy_sprite_count": 246,
+    "enemy_sprite_count": 170,
     "pantry_tiles": 24,
-    "sprite_data_bytes": 6660,
-    "atlas_tiles": 370,
-    "remaining_file_bytes": -1220
+    "sprite_data_bytes": 5292,
+    "atlas_tiles": 294,
+    "remaining_file_bytes": -376
   },
   "method": "Independent leave-one-component-out recompilation with unchanged packing settings. Sprite probes zero bitmap pixels while preserving dimensions and offsets. Code probes remove named bodies/blocks and allow dead-code elimination. Probes are not playable and are never written to dist. Deltas overlap, depend on shared dependencies/compression context, do not sum to file size, and are not guaranteed shippable removal savings.",
   "feature_costs_descending": [
     {
       "id": "sprites",
       "label": "All sprite bitmap content; keeps decoder and atlas dimensions",
-      "html_bytes_saved": 2864,
+      "html_bytes_saved": 2516,
       "expanded_bytes_saved": 0,
-      "probe_html_bytes": 8356
+      "probe_html_bytes": 7860
     },
     {
       "id": "generation",
       "label": "Dungeon generation: room shapes, graph, doors, placement and hazard patches",
-      "html_bytes_saved": 1112,
-      "expanded_bytes_saved": 2956,
-      "probe_html_bytes": 10108
-    },
-    {
-      "id": "projectiles",
-      "label": "Weapon attacks, shared projectiles, damage and boss drops",
-      "html_bytes_saved": 724,
-      "expanded_bytes_saved": 2363,
-      "probe_html_bytes": 10496
+      "html_bytes_saved": 1005,
+      "expanded_bytes_saved": 2690,
+      "probe_html_bytes": 9371
     },
     {
       "id": "spells",
       "label": "Shared melee, dash and ground-spell effects",
-      "html_bytes_saved": 703,
-      "expanded_bytes_saved": 2544,
-      "probe_html_bytes": 10517
+      "html_bytes_saved": 725,
+      "expanded_bytes_saved": 2475,
+      "probe_html_bytes": 9651
     },
     {
-      "id": "ai",
-      "label": "Enemy/boss decisions, attack timing and shared pathfinding",
-      "html_bytes_saved": 595,
-      "expanded_bytes_saved": 2016,
-      "probe_html_bytes": 10625
+      "id": "projectiles",
+      "label": "Weapon attacks, shared projectiles, damage and boss drops",
+      "html_bytes_saved": 577,
+      "expanded_bytes_saved": 1805,
+      "probe_html_bytes": 9799
     },
     {
       "id": "audio",
       "label": "All music and sound synthesis",
-      "html_bytes_saved": 571,
-      "expanded_bytes_saved": 1520,
-      "probe_html_bytes": 10649
+      "html_bytes_saved": 557,
+      "expanded_bytes_saved": 1504,
+      "probe_html_bytes": 9819
+    },
+    {
+      "id": "ai",
+      "label": "Enemy/boss decisions, attack timing and shared pathfinding",
+      "html_bytes_saved": 497,
+      "expanded_bytes_saved": 1563,
+      "probe_html_bytes": 9879
     },
     {
       "id": "input",
       "label": "Keyboard/focus/visibility handling and dependent player action dispatch",
-      "html_bytes_saved": 371,
-      "expanded_bytes_saved": 1121,
-      "probe_html_bytes": 10849
+      "html_bytes_saved": 367,
+      "expanded_bytes_saved": 1002,
+      "probe_html_bytes": 10009
     },
     {
       "id": "entrance",
       "label": "Room Zero route, labels and stair/ring painting, including its exclusive art",
-      "html_bytes_saved": 332,
-      "expanded_bytes_saved": 689,
-      "probe_html_bytes": 10888
+      "html_bytes_saved": 263,
+      "expanded_bytes_saved": 484,
+      "probe_html_bytes": 10113
     },
     {
       "id": "terrain",
       "label": "Static room painting: walls, stairs, textures, props, palettes and ring",
-      "html_bytes_saved": 254,
+      "html_bytes_saved": 243,
       "expanded_bytes_saved": 785,
-      "probe_html_bytes": 10966
+      "probe_html_bytes": 10133
     },
     {
       "id": "landmarks",
       "label": "Exit landmarks and visible room-door drawing",
-      "html_bytes_saved": 233,
-      "expanded_bytes_saved": 965,
-      "probe_html_bytes": 10987
+      "html_bytes_saved": 223,
+      "expanded_bytes_saved": 957,
+      "probe_html_bytes": 10153
     },
     {
       "id": "player_render",
       "label": "Player pose selection, rendering and punch effect",
-      "html_bytes_saved": 175,
-      "expanded_bytes_saved": 591,
-      "probe_html_bytes": 11045
+      "html_bytes_saved": 181,
+      "expanded_bytes_saved": 566,
+      "probe_html_bytes": 10195
     },
     {
       "id": "movement",
       "label": "Shared movement integration and tile collision",
-      "html_bytes_saved": 165,
-      "expanded_bytes_saved": 655,
-      "probe_html_bytes": 11055
+      "html_bytes_saved": 172,
+      "expanded_bytes_saved": 619,
+      "probe_html_bytes": 10204
     },
     {
       "id": "enemy_render",
       "label": "Enemy/boss rendering, squash/bob animation and boss health bar",
-      "html_bytes_saved": 136,
-      "expanded_bytes_saved": 513,
-      "probe_html_bytes": 11084
+      "html_bytes_saved": 132,
+      "expanded_bytes_saved": 500,
+      "probe_html_bytes": 10244
     },
     {
       "id": "minimap",
       "label": "Visited-room minimap",
-      "html_bytes_saved": 63,
-      "expanded_bytes_saved": 166,
-      "probe_html_bytes": 11157
+      "html_bytes_saved": 60,
+      "expanded_bytes_saved": 164,
+      "probe_html_bytes": 10316
     }
   ],
   "sprite_content_descending": [
     {
       "name": "enemies",
       "start": 67,
-      "count": 246,
-      "raw_bytes": 4428,
-      "html_bytes_saved": 1749
+      "count": 170,
+      "raw_bytes": 3060,
+      "html_bytes_saved": 1406
     },
     {
       "name": "weapons",
       "start": 24,
       "count": 43,
       "raw_bytes": 774,
-      "html_bytes_saved": 334
+      "html_bytes_saved": 330
     },
     {
       "name": "environment",
       "start": 0,
       "count": 24,
       "raw_bytes": 432,
-      "html_bytes_saved": 269
+      "html_bytes_saved": 266
     },
     {
       "name": "player",
-      "start": 345,
+      "start": 269,
       "count": 25,
       "raw_bytes": 450,
-      "html_bytes_saved": 126
+      "html_bytes_saved": 127
     },
     {
       "name": "armor",
-      "start": 313,
+      "start": 237,
       "count": 12,
       "raw_bytes": 216,
-      "html_bytes_saved": 115
+      "html_bytes_saved": 114
     },
     {
       "name": "boss",
-      "start": 331,
+      "start": 255,
       "count": 4,
       "raw_bytes": 72,
       "html_bytes_saved": 57
     },
     {
       "name": "effects",
-      "start": 325,
+      "start": 249,
       "count": 6,
       "raw_bytes": 108,
       "html_bytes_saved": 53
     },
     {
       "name": "spell_art",
-      "start": 340,
+      "start": 264,
       "count": 5,
       "raw_bytes": 90,
-      "html_bytes_saved": 51
+      "html_bytes_saved": 49
     },
     {
       "name": "ring",
-      "start": 335,
+      "start": 259,
       "count": 4,
       "raw_bytes": 72,
       "html_bytes_saved": 42
     },
     {
       "name": "legend",
-      "start": 339,
+      "start": 263,
       "count": 1,
       "raw_bytes": 18,
       "html_bytes_saved": 13
@@ -201,11 +201,11 @@
   "exact_file_breakdown": [
     {
       "label": "Compressed game program and embedded art",
-      "bytes": 10326
+      "bytes": 9487
     },
     {
       "label": "Compressed decompressor",
-      "bytes": 561
+      "bytes": 558
     },
     {
       "label": "HTML bootstrap and transport decoder",
@@ -213,7 +213,7 @@
     },
     {
       "label": "Transport escape bytes",
-      "bytes": 6
+      "bytes": 4
     }
   ],
   "runtime_known_payloads_descending": [
@@ -229,7 +229,7 @@
     },
     {
       "label": "Runtime sprite atlas",
-      "bytes": 213120,
+      "bytes": 169344,
       "basis": "Observed atlas dimensions × 4 bytes/pixel; RGBA-equivalent storage."
     },
     {
