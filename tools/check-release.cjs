@@ -11,10 +11,10 @@ for(const file of ['dist/index.html','dev/play.html']){
  if(file==='dist/index.html'){
   // Space plants the feet while direction keys still turn; walking onto the ring centre descends.
   const s=g.x;g.key('keydown',' ');g.key('keydown','a');g.tick(10);assert.equal(g.x,s,'Space holds position');assert.equal(g.pose,20,'direction keys still turn while planted');g.key('keyup','a');g.key('keyup',' ');
-  g.key('keydown','d');g.tick(120);g.key('keyup','d');g.tick(40);assert(!g.lettering.includes('ROOM ZERO'),'standing on the ring centre descends without interact');
+  g.key('keydown','d');g.tick(120);g.key('keyup','d');g.tick(40);assert(!g.lettering.includes('"I" -> ATTACK'),'standing on the ring centre descends without interact');
   g.key('keydown','r');g.key('keyup','r');g.tick();
  }
- g.walkEntrance();assert(!g.lettering.includes('ROOM ZERO'),'actual release enters first dungeon room');assert(g.randomCalls>0||g.fields.seed,'dungeon is generated');
+ g.walkEntrance();assert(!g.lettering.includes('"I" -> ATTACK'),'actual release enters first dungeon room');assert(g.randomCalls>0||g.fields.seed,'dungeon is generated');
  const pointer=boot(file,undefined,true,false);pointer.handlers.pointerdown();pointer.tick(2);assert.equal(pointer.audioContexts,1,'click also starts audio');assert(pointer.audioNotes>0,'click starts music');
  console.log('PASS '+file+': no footer/toggle, automatic audio, WASD/I/O, restart, entrance traversal and dungeon entry');
 }

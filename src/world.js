@@ -188,7 +188,9 @@ function drawWorld(){
  }
  if(!level){
   const controls=DEV?dev.controls():['W A S D','I','O'];
-  writeTiles('ROOM ZERO',2.5,'italic bold 28px serif');tile(ctx,assets.font,180,54);writeTiles((DEV?controls[0].replaceAll(' ',''):'WASD')+' -> MOVE',6);writeTiles(DEV?'"'+controls[1]+'" -> ATTACK':'"I" -> ATTACK',14);writeTiles(DEV?'"'+controls[2]+'" -> INTERACT':'"O" -> INTERACT',16);
+  // The title is the sheet's gothic capitals at double size.
+  for(let i=0;i<9;i++)ctx.drawImage(atlas,(assets.title+i)*12,0,12,12,78+i*24,18,24,24);
+  tile(ctx,assets.font,180,54);writeTiles((DEV?controls[0].replaceAll(' ',''):'WASD')+' -> MOVE',6);writeTiles(DEV?'"'+controls[1]+'" -> ATTACK':'"I" -> ATTACK',14);writeTiles(DEV?'"'+controls[2]+'" -> INTERACT':'"O" -> INTERACT',16);
   if(DEV/*diagnostics*/){$('run-status').textContent='Room Zero';$('pickup-status').textContent=Math.hypot(player.x-room.gate.x,player.y-room.gate.y)<1.8?controls[2]+' · Descend':'Follow the stairs';}
  }
  if(travel>0){ctx.fillStyle=worldColor(80);ctx.globalAlpha=travel/.35;ctx.fillRect(0,0,W*12,H*12);ctx.globalAlpha=1;}

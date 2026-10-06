@@ -1,69 +1,61 @@
-# Combat roster expansion
+# Room Zero — current product requirements
 
-## Problem Statement
+Updated October 6, 2026 against gameplay commit `4781f28`. This document describes the current implementation after the recent scope reductions and combat revisions. The [original expansion PRD](docs/history/original-combat-expansion-prd.md) is preserved as history; its full-roster and seven-room requirements no longer describe this build.
 
-The dungeon needs surprising creatures and genuinely different attacks. Cosmetic reskins alone do not provide the requested encounters. The expanded preview must preserve the full requested sprite pools, even when it exceeds the eventual 10,000-byte standalone budget.
+## Objective
 
-## Solution
+Deliver a real-time procedural dungeon game as a self-contained HTML file of at most **10,000 bytes**, with responsive combat, varied encounters, boss-only weapons and generated floors. Include graphics, synthesized sound, game logic and startup decoding in that file. ZIP size and runtime memory are separate metrics.
 
-Implement the enemy and weapon lists supplied by Andres, using the seven enemy drawings and weapon drawing as behavioral references. Keep the existing real-time room exploration, Room Zero, I/O controls, procedural floors, single boss, and boss-only weapon rewards. Replace powerups with permanent armor and show score only on death.
+The rebuilt current release is **9,248 HTML bytes**, **9,288 ZIP bytes**, leaving **752 HTML bytes**. Expanded minified HTML is 21,463 bytes. This is a size result for the current reduced scope, not a lossless compression result for the original expansion.
 
-## User Stories
+## Current scope
 
-1. As a player, I want 20 or more slow swarm creatures to pursue me, so that crowd pressure changes my movement.
-2. As a player, I want four arrow-shooter variants, so that single shots, fans, fast unlimited-range shots, and rapid fans pose different problems.
-3. As a player, I want four to nine shield enemies to advance side by side, so that flanking their five frontal armor points matters.
-4. As a player, I want slow kamikazes to burn a three-by-three patch and die, so that approaching creatures create an escape decision.
-5. As a player, I want conga creatures to follow each other at speed 11, so that their line can catch my speed-10 character.
-6. As a player, I want the existing windup charge with the requested replacement art, so that its readable behavior survives.
-7. As a player, I want horses to charge immediately in straight lines at speed 12, with a speed-3 variant, so that I dodge their committed direction.
-8. As a player, I want mage tiles to appear progressively, brighten, briefly disappear, then burn, so that I can learn the timing.
-9. As a player, I want mage lines, crosses, forks, expanding rings, distant patches, and nearby patches, so that spell geometry varies.
-10. As a player, I want walls to interrupt Medusa's gaze and four overhead icons to count six seconds of exposure, so that taking cover prevents damage.
-11. As a player, I want all listed enemy sprite candidates available, so that unusual creatures remain surprising.
-12. As a player, I want the starting attack retained with a longer cooldown, so that its cadence differs from the double attack.
-13. As a player, I want arrows without a timed range limit, so that ranged weapons can cross a room.
-14. As a player, I want the returning weapon's pickup and projectile to share tile 43,10, so that the weapon is recognizable.
-15. As a player, I want nunchucks to make one continuous forward slash, so that the attack feels like a sweep.
-16. As a player, I want an attack around my character, so that being surrounded calls for a different weapon.
-17. As a player, I want an immediate one-two punch, so that double attack has no sluggish opening delay.
-18. As a player, I want thrust to charge then dash quickly in a locked direction, so that commitment produces strong movement.
-19. As a player, I want a large frontal heavy attack, so that its area differs from both thrust and spin.
-20. As a player, I want magic to share the mage's straight-line spell, so that enemy and player magic obey consistent rules.
-21. As a player, I want weapons only from bosses and one equipped at a time, so that upgrades remain meaningful.
-22. As a player, I want armor to add one current and maximum HP, so that it is my only way to recover health.
-23. As a player, I want damage and health to carry between rooms and floors, so that no hidden healing undermines armor.
-24. As a player, I want score displayed only after death, so that combat remains uncluttered.
-25. As a player, I want facing to remain locked during attacks while ordinary movement stays responsive, so that strafing is predictable.
-26. As a developer, I want behavioral tests and measured build sizes, so that new content does not silently break controls or hide its byte cost.
+The detailed playable rules are in [docs/gameplay.md](docs/gameplay.md).
 
-## Implementation Decisions
+- Safe, open Room Zero with title, controls and centered ring. Walking onto the ring descends automatically; nearby interaction also works.
+- Six connected rooms per floor: five ordinary encounters and one boss arena. Offset reciprocal screen-edge doors, irregular outlines, branches and possible dead ends. No minimap.
+- One descent landmark inside the boss arena, unlocked after the boss dies. Ten landmark appearances remain. Each new floor replaces the previous floor's state.
+- WASD/arrows, I attack, O interact, R restart. Held attack repeats and locks facing for strafing. Feet-based collision and per-weapon timing remain.
+- Twelve enemy recipes across eight families, with 69 selected sprite entries. Swarm and conga packs coexist with mixed encounters in other rooms.
+- One single-phase Skull boss, with `(6 + floor) × 40 / 3` HP and moving-gap projectile rings. No boss health bar.
+- Nine weapons, one icon per weapon, one equipped at a time. Eight upgrades drop only from bosses. No temper modifiers.
+- Two starting HP. Armor grants one current and maximum HP, with four available icons and a 25% ordinary-room clear reward chance. No other healing or powerups.
+- Random kill score: 5–15 for ordinary enemies and 75–125 for bosses. Display only after death. Corpses persist in the current room.
+- Three area palettes, connected needle/web patches and flat tiled walls/floors. Three mage patterns and one kamikaze blast pattern.
+- Plain-oscillator procedural music and contextual effects. Side-view player heads and enemy horizontal facing are corrected.
 
-- The content compiler owns validated sprite pools and compact enemy and weapon recipes. Every listed nonempty sprite remains available; empty source cells and duplicate coordinates are recorded, not substituted with unrelated art.
-- The encounter generator owns pack size, safe placement, formation orientation, and room persistence. A room chooses an encounter family; swarms contain 20–27, shield walls 4–9, and conga lines 8–12 members. Other families use small groups.
-- The combat engine owns geometry, delayed effects, collision, projectiles, hit memory, directional armor, and gaze. Shared spell geometry serves both mages and the player.
-- Spells advance tile warnings approximately every 0.1 seconds, followed by stronger warning, a short blank interval, and animated fire. Both mage and kamikaze attacks use the new fire masks.
-- Ordinary enemies have one body HP. Shields additionally absorb five points only from their front. The retained boss keeps its existing increased HP and one phase.
-- Shooter variants are single, existing fan, double-speed single with slow cadence, and rapid fan. Ordinary projectiles use arrows; boss projectiles retain their existing appearance. Unlimited range means no short lifetime cutoff; walls and room boundaries still stop projectiles.
-- Shield facing turns slowly as a group, prioritizing its side-by-side line. Conga followers use their leader's traveled path rather than pursuing the player independently.
-- Medusa uses an occluded forward cone. Continuous exposure advances four icons across six seconds, then deals one hit. Breaking exposure resets the counter. Multiple observers do not multiply the rate.
-- Input and animation keep WASD/arrows, I attack, O interact, foot collision, held attack direction, and development tuning. Thrust locks ordinary movement during its charge and dash.
-- Rewards own weapon replacement, remembered pickup art, armor health increments, and death-only score. Ordinary enemies award 10 points; the boss awards 100; death freezes score; restart resets it.
-- Armor defaults to an occasional cleared-room reward because its source was not specified. Boss weapons are unchanged in exclusivity. No boss kill or floor change heals the player.
-- Each floor is generated when entered, retaining only current-floor room state. The boss leads to the sole dedicated floor exit. Visited-only map and safe spiral Room Zero remain.
+## Implementation boundaries
 
-## Testing Decisions
+`assets/content.json` defines the current roster and weapon parameters. `assets/roster-pools.json` retains the original coordinate requests and selection metadata; it is not a claim that every originally requested sprite is shipped. The current build has 148 atlas slots, including reserved blank pantry slots, and 2,664 bytes of raw binary masks.
 
-Test observable outcomes: pack counts and valid placement, boss reachability, frontal versus rear hits, follower trails, charge speeds and commitment, shooter cadence and distance, all six spell shapes and their stages, gaze occlusion and timing, weapon geometry, armor persistence, and death-only scoring. Run both authoring and specialized release controllers against the same contracts. Retain existing room, input, art, packing, and entrance tests; preserve historical optimization fixtures instead of presenting changed gameplay as lossless equivalence.
+`src/room.js` supplies grid generation and movement; `src/world.js` owns floor topology, encounters, rewards, progression and audio; `src/combat.js` shares melee and spell geometry; `src/actions.js` handles action timing and poses. `src/game.js` integrates input and rendering. Development controls remain outside the standalone release.
 
-## Out of Scope
+Release uses native randomness. Development floor generation is seeded, but runtime score, corpse and player-spell choices use `Math.random`; full-session determinism is not a contract.
 
-New bosses, boss phases, enemy relations, powerup combinations, healing consumables, new dungeon architecture, and deleting requested art to meet 10 KB are outside this expansion. The preview is allowed to exceed the limit; the eventual jam target remains 10,000 bytes.
+The compiler specializes the release controller and recipes before minification and packing. Controller source guards must be updated with corresponding behavior tests when those functions change. The release stores 18 living player frames plus death, deriving the other side view by reflection; development retains 24 living frames plus death.
 
-## Further Notes
+Temporary decoder tables occupy 14 MiB. This does not measure total browser RAM, audio allocation, canvas storage or JavaScript object overhead.
 
-The original enemy and weapon messages are authoritative. Coordinates are zero-based and range endpoints inclusive. The charge typo `111-3 to 11-28` is interpreted as column 111, rows 3–28. The repeated third shooter is the fourth variant. The repeated thrust coordinate 35,8 is one visual candidate. All coordinates are retained in the roster manifest. Baseline commit `b4a5653` preserves the 8,454-byte game before this expansion.
+## Acceptance criteria
 
-The expanded preview is implemented and validated with the complete test suite. The standalone HTML is 13,610 bytes (ZIP 13,712), so it is a preview rather than a budget-compliant submission. The playable build includes 13 enemy recipes, nine weapons, 43 nonempty weapon icons and 12 nonempty armor icons.
+1. `npm run build` produces a self-contained `dist/index.html` no larger than 10,000 bytes, with no external runtime assets, and reports ZIP size separately.
+2. Room Zero is safe, traversable and starts a new floor through its ring. Restart returns to 2 HP, Fist and zero score.
+3. Every generated floor has six connected rooms, reciprocal screen-edge doors and a reachable boss. The boss arena owns the only descent landmark.
+4. Cleared rooms and collected rewards stay cleared while revisiting a floor. Equipment, health and score persist on descent; previous-floor rooms do not.
+5. Controls support movement, held attacks, facing lock, cooldowns, pickup and restart, and clear held input on blur/visibility changes.
+6. The current enemy families retain their distinct pursuit, firing, trail-following, charge, spell and gaze behavior. Walls interrupt damaging gaze, and breaking exposure resets its timer.
+7. Weapon cooldowns, geometry and delayed effects match the gameplay reference. Projectiles retain hit history and motion traits after equipment changes.
+8. Armor is the only health increment. Death stops combat, freezes score and displays it; score remains hidden while alive.
+9. Packing restores the current source correctly. Art selection uses current pools, player facing remains consistent, and development diagnostics remain usable.
 
-The subsequent optimization candidate is 11,064 HTML bytes (11,104 ZIP), compared with the preserved 13,610-byte expanded checkpoint `6bbe65a`. It retains this roster and its combat contracts. Authorized changes use flat tiled walls, browser text in Room Zero, connected frontier growth, local pursuit steering, compact grid decoration tags and geometric spell fields. The 10,000-byte target remains unmet.
+## Validation recorded for this update
+
+`npm run build` reproduced 9,248 HTML bytes and `npm test` passed on October 6, 2026. The suite exercised room connectivity and collision; 1,000 generated floors; controls and action timing; survival, rewards and progression; hazards and audio; content extensions; entrance traversal; score; combat; sprite encoding; landmark rendering; and packing recovery/current-source pixel and audio equality.
+
+Some test success labels still use historical wording such as “seven-byte coordinates,” “5x boss scaling” and “complete requested … pools.” Those labels must not override the current six-room source, boss formula or reduced content definitions. These checks do not constitute a new subjective playtest, total RAM measurement or organizer acceptance of a jam submission.
+
+## Superseded scope
+
+The current implementation removes shield walls/front armor, the spiral entrance corridor, the separate exit room, the minimap, the boss health bar, fork/expanding-ring ground spells, weapon temper, most art variants and the FM music arrangement. Conga packs are smaller and slower. Weapons have distinct rates and reworked effects; Medusa now follows the player with a visible turning cone. These changes are intentional descriptions of the checked-in version, not pending requests to restore the original design.
+
+Additional bosses, multi-phase fights, stacked powers, healing consumables and a final victory floor are not implemented.
