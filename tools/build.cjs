@@ -55,7 +55,7 @@ const ring=[65,66,67,68].map(x=>({x,y:4}));
 const corpses=[0,6,18,26,33].map(y=>({x:201,y}));
 // HIPOCRENE in the sheet's gothic capitals, in title order.
 // A 2×2 sun and moon; the entrance draws one under its ring.
-const sky=[[78,16],[79,16],[78,17],[79,17],[80,16],[81,16],[80,17],[81,17]].map(([x,y])=>({x,y}));
+const sky=[[78,16],[79,16],[78,17],[79,17],[80,16],[81,16],[80,17],[81,17],[13,0]].map(([x,y])=>({x,y}));
 const title=[[79,48],[80,48],[87,48],[86,48],[99,47],[89,48],[101,47],[85,48],[101,47]].map(([x,y])=>({x,y}));
 for(const dev of development?[true,false]:[false]){
  const enemyColumns=enemyTiles;

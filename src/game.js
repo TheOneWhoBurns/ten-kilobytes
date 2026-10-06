@@ -22,16 +22,17 @@ function enterRoom(from){
   const door=room.doors.find(d=>d.to===from);if(door){const [dx,dy]=directions[door.dir];player.x=door.x-dx*1.5;player.y=door.y-dy*1.5;facing=Math.atan2(-dy,-dx);}
   if(!level)facing=0;
   art.globalCompositeOperation='source-atop';
-  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.corpses,5,'#8f7d86'],[assets.sky,4,'#f2c46d'],[assets.sky+4,4,'#c9d4f5'],[assets.effects+1,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
+  for(const [start,count,color] of [[assets.pantry,24,worldColor(38,25)],[assets.weapon,assets.weaponCount,'#bdeddf'],[assets.enemies,assets.enemyCount,worldColor(76,180)],[assets.bosses,4,'#edc9d3'],[assets.armors,assets.armorCount,'#bdcbed'],[assets.effects,1,'#ffcfac'],[assets.corpses,5,'#8f7d86'],[assets.sky,4,'#f2c46d'],[assets.sky+4,4,'#c9d4f5'],[assets.sky+8,1,'#33495a'],[assets.effects+1,4,'#d7a7ff'],[assets.warning,2,'#c394ff'],[assets.flame,3,'#ff9365']]){art.fillStyle=color;art.fillRect(start*12,0,count*12,12);}for(let i=0;i<18;i++)if(i%6>1){art.fillStyle=i===2?'#d7b77c':worldColor(38,80);art.fillRect((assets.pantry+i)*12,0,12,12);}art.globalCompositeOperation='source-over';
   floor.imageSmoothingEnabled=false;
+  // The entrance floor is one tile enlarged into four rotated quadrants that meet at the ring.
+  if(!level){floor.fillStyle='#2a3d4a';floor.fillRect(0,0,372,252);for(let q=0;q<4;q++){floor.save();floor.translate(174,126);floor.rotate(q*Math.PI/2);floor.drawImage(atlas,(assets.sky+8)*12,0,12,12,0,0,q%2?126:198,q%2?198:126);floor.restore();}}
   for(let n=0;n<W*H;n++){
    const x=n%W*12,y=(n/W|0)*12,open=room.cells[n]&1;
-   floor.fillStyle=level?worldColor(open?14:8):open?(Math.abs(n%W-14.5)+Math.abs((n/W|0)-10.5))/2&1?'#324957':'#2a3d4a':'#101722';floor.fillRect(x,y,12,12);
-   // The entrance floor carries a faint diamond lattice.
-   floor.globalAlpha=open?level?.09:.45:.25;tile(floor,assets.pantry+(open?level?18+world.shape:20:21+world.shape),x,y);floor.globalAlpha=1;
+   if(level||!open){floor.fillStyle=level?worldColor(open?14:8):'#101722';floor.fillRect(x,y,12,12);}
+   floor.globalAlpha=open?.09:.25;if(level||!open)tile(floor,assets.pantry+(open?18:21)+world.shape,x,y);floor.globalAlpha=1;
   }
   // A sun or a moon lies under the entrance ring.
-  if(!level){const sky=assets.sky+(Math.random()<.5?0:4);for(let i=0;i<4;i++)floor.drawImage(atlas,(sky+i)*12,0,12,12,150+i%2*24,102+(i>>1)*24,24,24);}
+  if(!level){const sky=assets.sky+(Math.random()<.5?0:4);for(let i=0;i<4;i++)tile(floor,sky+i,162+i%2*12,114+(i>>1)*12);}
   if(!level)for(let i=0;i<4;i++)floor.drawImage(atlas,(assets.ring+i)*12,0,12,12,150+i%2*24,102+(i>>1)*24,24,24);
   for(let n=0;n<W*H;n++)if(room.cells[n]>>1)tile(floor,assets.pantry+(room.cells[n]>>1)-1,n%W*12,(n/W|0)*12);
   if(DEV)$('info').textContent=level?['Ossuary','Cistern','Archive'][world.shape]:'Room Zero';
