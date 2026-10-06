@@ -12,11 +12,11 @@ module.exports=function boot(specialize=false,release=false){
  attack:worldAttack,press(){performAction('attack');},
  tick(n,dt=.01){for(let i=0;i<n;i++){tickActions(dt);tickWorld(dt);}},combat(n,dt=.01){for(let i=0;i<n;i++)tickCombat(dt);},
  hit:hitEnemy,fire,cast,take:takeLoot,hurt:hurtPlayer,draw:drawCombat,reset,enter:enterRoom,
- position(x,y){player.x=x;player.y=y;},wall(x,y){room.cells[y*W+x]=0;navSolid=null;},
+ position(x,y){player.x=x;player.y=y;},wall(x,y){room.cells[y*W+x]=0;},
  health(n){health=maxHealth=n;hurt=0;},cooldown(){return ${release?'cooldown':'actionStates.attack.cooldown'};},
- get state(){return {room,world,player,health,maxHealth,score,shots,fields,blows,dash,gaze,weapon,weaponArt,level,chamber};},
+ get state(){return {room,world,player,health,maxHealth,score,shots,fields:fields.map(f=>new Proxy(f,{get(t,k){return k==='cells'?new Map(Array.from({length:W*H},(_,n)=>[n,spellCell(t,n)]).filter(p=>p[1]>=0)):t[k]}})),blows,dash,gaze,weapon,weaponArt,level,chamber};},
  frameSprites(){const out=[],old=tile;tile=(...args)=>out.push(args[1]);drawCombat();tile=old;return out;},
  nextFloor(){level++;world=makeLevel(seed,level);chamber=0;enterRoom();},
- })`,{atob,document,crypto:require('crypto').webcrypto});
+ })`,require('./canvas-dom.cjs')({atob,document,crypto:require('crypto').webcrypto}));
  api.ids=Object.fromEntries(catalog.enemies.map((e,i)=>[e.id,i]));return api;
 };

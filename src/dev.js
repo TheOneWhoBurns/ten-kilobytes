@@ -39,7 +39,7 @@ function setupDev(){
   canvas.setAttribute('aria-label','Generated room. Move with '+controls+'.');
  }
  function cancel(){pending=null;sync();}
- function pause(){paused=!paused;keys.clear();releaseActions();last=0;sync();}
+ function pause(){paused=!paused;clearKeys();releaseActions();last=0;sync();}
  for(const id of ['speed','speed-range'])$(id).oninput=e=>{
   if(!Number.isFinite(+e.target.value)||!e.target.value)return;
   settings.speed=Math.max(.5,Math.min(20,+e.target.value));sync();save();
@@ -53,14 +53,14 @@ function setupDev(){
   $(type+'-mode').onchange=e=>{settings[type+'Mode']=e.target.value;releaseActions();save();};
  }
 
- $('layout').onchange=e=>{const layout=e.target.value;cancel();if(presets[layout]&&['attack','interact'].some(d=>Object.values(presets[layout]).includes(settings.bindings[d]))){$('binding-status').textContent='Key conflict';return;}settings.layout=layout;if(presets[settings.layout])settings.bindings={...settings.bindings,...presets[settings.layout]};keys.clear();releaseActions();sync();save();};
- for(const d of bindings)$('bind-'+d).onclick=()=>{keys.clear();releaseActions();pending=d;$('binding-status').textContent=d+': press key';sync();};
+ $('layout').onchange=e=>{const layout=e.target.value;cancel();if(presets[layout]&&['attack','interact'].some(d=>Object.values(presets[layout]).includes(settings.bindings[d]))){$('binding-status').textContent='Key conflict';return;}settings.layout=layout;if(presets[settings.layout])settings.bindings={...settings.bindings,...presets[settings.layout]};clearKeys();releaseActions();sync();save();};
+ for(const d of bindings)$('bind-'+d).onclick=()=>{clearKeys();releaseActions();pending=d;$('binding-status').textContent=d+': press key';sync();};
  $('pause').onclick=pause;
  $('dev-toggle').onclick=()=>{cancel();settings.collapsed=!settings.collapsed;sync();save();};
- $('collision').onchange=e=>{collision=e.target.checked;keys.clear();if(collision&&!canFit(room.cells,player.x,player.y))player=tilePoint(room.spawn);sync();};
- $('respawn').onclick=()=>{keys.clear();releaseActions();player=tilePoint(room.spawn);canvas.focus();};
+ $('collision').onchange=e=>{collision=e.target.checked;clearKeys();if(collision&&!canFit(room.cells,player.x,player.y))player=tilePoint(room.spawn);sync();};
+ $('respawn').onclick=()=>{clearKeys();releaseActions();player=tilePoint(room.spawn);canvas.focus();};
  for(const id of ['grid','hitbox'])$(id).onchange=e=>{settings[id]=e.target.checked;save();};
- $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;keys.clear();releaseActions();last=0;if(!canFit(room.cells,player.x,player.y))player=tilePoint(room.spawn);$('binding-status').textContent='';sync();save();};
+ $('defaults').onclick=()=>{settings=defaults();collision=true;paused=false;pending=null;clearKeys();releaseActions();last=0;if(!canFit(room.cells,player.x,player.y))player=tilePoint(room.spawn);$('binding-status').textContent='';sync();save();};
  sync();
  return {
   controls:()=>[directions.map(d=>label(settings.bindings[d])).join(' '),label(settings.bindings.attack),label(settings.bindings.interact)],

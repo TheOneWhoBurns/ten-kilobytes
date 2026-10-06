@@ -1,13 +1,13 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const api=vm.runInNewContext(fs.readFileSync('src/room.js','utf8')+';({generate:seed=>generate(randomFor(seed)),canFit,movePlayer,tilePoint,W,H})');
-const {generate,canFit,movePlayer,tilePoint,W,H}=api,cell=(cells,n)=>cells[n]||0,layouts=new Set();
+const {generate,canFit,movePlayer,tilePoint,W,H}=api,cell=(cells,n)=>(cells[n]||0)&1,layouts=new Set();
 for(let seed=0;seed<2000;seed++){
   const {cells:packed,spawn:spawnIndex}=generate(seed),spawn=tilePoint(spawnIndex),cells=Array.from({length:W*H},(_,n)=>cell(packed,n)),key=Array.from(cells).join('');layouts.add(key);
   const repeated=generate(seed).cells;assert.equal(key,Array.from({length:W*H},(_,n)=>cell(repeated,n)).join(''),'seed reproducibility');
   assert(canFit(packed,spawn.x,spawn.y),'safe spawn');
   assert(canFit(packed,spawn.x+3,spawn.y),'reachable lantern placement');
   assert.equal(packed.byteLength,651,'one authoritative byte per cell');
-  for(let n=0;n<cells.length;n++){assert([0,1,2,4].includes(cells[n]));if(cells[n]>1)assert(!canFit(packed,n%W+.5,Math.floor(n/W)+.5),'fixtures and water block movement');}
+  for(let n=0;n<cells.length;n++){assert([0,1].includes(cells[n]));if(!cells[n])assert(!canFit(packed,n%W+.5,Math.floor(n/W)+.5),'all closed cells block movement');}
   const queue=[Math.floor(spawn.y)*W+Math.floor(spawn.x)],seen=new Set(queue);
   for(let i=0;i<queue.length;i++){
     const n=queue[i],x=n%W,y=Math.floor(n/W);

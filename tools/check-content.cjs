@@ -14,7 +14,7 @@ function boot(catalog,specialize,release=false){
  kind(e){return ${release?'enemyRules.indexOf(e.rule)':'e.kind'};},
  prepare(e){${release?'e.rule=enemyRules[e.kind+(e.boss?ENEMY_COUNT:0)];':''}return e;},
  definitions(){return JSON.stringify([enemyRules,weaponRules]);}
- })`,{atob,document,Set,Uint8Array,Int16Array});
+ })`,require('./canvas-dom.cjs')({atob,document,Set,Uint8Array,Int16Array}));
 }
 const catalog=data.load(),npc=examples.enemy(catalog,true),gun=examples.weapon(catalog);
 catalog.enemies[npc].biomes=[0];catalog.enemies[npc].weight=3;
@@ -66,3 +66,20 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
 for(const sequence of sequences)assert.equal(sequence,sequences[0],'sequence and release specialization preserve attacks');
 for(const mutate of [c=>c.weapons[1].traits=['typo'],c=>c.enemies[0].attack.windupp=.1,c=>c.bosses[0].drop=['missing'],c=>c.enemies[0].art.base=999,c=>c.enemies[0].weight=0,c=>c.enemies[0].attack.mode=[],c=>c.enemies[1].attack.countStep=.5]){const c=data.load();mutate(c);assert.throws(()=>data.compile(c),/Content:/);}
 console.log('PASS recipe extension: new IDs, art, biome/weight pools, charge/ring/fan sequences, ring/piercing/melee, cadence, reward reachability, shot cap, shared immutable rows and specialization');
+
+const sparse=data.compile(data.load(),{specialize:true,usedFields:new Set(['E_MODE','W_TYPE'])});
+assert.throws(()=>sparse.transform('const x=rule[E_SPEED];'),/omitted field/,'a missing liveness declaration cannot silently read the wrong column');
+const sparseTables=vm.runInNewContext(sparse.source+';({enemyRules,weaponRules,E_MODE,W_TYPE})');
+assert(sparseTables.enemyRules.every(r=>r.length===1)&&sparseTables.weaponRules.every(r=>r.length===1),'only referenced varying columns ship');
+assert.equal(sparseTables.enemyRules[0][sparseTables.E_MODE],3);assert.equal(sparseTables.weaponRules[8][sparseTables.W_TYPE],8);
+console.log('PASS recipe field liveness and fail-closed omitted-field reads');
+
+const encodeRows=require('./recipe-rows.cjs');
+for(const rows of [[],[[]],[[0,1],[2,3]],
+ Array.from({length:24},(_,i)=>[i%3,0,.24,.55,1000,i===12?0:7,0]),
+ Array.from({length:16},(_,i)=>[[i%2,2,0],.3,0,0,0,0,0])]){
+ const decoded=vm.runInNewContext(encodeRows(rows));
+ assert.equal(JSON.stringify(decoded),JSON.stringify(rows),'recipe defaults preserve every value, zero and sequence');
+ if(decoded.length>1){const second=JSON.stringify(decoded[1]);decoded[0][0]=999;assert.equal(JSON.stringify(decoded[1]),second,'decoded recipe rows remain independent');}
+}
+console.log('PASS compact recipe rows: exact values, zeros, sequences and independent arrays');

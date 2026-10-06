@@ -31,11 +31,15 @@ function pack(tiles){
 }
 // Six slots per biome, then textures. Unused second slots in water/archive share art.
 const pantry=[[5,39],[8,39],[7,42],[28,21],[1,38],[34,25], [4,13],[4,13],[4,9],[1,5],[5,10],[6,9], [2,36],[2,36],[16,36],[4,39],[0,39],[32,14], [5,6],[8,6],[10,6],[0,3],[10,3],[1,4]].map(([x,y])=>({x,y}));
-async function build({catalog=contentData.load(),write=true,development=true,sourceOnly=false,diagnostics=false,sourceTransform=s=>s,packingOptions=require('./packing-options.json'),quick=false,packMode='roadroller',functionOrder}={}){
-const content=contentData.compile(catalog,{specialize:true}),{enemyTiles,weaponTiles,armorTiles}=content;
+async function build({catalog=contentData.load(),write=true,development=true,sourceOnly=false,diagnostics=false,sourceTransform=s=>s,packingOptions=require('./packing-options.json'),quick=false,packMode='roadroller',functionOrder,spriteEncoder=require('./sprite-data.cjs'),minifier,compressOptions}={}){
+const runtime=['src/room.js','src/actions.js','src/world.js','src/combat.js','src/game.js'].map(read).join('\n');
+const developmentSource=read('src/dev.js');
+const usedFields=new Set([...(runtime+'\n'+developmentSource).matchAll(/\b[EW]_[A-Z_]+\b/g)].map(m=>m[0]));
+const content=contentData.compile(catalog,{specialize:true,usedFields});
+content.enemyTiles=require('./order-sprites.cjs')(catalog,content.enemyTiles,pack(content.enemyTiles));
+const {enemyTiles,weaponTiles,armorTiles}=content;
 const bossTiles=[28].flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
 if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,armor:armorTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
-const runtime=['src/room.js','src/actions.js','src/world.js','src/combat.js','src/game.js'].map(read).join('\n');
 const reports={},artifacts={};
 const effects=[[33,10],[48,45],[87,34],[88,34],[89,34],[90,34]].map(([x,y])=>({x,y}));
 const fireBits=Buffer.alloc(5*18);
@@ -45,22 +49,27 @@ for(let i=0;i<5;i++)for(let p=0;p<144;p++)if(masks[i][p/12|0][p%12]==='#')fireBi
 const ring=[65,66,67,68].map(x=>({x,y:4}));
 for(const dev of development?[true,false]:[false]){
  const enemyColumns=enemyTiles;
- const letters=(dev?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''))+'@"->',font=[...letters].map(c=>{const special={'@':[80,36],'"':[85,47],'-':[99,46],'>':[97,46]}[c],n=c.charCodeAt(0)-65;return special?{x:special[0],y:special[1]}:{x:n<6?97+n:72+n,y:n<6?47:48};});
+ const letters='@',font=[{x:80,y:36}];
  const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,characterBits]),enemies=characters.length+pantry.length+weaponTiles.length;
- const encodedBitmap=dev?undefined:require('./sprite-data.cjs')(bits),bitText=encodedBitmap?.text??bits.toString('base64');
+ const encodedBitmap=dev?undefined:spriteEncoder(bits),bitText=encodedBitmap?.text??bits.toString('base64');
  const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,actor:tiles.length+5});
  if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,ring,font},null,2)+'\n');}
  let template=quantizeColors(read(dev?'src/dev.html':'src/index.html'));
- if(!dev&&diagnostics)template=template.replace('</main>','</main><aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button><button id="interact"></button></aside>');
+ if(!dev&&diagnostics)template=template.replace('<script>','<aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button><button id="interact"></button></aside><script>');
  const css=template.match(/<style>([\s\S]*?)<\/style>/)[1];
  let candidateSource=quantizeColors(sourceTransform(content.source+require('./landmark-data.cjs')()+content.transform(dev?runtime:require('./specialize-release.cjs')(runtime))));
  if(diagnostics)candidateSource=candidateSource.replaceAll('DEV/*diagnostics*/','true');
  if(encodedBitmap?.loader)candidateSource=candidateSource.replace(/const bits=atob\(assets.bits\);[\s\S]*?\nmakeActor\(\);/,()=>quantizeColors(encodedBitmap.loader)+'\nmakeActor();');
- let program='const assets='+assets+';\n'+(dev?read('src/dev.js'):'')+'\n'+(dev?candidateSource:sourceOnly?compactSource(candidateSource):releaseLayout(candidateSource,functionOrder));
+ let program='const assets='+assets+';\n'+(dev?content.transform(developmentSource):'')+'\n'+(dev?candidateSource:sourceOnly?compactSource(candidateSource):releaseLayout(candidateSource,functionOrder));
  if(!dev)program=require('./inline-assets.cjs')(program,JSON.parse(assets));
- let code=transformSync(program,{minify:true,format:'iife',target:'es2020',define:{DEV:String(dev)}}).code;
- // The property allowlist contains game-owned fields only; keep browser API properties out.
- if(!dev)code=(await require('terser').minify(code,{compress:{passes:3},mangle:{properties:{builtins:true,regex:/^(motif|reward|to|dir|hp|tone|exit|t|letters|font|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
+ let code;
+ if(minifier&&!dev)code=await minifier(program);
+ else{
+  code=transformSync(program,{minify:true,format:'iife',target:'es2020',define:{DEV:String(dev)}}).code;
+  // Standard built-ins are assumed; floating-point order and native Boolean types stay intact.
+  // The property allowlist contains game-owned fields only; keep browser API properties out.
+  if(!dev)code=(await require('terser').minify(code,{compress:{passes:3,unsafe:true,unsafe_arrows:true,ecma:2020,...compressOptions},mangle:{nth_identifier:require('./identifier-order.cjs'),properties:{nth_identifier:require('./identifier-order.cjs'),builtins:true,regex:/^(guard|slot|trail|follow|formation|burn|looking|prize|armorCount|armors|effects|warning|flame|motif|reward|to|dir|hp|tone|exit|t|letters|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
+ }
  const shell=template.replace(css,()=>transformSync(css,{loader:'css',minify:true}).code.trim()),render=js=>shell.replace('__CODE__',()=>js);
  let html=Buffer.from(render(code)),encoding='utf-8';
  if(!dev&&sourceOnly){
@@ -80,7 +89,7 @@ for(const dev of development?[true,false]:[false]){
   html=selected.html;zip=selected.zip;packing=packMode==='native'?'deflate':'roadroller-byte-stream+deflate';encoding='iso-8859-5';modelMemoryMB=packed.memoryMB;
  }else zip=zipSync({'index.html':[html,{mtime:new Date(2026,9,4)}]},{level:9});
  artifacts[dev?'development':'release']={html,zip};
- const report={enemy_definitions:catalog.enemies.length,weapon_definitions:catalog.weapons.length,boss_definitions:catalog.bosses.length,power_definitions:0,definition_source_bytes:Buffer.byteLength(content.source),visual_profile:'rgb444',limit:10000,budget_metric:sourceOnly?'minified_source_with_assets':'standalone_html_and_submission_zip',compliant:Math.max(html.length,sourceOnly?0:zip.length)<=10000,packing,source_encoding:encoding,decoder_model_mb:modelMemoryMB,source_bytes:unpackedBytes,html_bytes:html.length,unpacked_html_bytes:unpackedBytes,zip_bytes:zip.length,sprite_count:dev?characters.length-1:1,enemy_sprite_count:enemyColumns.length,pantry_tiles:pantry.length,sprite_data_bytes:bits.length,atlas_tiles:bits.length/18,remaining_file_bytes:10000-Math.max(html.length,sourceOnly?0:zip.length)};
+ const report={enemy_definitions:catalog.enemies.length,weapon_definitions:catalog.weapons.length,boss_definitions:catalog.bosses.length,power_definitions:0,definition_source_bytes:Buffer.byteLength(content.source),visual_profile:'rgb444',limit:10000,budget_metric:sourceOnly?'minified_source_with_assets':'standalone_html',compliant:html.length<=10000,packing,source_encoding:encoding,decoder_model_mb:modelMemoryMB,source_bytes:unpackedBytes,html_bytes:html.length,unpacked_html_bytes:unpackedBytes,zip_bytes:zip.length,sprite_count:dev?characters.length-1:1,enemy_sprite_count:enemyColumns.length,pantry_tiles:pantry.length,sprite_data_bytes:bits.length,atlas_tiles:bits.length/18,remaining_file_bytes:10000-html.length};
  reports[dev?'development':'release']=report;
  if(write&&!dev)fs.writeFileSync(path.join(root,'dev/release-preview.html'),html);
  const decoded=unzipSync(zip);if(!Buffer.from(decoded['index.html']).equals(html))throw Error('ZIP verification failed');

@@ -31,7 +31,8 @@ function unpackProgram(script,depth,scope={}){
  if(call?.callee?.object?.name!=='document'||call.callee.property.name!=='write'||typeof call.arguments[0]?.value!=='string')throw Error('Unknown game bootstrap');
  const shell=call.arguments[0].value,code=program.slice(first.end);
  if(!code)return shell;
- return shell.replace('</html>',()=>'<script>'+code+'</script></html>');
+ const tag='<script>'+code+'</script>';
+ return shell.includes('</html>')?shell.replace('</html>',()=>tag+'</html>'):shell+tag;
 }
 function decodeBytes(encoded,decoder){
  const escape=+(decoder.match(/n===(\d+)\?e=32/)?.[1]??27),xor=+(decoder.match(/a\.push\(n\^e\^(\d+)\)/)?.[1]??0),raw=[];

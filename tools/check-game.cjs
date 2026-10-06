@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-function boot(file,saved,peaceful=true,dungeon=true){
+function boot(file,saved,peaceful=true,dungeon=true,runSeed=1){
  const handlers={},fields={},raf=[],storage=new Map(saved?[['room-zero-dev-v1',saved]]:[]);let entropy=0,time=0,lastDraw,strokes=0,hitFrames=0,actorSprite=104,mapCount=0,lettering=[],ink=[];
  class Element{constructor(tagName='BUTTON',value=''){this.tagName=tagName;this.value=value;this.checked=false;this.style={};this.dataset={};}appendChild(){}setAttribute(k,v){this[k]=v;}click(){this.onclick?.();}focus(){}setPointerCapture(){}}
  class Input extends Element{constructor(value){super('INPUT',value);}}
@@ -7,19 +7,20 @@ function boot(file,saved,peaceful=true,dungeon=true){
  for(const match of html.matchAll(/<(input|button|select|span|div|canvas|p)[^>]*\bid="([^"]+)"[^>]*>/g)){
   fields[match[2]]=match[1]==='input'?new Input(match[0].match(/value="([^"]*)"/)?.[1]||''):new Element(match[1].toUpperCase());
  }
- const context={fillText(text){lettering.push(text);},clearRect(){},save(){},restore(){},rotate(){},translate(){},scale(){},fillRect(x,y,w,h){if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){if(args[0].width===12||args[1]/12>=args[0].width/12-25)lastDraw=args;const letters=(fields.seed?'ABCDEFGHIJKLMNOPQRSTUVWXYZ':[...new Set('ROOMZEROWASDIATTACKOINTERACT')].join(''))+'@"->',i=args[1]/12-(args[0].width/12-30-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
+ const context={fillText(text){lettering.push(text);},clearRect(){},save(){},restore(){},rotate(){},translate(){},scale(){},fillRect(x,y,w,h){if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){if(args[0].width===12||args[1]/12>=args[0].width/12-25)lastDraw=args;const letters='@',i=args[1]/12-(args[0].width/12-30-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
  const canvas=fields.game;canvas.getContext=()=>context;canvas.parentElement={getBoundingClientRect:()=>({width:1200,height:650})};
  const document={getElementById:id=>fields[id],createElement:()=>{const node={};node.getContext=()=>({...context,drawImage(...args){if(node.width===12&&node.height===456&&args[0]!==node&&args[6]===0)actorSprite=args[1]/12+103;}});return node;},addEventListener:(name,fn)=>handlers[name]=fn};
  let audioContexts=0,audioNotes=0;
  class AudioContext{constructor(){audioContexts++;this.state='running';}get currentTime(){return time/1000;}get destination(){return{};}resume(){this.state='running';}createOscillator(){return{frequency:{},connect(){},disconnect(){},start(){audioNotes++;},stop(){}};}createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}}
- let randomCalls=0;const random=require('./test-random.cjs')('1:1');
- const sandbox={AudioContext,Math:Object.assign(Object.create(Math),{random(){randomCalls++;return random();}}),document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=++entropy;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
+ let randomCalls=0;const random=require('./test-random.cjs')(runSeed+':1');
+ const sandbox={AudioContext,Math:Object.assign(Object.create(Math),{random(){randomCalls++;return random();}}),document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=runSeed+entropy++;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
+ require('./dom-events.cjs')(sandbox,handlers);
  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],sandbox);
  if(fields.seed)assert(/Room Zero|Memorial|Sluice|Reading/.test(fields.info.textContent),'room generated');
  // Controls are exercised independently of combat; survival has its own suite.
 
  const tick=(n=1,elapsed=1000/60)=>{for(let i=0;i<n;i++){time+=elapsed;mapCount=0;lettering=[];ink=[];raf.shift()(time);}};
- const key=(type,key,target=canvas,options={})=>handlers[type]({key,target,repeat:false,preventDefault(){},...options});
+ const key=(type,key,target=canvas,options={})=>handlers[type]({key,keyCode:({ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40}[key]||key.toUpperCase().charCodeAt(0)),target,repeat:false,preventDefault(){},...options});
  tick();
  const walkEntrance=(enter=true)=>{
   const bindings=saved?JSON.parse(saved).bindings:null;
@@ -34,7 +35,7 @@ function boot(file,saved,peaceful=true,dungeon=true){
   if(peaceful)fields['clear-room']?.click();tick();
  };
  if(dungeon)goDungeon();
- return {fields,tick,key,handlers,storage,goDungeon,walkEntrance,get bitmapText(){return ink.join('')},get entropy(){return entropy},get randomCalls(){return randomCalls},get audioContexts(){return audioContexts},get audioNotes(){return audioNotes},get lettering(){return lettering},get mapCount(){return mapCount},get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];return image.width===12?lastDraw[2]/12:14+lastDraw[1]/12-(image.width/12-25)},get flashes(){return hitFrames},get strokes(){return strokes}};
+ return {fields,tick,key,handlers,storage,goDungeon,walkEntrance,get font(){return context.font},get bitmapText(){return ink.join('')},get entropy(){return entropy},get randomCalls(){return randomCalls},get audioContexts(){return audioContexts},get audioNotes(){return audioNotes},get lettering(){return lettering},get mapCount(){return mapCount},get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];return image.width===12?lastDraw[2]/12:14+lastDraw[1]/12-(image.width/12-25)},get flashes(){return hitFrames},get strokes(){return strokes}};
 }
 module.exports=boot;
 if(require.main===module){
@@ -173,7 +174,7 @@ assert.equal(boot('dev/release-diagnostics.html').fields['run-status'].textConte
 assert.equal(boot('dev/release-diagnostics.html').fields['pickup-status'].textContent,boot('dev/play.html',undefined,false).fields['pickup-status'].textContent,'release and development generate the same starting encounter');
 
 for(const file of ['dev/release-diagnostics.html','dev/play.html']){
- const g=boot(file,undefined,false);let hit=false;for(let i=0;i<3600&&!g.fields['run-status'].textContent.startsWith('Fallen');i++){g.tick();if(g.fields['run-status'].textContent.startsWith('HP 1'))hit=true;}
+ const g=boot(file,undefined,false,true,4);let hit=false;for(let i=0;i<3600&&!g.fields['run-status'].textContent.startsWith('Fallen');i++){g.tick();if(g.fields['run-status'].textContent.startsWith('HP 1'))hit=true;}
  assert(hit,'first damage leaves 1 HP');assert(g.fields['run-status'].textContent.startsWith('Fallen'),'second hit kills player');assert(g.flashes>0,'damage draws red feedback');assert.equal(g.pose,38,'death uses dedicated atlas sprite');const x=g.x,y=g.y;g.key('keydown','d');g.key('keydown','i');g.tick(30);assert.equal(g.x,x);assert.equal(g.y,y);assert.equal(g.pose,38,'dead player does not walk or attack');g.key('keyup','d');g.key('keyup','i');g.fields.interact.click();g.tick();assert.equal(g.fields['run-status'].textContent,'Room Zero','interact restarts in safe entrance');assert.equal(g.entropy,g.fields.seed?2:0,'dev restart rolls a fresh seed; release uses native random draws');if(!g.fields.seed){const before=g.randomCalls;g.goDungeon();assert(g.randomCalls>before,'new run consumes fresh random draws');}
  console.log('PASS '+file+': 2 HP, damage flash, dedicated corpse, death lock and restart');
 }

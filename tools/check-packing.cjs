@@ -2,6 +2,10 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),{deflateSync}=r
 const {binaryEnvelope,envelope,roller}=require('./pack-release.cjs'),{unpack}=require('./read-build.cjs');
 // Exercise the shipped asynchronous bootstrap itself, not just the test reader.
 (async()=>{
+ // Terser handles reserved words; the generator must supply unique lexical names.
+ const names=Array.from({length:20000},(_,i)=>require('./identifier-order.cjs').get(i));
+ assert.equal(new Set(names).size,names.length,'identifier candidates never collide across digit-width boundaries');
+ assert(names.every(n=>/^[A-Za-z$_][A-Za-z$_0-9]*$/.test(n)),'identifier candidates use valid character positions');
  let state=17;
  for(let n=0;n<32;n++)for(const executable of [false,true]){
   const text=Array.from({length:n*137},()=>{state^=state<<13;state^=state>>>17;state^=state<<5;return String.fromCharCode(32+((state>>>0)%95));}).join('');
@@ -12,6 +16,8 @@ const {binaryEnvelope,envelope,roller}=require('./pack-release.cjs'),{unpack}=re
   await vm.runInNewContext(script,{TextDecoder,Uint8Array,Response,DecompressionStream,p:{textContent:payload},document:{write:s=>{written=s;},close:()=>closed++}},{timeout:5000});
   assert.equal(written,original,'browser bootstrap byte recovery');assert.equal(closed,1,'closes rewritten document');
  }
+ const minimal='<!doctype html><canvas id=game></canvas>',minimalProgram='document.write('+JSON.stringify(minimal)+');result=42;',minimalEnvelope=binaryEnvelope(deflateSync(minimalProgram),true);
+ assert.equal(unpack(minimalEnvelope),minimal+'<script>result=42;</script>','minimal HTML retains its decoded executable without a closing html tag');
  const bytes=Buffer.from(Array.from({length:256},(_,i)=>i)),all=new TextDecoder('cyrillic').decode(binaryEnvelope(bytes)),mark='<plaintext id=p hidden>',begin=all.indexOf(mark)+mark.length,bootstrap=all.slice(0,begin).match(/onload='([^']*)'/)[1];
  const recovered=vm.runInNewContext(bootstrap.slice(0,bootstrap.indexOf('new Response'))+'a',{p:{textContent:all.slice(begin)}});
  assert.deepEqual(Buffer.from(recovered),bytes,'every byte survives HTML encoding and escape recovery');

@@ -46,19 +46,25 @@ async function zipHtml(html,iterations=1000){
 }
 function jsInput(html){return 'document.write('+JSON.stringify(html.replace(/<script>[\s\S]*?<\/script>/,''))+');'+html.match(/<script>([\s\S]*?)<\/script>/)[1];}
 async function roller(html,options,optimize=0,binary=false){
- const {Packer}=await import('roadroller'),data=jsInput(html),packer=new Packer([{data,type:'js',action:'eval'}],options);
+ const {sparseModel=false,...modelOptions}=options;
+ if(sparseModel&&!binary)throw Error('Sparse model requires the byte stream');
+ // A small dense run supplies the pinned library's decoder template. The real
+ // sparse encoder and decoder below use the requested context width.
+ const templateOptions=sparseModel?{...modelOptions,maxMemoryMB:Math.min(modelOptions.maxMemoryMB||10,10),contextBits:undefined}:modelOptions;
+ const {Packer}=await import('roadroller'),data=jsInput(html),packer=new Packer([{data,type:'js',action:'eval'}],templateOptions);
  const result=optimize?await packer.optimize(optimize):null,packed=packer.makeDecoder();
- let code=packed.firstLine+packed.secondLine,stream;
- if(binary){const raw=await require('./byte-stream.cjs')(packer,{data,type:'js',action:'eval'},code);code=raw.code;stream=raw.data;}
+ let code=packed.firstLine+packed.secondLine,stream,memoryMB=packer.memoryUsageMB;
+ const effectiveOptions=sparseModel?{...packer.options,maxMemoryMB:modelOptions.maxMemoryMB??packer.options.maxMemoryMB,contextBits:modelOptions.contextBits}:packer.options;
+ if(binary){const raw=await require('./byte-stream.cjs')(packer,{data,type:'js',action:'eval'},code,sparseModel,effectiveOptions);code=raw.code;stream=raw.data;memoryMB=raw.memoryMB??memoryMB;}
  // Preprocessing normalizes string escapes. Compare parsed programs, not source spelling.
  let restored;require('node:vm').runInNewContext(code,{eval:s=>restored=s,TextDecoder,a:stream&&Array.from(stream)},{timeout:10000});
  const canonical=s=>JSON.stringify(require('acorn').parse(s,{ecmaVersion:2020}),function(k,v){return ['start','end'].includes(k)||k==='raw'&&!Object.hasOwn(this,'cooked')?undefined:v;});
  if(canonical(data)!==canonical(restored))throw Error('Roadroller changed the program');
- return{code,data:stream,html:binary?undefined:'<!doctype html><meta charset=utf-8><script>'+code.replace(/<\/script/gi,'<\\/script')+'</script>',options:packer.options,memoryMB:packer.memoryUsageMB,search:result};
+ return{code,data:stream,html:binary?undefined:'<!doctype html><meta charset=utf-8><script>'+code.replace(/<\/script/gi,'<\\/script')+'</script>',options:{...effectiveOptions,...(sparseModel?{sparseModel}: {})},memoryMB,search:result};
 }
 async function smallestEnvelope(source,script=false,data){
  // The standalone source file is the primary budget. Break equal HTML sizes
- // by ZIP size; the build still checks both complete artifacts against 10 KB.
+ // by ZIP size; the standalone HTML is the budgeted artifact.
  let best;
  for(const iterations of [10,100,300,1000]){
   const html=await envelope(source,iterations,script,data),zip=await zipHtml(html);

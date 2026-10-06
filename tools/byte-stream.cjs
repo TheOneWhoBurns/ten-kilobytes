@@ -2,8 +2,8 @@
 // NUL, CR and the HTML escape marker, so the large payload needs no escaping.
 // The dependency is pinned: reject an unfamiliar generated decoder layout.
 const acorn=require('acorn');
-module.exports=async(packer,input,original)=>{
- const{Packer,compressWithDefaultModel}=await import('roadroller'),options=packer.options;
+module.exports=async(packer,input,original,sparseModel=false,options=packer.options)=>{
+ const{Packer,compressWithDefaultModel}=await import('roadroller');
  if(options.precision>19)throw Error('Byte stream precision must fit its 28-bit rANS state');
  const prepared=Packer.prepareJs([input],options),values=[...prepared.code].map(c=>c.charCodeAt(0));
  const bytes=(options.precision<=8?1:options.precision<=16?2:4)+(options.modelMaxCount<128?1:options.modelMaxCount<32768?2:4);
@@ -11,7 +11,8 @@ module.exports=async(packer,input,original)=>{
  let contextBits=options.contextBits||Math.floor(Math.log2(options.maxMemoryMB*1048576/contexts/bytes));
  const size=contexts*2**contextBits,unit=10**(Math.floor(Math.log10(size))-1);
  if(!options.contextBits&&Math.ceil(size/unit)*unit*bytes>options.maxMemoryMB*1048576)contextBits--;
- const encoded=compressWithDefaultModel(values,{...options,inBits:values.every(c=>c<128)?7:8,outBits:-253,modelQuotes:!!(options.dynamicModels&1),contextBits});
+ const modelOptions={...options,inBits:values.every(c=>c<128)?7:8,outBits:-253,modelQuotes:!!(options.dynamicModels&1),contextBits};
+ const encoded=sparseModel?await require('./sparse-encoder.cjs')(values,modelOptions):compressWithDefaultModel(values,modelOptions);
  const digits=[];let state=encoded.state;
  while(state>0){digits.unshift(state%253);state=Math.floor(state/253);}
  digits.push(...encoded.buf);
@@ -33,5 +34,6 @@ module.exports=async(packer,input,original)=>{
  const args=call.arguments.slice(1).map(a=>original.slice(a.start,a.end));
  const next=body.replace(/;o<[^;]+;o=o\*64\|M\.charCodeAt\(d\+\+\)&63\)/,';o<1<<20;o=o*253+(n=M[d++],n-(n>13)-(n>27)-1))');
  if(next===body)throw Error('Unknown Roadroller normalization loop');
- return{data,code:`eval(((${names.join(',')})=>{${next}})(a,${args.join(',')}))`};
+ const code=`eval(((${names.join(',')})=>{${next}})(a,${args.join(',')}))`;
+ return{data,...(sparseModel?require('./sparse-model.cjs')(code,values,modelOptions):{code})};
 };

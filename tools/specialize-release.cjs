@@ -50,7 +50,7 @@ module.exports=(source,{nativeRandom=true}={})=>{
  // The catalog compiler enforces exactly one boss definition.
  source=replaceOnce(source,'const pool=bossDrops[e.kind];','const pool=bossDrops[0];');
  if(nativeRandom){
-  source=replaceOnce(source,"const rnd=randomFor(value+':'+depth),pick=",'const rnd=Math.random,pick=');
+  source=replaceOnce(source,"rng=randomFor(value+':'+depth);",'rng=Math.random;');
   source=replaceOnce(source,"if(fresh){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];if(DEV)$('seed').value=seed;}","if(DEV&&fresh){const n=new Uint32Array(1);crypto.getRandomValues(n);seed=n[0];$('seed').value=seed;}");
  }
  return source;
