@@ -1,0 +1,21 @@
+{
+  "changes": [
+    "Horse and charger use the same four-phase cycle; horse has zero windup, speed 12 and 1.2-second charge. Both recover after wall collisions.",
+    "Medusa gaze and player/enemy radiation use one exposure function with a three-second threshold. Player meters wait during invulnerability and reset after a damaging hit.",
+    "Mage and kamikaze share casting and warning/blank/fire timing. Kamikaze uses the 3x3 self-centered field and dies at ignition.",
+    "Swarm and conga share pursuit and spacing; conga retains predecessor trails and staggered 3-second movement/1-second pauses.",
+    "Archers reduced to fan and sniper; all 30 enemy sprites retained."
+  ],
+  "enemy_definitions": 9,
+  "standalone_html_bytes": {
+    "before": 11531,
+    "after": 11521,
+    "saved": 10
+  },
+  "validation": [
+    "npm test passed",
+    "Final kamikaze trigger adjustment rechecked with check-combat.cjs in authoring, specialized and release runtimes",
+    "Browser preview loads without console errors; dev selector offers fan and sniper only"
+  ],
+  "baseline": "/tmp/hipocrene-shared-ai-before"
+}

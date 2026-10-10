@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-09",
+  "request": "Create meaningful headroom for future features while keeping current content",
+  "target_bytes": 7000,
+  "target_achieved": false,
+  "before_bytes": 9979,
+  "after_bytes": 9947,
+  "saved_bytes": 32,
+  "remaining_to_10000": 53,
+  "remaining_reduction_to_target": 2947,
+  "release_sha256": "906080a9e97e8650a2fd76251ae930721ba498a6094b80ed952e3c7342d1bbf2",
+  "release": {
+    "enemy_definitions": 9,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1353,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": true,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 8.1484375,
+    "source_bytes": 23515,
+    "html_bytes": 9947,
+    "unpacked_html_bytes": 23515,
+    "zip_bytes": 9986,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "sprite_data_bytes": 2916,
+    "atlas_tiles": 162,
+    "remaining_file_bytes": 53
+  },
+  "kept": [
+    "Inlined the single room-construction call and removed unused starter-only action/weapon state writes.",
+    "Decoupled player and control specialization from enemy animation, biome pools, themed art and attack sequences.",
+    "Applied compatible runtime optimizations individually; ring volleys and live enemy pools retain their necessary general paths.",
+    "Fixed sequenced rosters so ordinary swarm, conga, kamikaze, mage and medusa behavior, formations and gaze rendering continue to work."
+  ],
+  "extension_probes": {
+    "method": "Write-free quick builds of the complete standalone HTML. Each probe changes only the listed catalog capability; no probe content was added to the playable game. Deltas include the packer and decoder. Existing-art examples do not include the cost of new artwork or an entirely new behavior implementation.",
+    "baseline_quick_bytes": 9950,
+    "rows": [
+      {
+        "name": "base",
+        "mode": "after",
+        "bytes": 9950,
+        "marginal_bytes": 0
+      },
+      {
+        "name": "variant",
+        "mode": "after",
+        "bytes": 9963,
+        "marginal_bytes": 13
+      },
+      {
+        "name": "animation",
+        "mode": "before",
+        "bytes": 10255,
+        "marginal_bytes": 305
+      },
+      {
+        "name": "animation",
+        "mode": "after",
+        "bytes": 9978,
+        "marginal_bytes": 28
+      },
+      {
+        "name": "biome",
+        "mode": "before",
+        "bytes": 10247,
+        "marginal_bytes": 297
+      },
+      {
+        "name": "biome",
+        "mode": "after",
+        "bytes": 10016,
+        "marginal_bytes": 66
+      },
+      {
+        "name": "sequence",
+        "mode": "before",
+        "bytes": 10260,
+        "marginal_bytes": 310
+      },
+      {
+        "name": "sequence",
+        "mode": "after",
+        "bytes": 9975,
+        "marginal_bytes": 25
+      }
+    ],
+    "all_animated_existing_frames_bytes": 9967,
+    "theme_stride_bytes": 10020,
+    "ring_pattern_bytes": 9999
+  },
+  "validation": [
+    "npm run build: pass",
+    "npm test: pass",
+    "39 seeded current-game runs: exact pixels, atlas and audio",
+    "Animated, biome-restricted and sequenced extension builds: exact pixels and audio against their general-code versions across four seeds each",
+    "All-animated, theme-stride and ring extension builds: boot and simulation across three seeds each",
+    "Actual in-app browser: dungeon entry, rendering and input checked; no console errors",
+    "git diff --check: pass"
+  ],
+  "rejected_experiments": [
+    "Cached spell geometry and alternative field traversal did not create worthwhile complete-file savings; approximate corner-only collision was not retained.",
+    "Shared enemy steering, cached line of sight, selection helpers and object-spawn helpers produced no substantial savings.",
+    "Alternative decoder precision, extra substring abbreviations, contextual mixing banks, backoff prediction and LZP preprocessing did not beat the shipped representation by a useful net amount."
+  ],
+  "evidence": "dev/snapshots/optimization-headroom-20261010"
+}

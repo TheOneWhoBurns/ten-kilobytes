@@ -1,0 +1,111 @@
+{
+  "floors": [
+    [
+      5,
+      6
+    ],
+    [
+      8,
+      6
+    ],
+    [
+      58,
+      1
+    ]
+  ],
+  "walls": [
+    [
+      2,
+      36
+    ],
+    [
+      20,
+      1
+    ],
+    [
+      69,
+      23
+    ]
+  ],
+  "props": [
+    [
+      19,
+      33
+    ],
+    [
+      20,
+      33
+    ],
+    [
+      2,
+      38
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      39,
+      25
+    ]
+  ],
+  "hazards": [
+    {
+      "tile": [
+        29,
+        21
+      ],
+      "effect": "needle",
+      "category": "patch"
+    },
+    {
+      "tile": [
+        4,
+        39
+      ],
+      "effect": "web",
+      "category": "patch"
+    },
+    {
+      "tile": [
+        4,
+        41
+      ],
+      "effect": "ice",
+      "category": "patch"
+    },
+    {
+      "tile": null,
+      "effect": "fire",
+      "category": "patch"
+    },
+    {
+      "tile": [
+        28,
+        21
+      ],
+      "effect": "spike",
+      "category": "single"
+    },
+    {
+      "tile": [
+        98,
+        33
+      ],
+      "effect": "trap",
+      "category": "single"
+    },
+    {
+      "tile": [
+        2,
+        46
+      ],
+      "effect": "radiation",
+      "category": "single"
+    }
+  ]
+}

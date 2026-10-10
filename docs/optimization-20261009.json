@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-09",
+  "scope": "Lossless release optimization",
+  "before": {
+    "html_bytes": 9642,
+    "expanded_minified_html_bytes": 22779,
+    "temporary_decoder_table_mib": 9.529296875
+  },
+  "after": {
+    "html_bytes": 9568,
+    "expanded_minified_html_bytes": 22684,
+    "temporary_decoder_table_mib": 8.681640625,
+    "headroom_bytes": 432,
+    "itch_loader_bytes": 159,
+    "itch_total_bytes": 9727
+  },
+  "saved_html_bytes": 74,
+  "candidate_measurements": 112,
+  "retained": [
+    "Catalog-aware release specialization omits boss-only entity bookkeeping when no bosses exist",
+    "Ring-volley branches omitted only when neither enemy nor weapon recipes use rings",
+    "Measured hoisted function declaration order; initialization order stays unchanged",
+    "Removed compression selector 23 and changed reciprocal base count to 24"
+  ],
+  "rejected": [
+    "Sprite deduplication and alternate bit scan layouts enlarged the complete file",
+    "Alternate minifier passes and settings enlarged the complete file",
+    "Most compressor parameter changes and function reorderings were larger"
+  ],
+  "validation": [
+    "Existing full npm test suite passed after source specialization and declaration ordering",
+    "Original-baseline comparison: exact rendered pixels, atlas pixels and scheduled audio on seeds 1,2,7,19,83,104,2026",
+    "Final compression checks recorded after the final build"
+  ],
+  "notes": [
+    "No sprites, enemy types, weapons, animations or gameplay mechanics removed",
+    "Authoring and dev code retain generic boss/ring support; recipe changes re-enable required release paths",
+    "No new unit/integration tests or code comments added in this pass",
+    "No commit, push or publication performed",
+    "Probe artifacts and unchanged baseline are in dev/snapshots/optimization-20261009"
+  ],
+  "release_sha256": "88f0d9638ec5929ffc6d08eae2453663b0e339c31b4c0ab85a223e322cfe3ea9"
+}

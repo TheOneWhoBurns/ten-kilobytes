@@ -1,0 +1,66 @@
+const acorn=require('acorn');
+module.exports=(source,catalog)=>{
+ if(!require('./specialize-weapons.cjs').eligible(catalog))return source;
+ const parse=()=>acorn.parse(source,{ecmaVersion:2020});
+ const constants=new Map(parse().body.flatMap(n=>n.type==='VariableDeclaration'?n.declarations.filter(d=>d.id.type==='Identifier'&&d.init?.type==='Literal').map(d=>[d.id.name,d.init.value]):[]));
+ const columns=['E_RADIUS_X','E_RADIUS_Y','E_BODY_Y'].map(k=>constants.get(k));
+ if(columns.some(i=>!Number.isInteger(i)||i<0))return source;
+ if(constants.get('CURVED_SHOTS')!==false)return source;
+ const replace=(a,b)=>{if(!source.includes(a))throw Error('Review compact runtime: '+a);source=source.replace(a,b);};
+ const apply=edits=>{for(const[a,b,text]of edits.sort((a,b)=>b[0]-a[0]))source=source.slice(0,a)+text+source.slice(b);};
+ const walk=(node,visit,parent,key)=>{if(!node||typeof node!=='object')return;visit(node,parent,key);for(const[k,v]of Object.entries(node))if(Array.isArray(v))v.forEach(n=>walk(n,visit,node,k));else if(v&&typeof v==='object')walk(v,visit,node,k);};
+ function specialize(name,removed,bindings,expected){
+  const edits=[],ast=parse(),fn=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name===name);
+  if(!fn||fn.params.map(n=>n.name||n.left?.name).join(',')!==expected)throw Error('Review compact signature: '+name);
+  edits.push([fn.params[0].start,fn.params.at(-1).end,fn.params.filter((_,i)=>!removed.includes(i)).map(n=>source.slice(n.start,n.end)).join(',')]);
+  walk(fn.body,(n,p,k)=>{if(n.type!=='Identifier'||!Object.hasOwn(bindings,n.name))return;if(p?.type==='MemberExpression'&&k==='property'&&!p.computed)return;if(p?.type==='Property'&&k==='key'&&!p.computed){if(p.shorthand)throw Error('Compact shorthand binding');return;}if(k==='id'||k==='params')throw Error('Compact binding is shadowed');edits.push([n.start,n.end,bindings[n.name]]);});
+  walk(ast,n=>{if(n.type!=='CallExpression'||n.callee.name!==name)return;
+   if(n.arguments.some(a=>a.type==='SpreadElement'))throw Error('Compact spread call');
+   if(name!=='volley'&&source.slice(n.arguments[0].start,n.arguments[0].end)!=='room.cells')throw Error('Collision uses a different grid');
+   if(name==='volley'&&(n.arguments.length!==11||n.arguments[4].value!==1||n.arguments[6].value!==false||n.arguments[8].value!==.23||n.arguments[9].value!==0))throw Error('Review projectile arguments');
+   const args=n.arguments.filter((_,i)=>!removed.includes(i));
+   edits.push([n.start,n.end,name+'('+args.map(a=>source.slice(a.start,a.end)).join(',')+')']);
+  });
+  apply(edits);
+ }
+ specialize('movePlayer',[0],{cells:'room.cells'},'cells,p,dx,dy,dt,speed');
+ specialize('canFit',[0],{cells:'room.cells'},'cells,x,y,radius');
+ if(!catalog.enemies.some(e=>[].concat(e.attack.mode).includes('ring'))){
+ if(!source.includes('ring=false;'))throw Error('Review projectile grammar');
+ replace('if(CURVED_SHOTS&&s&&curve)s.curve=(s.dx*Math.sin(a)-s.dy*Math.cos(a))*curve;','');
+ specialize('volley',[4,6,7,8,9,10],{spread:'.23'},'p,a,count,speed,damage,life,friendly,flags,spread,curve,gap');
+ }
+ const getter=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='enemyRule');
+ if(!getter||source.slice(getter.body.start,getter.body.end).replace(/\s/g,'')!=='{returne.rule;}')throw Error('Review enemy recipe getter');
+ const reads=[];walk(parse(),n=>{if(n.type==='CallExpression'&&n.callee.name==='enemyRule'){if(n.arguments.length!==1)throw Error('Enemy recipe arity');reads.push([n.start,n.end,'('+source.slice(n.arguments[0].start,n.arguments[0].end)+').rule']);}});apply(reads);
+ const box=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='hurtbox'),boxBody=source.slice(box.body.start,box.body.end).replace(/\s/g,'');
+ if(boxBody!=='{if(e===player)return{x:e.x,y:e.y-.22,rx:.22,ry:.28};construle=(e).rule;return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X],ry:rule[E_RADIUS_Y]};}')throw Error('Review player hurtbox');
+ const values=new Map(columns.map((n,i)=>[n,['.22','.28','-.22'][i]])),row=Array.from({length:Math.max(...columns)+1},(_,i)=>values.get(i)||'').join(',');
+ apply([[box.body.start,box.body.end,'{const rule=e.rule||['+row+'];return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X],ry:rule[E_RADIUS_Y]};}']]);
+ if(/\bquad\b/.test(source))throw Error('Quad helper collides');
+ replace('for(let i=0;i<n*n;i++)tile(floor,index+i,(i%n-n)*unit,((i/n|0)-n)*unit,unit);','quad(floor,index,-2*unit,-2*unit,unit);');
+ replace('for(let i=0;i<4;i++)tile(floor,index+i,i%2*size-(moon?12:12.5)*scale,(i>>1)*size-(moon?11.5:12.5)*scale,size);','quad(floor,index,-(moon?12:12.5)*scale,-(moon?11.5:12.5)*scale,size);');
+ replace('for(let j=0;j<4;j++)tile(ctx,assets.doors+open*4+j,-12+j%2*12,-6+(j>>1)*12);','quad(ctx,assets.doors+open*4,-12,-6,12);');
+ source='function quad(c,index,x,y,size){for(let i=0;i<4;i++)tile(c,index+i,x+i%2*size,y+(i>>1)*size,size);}\n'+source;
+ if(!catalog.enemies.some(e=>e.art?.themeStride))replace('+theme*0','');
+ replace('shape:0,song:','song:');
+ replace('const [dx,dy]=directions[d.dir],x=d.x|0,y=d.y|0;for(let k=0;k<3;k++)for(let w=-1;w<=1;w++)cells[(y-dy*k+dx*w)*31+x-dx*k+dy*w]','const [dx,dy]=directions[d.dir],n=(d.y|0)*31+(d.x|0),step=dy*31+dx,side=dx*31+dy;for(let k=0;k<3;k++)for(let w=-1;w<=1;w++)cells[n-step*k+side*w]');
+ if(!source.includes('e.slot=j;'))throw Error('Conga slots are not initialized');
+ replace('const lag=(e.slot||0)*.18','const lag=e.slot*.18');
+ replace('assets.actor+(row&&row-1)*6+phase%6','assets.actor+phase-(row?6:0)');
+ replace('walking?(step===1?1:step===3?2:0):0','(step===1?1:step===3?2:0)');
+ replace('Math.floor(interactPhase*3)<2','interactPhase*3<2');
+ const level=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='makeLevel');
+ let poolReads=0;walk(level.body,(n,p,k)=>{if(n.type==='Identifier'&&n.name==='pool'&&!(p?.type==='VariableDeclarator'&&k==='id'))poolReads++;});
+ if(!poolReads)replace('const pool=enemyPools?enemyPools[theme]:enemyRules.slice(0,ENEMY_COUNT).map((_,k)=>k),boss=','const boss=');
+ const generator=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='generate'),result=generator?.body.body.at(-1);
+ if(result?.type!=='ReturnStatement'||source.slice(result.start,result.end)!=='return{cells,spawn,safe};')throw Error('Review room construction result');
+ replace('const {cells,spawn,safe}=generate(doors),r={cells,spawn,doors}',source.slice(generator.body.start+1,result.start)+'const r={cells,spawn,doors}');
+ replace('action=interactPhase<1?2:0;','');
+ source=source.replaceAll('weaponArt=0;','').replaceAll('weapon=0;','');
+ if(!catalog.bosses.length)replace('r.gate=tilePoint(i===result.boss?108:325);','');
+ replace('player=tilePoint(room.spawn);','player=tilePoint(level?325:313);');
+ replace('r={cells,spawn,doors}','r={cells,doors}');
+ replace('spawn:313,','');
+ return source;
+};

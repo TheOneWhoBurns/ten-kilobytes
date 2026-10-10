@@ -1,0 +1,695 @@
+{
+  "measured_at_utc": "2026-10-10T00:36:54.147Z",
+  "release_sha256": "de78997683db326388f151e4dee156dc8c4b74760b333ee61447e2adccae60ae",
+  "file_bytes": 11531,
+  "exact_file_breakdown": {
+    "game_and_art": 10634,
+    "decompressor": 565,
+    "html_bootstrap": 327,
+    "transport_escapes": 5
+  },
+  "method": "Independent removal probes rebuilt with the same complete-file compression settings. Art probes zero only the selected masks, preserving atlas dimensions. Code probes remove the named bodies or branches; the compiler also removes code that becomes unused. Values overlap and cannot be added. They are not promises of savings from playable feature removal. No probe was written to the playable release.",
+  "rows": [
+    {
+      "id": "room_travel",
+      "label": "Room travel and dependent level generation",
+      "category": "bundle",
+      "estimated_file_bytes": 1299,
+      "minified_bytes_removed": 3521,
+      "probe_file_bytes": 10232,
+      "note": "Includes generation that becomes unreachable without room travel. This is not the cost of transitions alone."
+    },
+    {
+      "id": "props",
+      "label": "Decorations",
+      "category": "art",
+      "tiles": 50,
+      "estimated_file_bytes": 615,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 10916
+    },
+    {
+      "id": "synthesis",
+      "label": "All audio: initialization, synthesis and dependent music/static",
+      "category": "bundle",
+      "estimated_file_bytes": 589,
+      "minified_bytes_removed": 1504,
+      "probe_file_bytes": 10942,
+      "note": "Includes the music and static rows. Removing audio initialization makes those systems unused."
+    },
+    {
+      "id": "combat_update",
+      "label": "Sword timeline and spell lifetime/damage updates",
+      "category": "code",
+      "estimated_file_bytes": 324,
+      "minified_bytes_removed": 1121,
+      "probe_file_bytes": 11207
+    },
+    {
+      "id": "actions",
+      "label": "Attack/interaction dispatch, held input and cooldown update",
+      "category": "code",
+      "estimated_file_bytes": 295,
+      "minified_bytes_removed": 865,
+      "probe_file_bytes": 11236
+    },
+    {
+      "id": "enemy_spawning",
+      "label": "Enemy type/count selection, spawn records and initial conga formation",
+      "category": "code",
+      "estimated_file_bytes": 267,
+      "minified_bytes_removed": 694,
+      "probe_file_bytes": 11264
+    },
+    {
+      "id": "floors",
+      "label": "Floor tiles",
+      "category": "art",
+      "tiles": 22,
+      "estimated_file_bytes": 260,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11271
+    },
+    {
+      "id": "keyboard",
+      "label": "Keyboard keydown/keyup handlers",
+      "category": "code",
+      "estimated_file_bytes": 240,
+      "minified_bytes_removed": 684,
+      "probe_file_bytes": 11291
+    },
+    {
+      "id": "magic_fields",
+      "label": "Spell cell shapes, casting and field collision",
+      "category": "code",
+      "estimated_file_bytes": 232,
+      "minified_bytes_removed": 896,
+      "probe_file_bytes": 11299
+    },
+    {
+      "id": "line_of_sight",
+      "label": "Wall-obstructed line-of-sight checks",
+      "category": "code",
+      "estimated_file_bytes": 216,
+      "minified_bytes_removed": 685,
+      "probe_file_bytes": 11315
+    },
+    {
+      "id": "navigation",
+      "label": "Shared flood distances, neighbor traversal and enemy path following",
+      "category": "code",
+      "estimated_file_bytes": 186,
+      "minified_bytes_removed": 621,
+      "probe_file_bytes": 11345
+    },
+    {
+      "id": "palette",
+      "label": "Atlas recoloring and complementary palettes",
+      "category": "code",
+      "estimated_file_bytes": 186,
+      "minified_bytes_removed": 643,
+      "probe_file_bytes": 11345
+    },
+    {
+      "id": "doors_generation",
+      "label": "Door alignment, tunnels and connectivity repair",
+      "category": "code",
+      "estimated_file_bytes": 185,
+      "minified_bytes_removed": 502,
+      "probe_file_bytes": 11346
+    },
+    {
+      "id": "player_render",
+      "label": "Player sprite selection, mirroring and arm clipping",
+      "category": "code",
+      "estimated_file_bytes": 181,
+      "minified_bytes_removed": 533,
+      "probe_file_bytes": 11350
+    },
+    {
+      "id": "ai_archer_charge",
+      "label": "Shared archer/charge phase machine",
+      "category": "code",
+      "estimated_file_bytes": 176,
+      "minified_bytes_removed": 591,
+      "probe_file_bytes": 11355
+    },
+    {
+      "id": "hit_geometry",
+      "label": "Shared entity hurtboxes and capsule/contact collision",
+      "category": "code",
+      "estimated_file_bytes": 169,
+      "minified_bytes_removed": 530,
+      "probe_file_bytes": 11362
+    },
+    {
+      "id": "static",
+      "label": "Radiation/Medusa noise generation and loudness ramp",
+      "category": "code",
+      "estimated_file_bytes": 165,
+      "minified_bytes_removed": 452,
+      "probe_file_bytes": 11366
+    },
+    {
+      "id": "sword_hit",
+      "label": "Sword hit shape and enemy hit detection",
+      "category": "code",
+      "estimated_file_bytes": 154,
+      "minified_bytes_removed": 456,
+      "probe_file_bytes": 11377
+    },
+    {
+      "id": "rooms",
+      "label": "Room outlines and shared growth brushes",
+      "category": "code",
+      "estimated_file_bytes": 152,
+      "minified_bytes_removed": 495,
+      "probe_file_bytes": 11379
+    },
+    {
+      "id": "walls",
+      "label": "Wall tiles",
+      "category": "art",
+      "tiles": 14,
+      "estimated_file_bytes": 150,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11381
+    },
+    {
+      "id": "music",
+      "label": "Procedural music note/scale/chord scheduling",
+      "category": "code",
+      "estimated_file_bytes": 145,
+      "minified_bytes_removed": 314,
+      "probe_file_bytes": 11386
+    },
+    {
+      "id": "interact",
+      "label": "Uranium pickup/drop and descent interaction",
+      "category": "code",
+      "estimated_file_bytes": 142,
+      "minified_bytes_removed": 567,
+      "probe_file_bytes": 11389
+    },
+    {
+      "id": "enemy_recipes",
+      "label": "Enemy behavior, timing, hitbox and sprite-pool table",
+      "category": "code",
+      "estimated_file_bytes": 140,
+      "minified_bytes_removed": 382,
+      "probe_file_bytes": 11391
+    },
+    {
+      "id": "movement_collision",
+      "label": "Shared movement substeps and tile collision",
+      "category": "code",
+      "estimated_file_bytes": 139,
+      "minified_bytes_removed": 525,
+      "probe_file_bytes": 11392
+    },
+    {
+      "id": "sword_render",
+      "label": "Held sword, strike trails, hand layering and contact sparks",
+      "category": "code",
+      "estimated_file_bytes": 125,
+      "minified_bytes_removed": 549,
+      "probe_file_bytes": 11406
+    },
+    {
+      "id": "ice_movement",
+      "label": "Player movement, ice inertia and web speed factor",
+      "category": "code",
+      "estimated_file_bytes": 120,
+      "minified_bytes_removed": 361,
+      "probe_file_bytes": 11411
+    },
+    {
+      "id": "sword_poses",
+      "label": "Eight-direction ready/pullback/thrust pose data",
+      "category": "code",
+      "estimated_file_bytes": 119,
+      "minified_bytes_removed": 301,
+      "probe_file_bytes": 11412
+    },
+    {
+      "id": "player",
+      "label": "Player animation and death frames",
+      "category": "art",
+      "tiles": 20,
+      "estimated_file_bytes": 118,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11413
+    },
+    {
+      "id": "hazard_damage",
+      "label": "Radiation, traps, spikes and fire damage handling",
+      "category": "code",
+      "estimated_file_bytes": 117,
+      "minified_bytes_removed": 396,
+      "probe_file_bytes": 11414
+    },
+    {
+      "id": "hazard_generation",
+      "label": "Safe-path reservation and hazard-patch growth",
+      "category": "code",
+      "estimated_file_bytes": 116,
+      "minified_bytes_removed": 371,
+      "probe_file_bytes": 11415
+    },
+    {
+      "id": "enemy_render",
+      "label": "Enemy sprite placement, shadows, bobbing, gaze cones and exposure icons",
+      "category": "code",
+      "estimated_file_bytes": 112,
+      "minified_bytes_removed": 510,
+      "probe_file_bytes": 11419
+    },
+    {
+      "id": "sword_motion",
+      "label": "Pose interpolation and movement correction",
+      "category": "code",
+      "estimated_file_bytes": 111,
+      "minified_bytes_removed": 326,
+      "probe_file_bytes": 11420
+    },
+    {
+      "id": "ring_render",
+      "label": "Ring/astral quadrant assembly and transforms",
+      "category": "code",
+      "estimated_file_bytes": 107,
+      "minified_bytes_removed": 402,
+      "probe_file_bytes": 11424
+    },
+    {
+      "id": "control_text",
+      "label": "Room Zero control-label renderer",
+      "category": "code",
+      "estimated_file_bytes": 105,
+      "minified_bytes_removed": 246,
+      "probe_file_bytes": 11426
+    },
+    {
+      "id": "blood",
+      "label": "Blood decals",
+      "category": "art",
+      "tiles": 10,
+      "estimated_file_bytes": 105,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11426
+    },
+    {
+      "id": "room_paint",
+      "label": "Wall/floor texture painting and Room Zero floor rotation",
+      "category": "code",
+      "estimated_file_bytes": 102,
+      "minified_bytes_removed": 349,
+      "probe_file_bytes": 11429
+    },
+    {
+      "id": "ai_conga",
+      "label": "conga behavior branch only",
+      "category": "code",
+      "estimated_file_bytes": 87,
+      "minified_bytes_removed": 268,
+      "probe_file_bytes": 11444
+    },
+    {
+      "id": "projectile_motion",
+      "label": "Arrow substeps, collisions and expiry",
+      "category": "code",
+      "estimated_file_bytes": 87,
+      "minified_bytes_removed": 319,
+      "probe_file_bytes": 11444
+    },
+    {
+      "id": "large_ring",
+      "label": "Large magic ring",
+      "category": "art",
+      "tiles": 16,
+      "estimated_file_bytes": 84,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11447
+    },
+    {
+      "id": "hazard_tiles",
+      "label": "Hazard base tiles",
+      "category": "art",
+      "tiles": 7,
+      "estimated_file_bytes": 83,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11448
+    },
+    {
+      "id": "graph",
+      "label": "Six-room graph and farthest-room selection",
+      "category": "code",
+      "estimated_file_bytes": 83,
+      "minified_bytes_removed": 242,
+      "probe_file_bytes": 11448
+    },
+    {
+      "id": "prop_placement",
+      "label": "Decoration placement and safe spawn candidate scanning",
+      "category": "code",
+      "estimated_file_bytes": 78,
+      "minified_bytes_removed": 261,
+      "probe_file_bytes": 11453
+    },
+    {
+      "id": "projectile_spawn",
+      "label": "Arrow fan emission and projectile creation",
+      "category": "code",
+      "estimated_file_bytes": 78,
+      "minified_bytes_removed": 273,
+      "probe_file_bytes": 11453
+    },
+    {
+      "id": "death_overlay",
+      "label": "Death score and revive prompt rendering",
+      "category": "code",
+      "estimated_file_bytes": 77,
+      "minified_bytes_removed": 299,
+      "probe_file_bytes": 11454
+    },
+    {
+      "id": "title",
+      "label": "HIPOCRENE title",
+      "category": "art",
+      "tiles": 9,
+      "estimated_file_bytes": 75,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11456
+    },
+    {
+      "id": "doors",
+      "label": "Closed/open doors",
+      "category": "art",
+      "tiles": 8,
+      "estimated_file_bytes": 67,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11464
+    },
+    {
+      "id": "status",
+      "label": "Status/effect icons",
+      "category": "art",
+      "tiles": 6,
+      "estimated_file_bytes": 65,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11466
+    },
+    {
+      "id": "ai_swarm",
+      "label": "swarm behavior branch only",
+      "category": "code",
+      "estimated_file_bytes": 65,
+      "minified_bytes_removed": 207,
+      "probe_file_bytes": 11466
+    },
+    {
+      "id": "damage_death",
+      "label": "Player damage, invulnerability and death reset",
+      "category": "code",
+      "estimated_file_bytes": 64,
+      "minified_bytes_removed": 236,
+      "probe_file_bytes": 11467
+    },
+    {
+      "id": "hazard_render",
+      "label": "Hazard tiles, spike timing and fire animation rendering",
+      "category": "code",
+      "estimated_file_bytes": 64,
+      "minified_bytes_removed": 200,
+      "probe_file_bytes": 11467
+    },
+    {
+      "id": "room_transition",
+      "label": "Expanding circle and travel fade",
+      "category": "code",
+      "estimated_file_bytes": 61,
+      "minified_bytes_removed": 302,
+      "probe_file_bytes": 11470
+    },
+    {
+      "id": "medium_ring",
+      "label": "Medium magic ring",
+      "category": "art",
+      "tiles": 9,
+      "estimated_file_bytes": 59,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11472
+    },
+    {
+      "id": "art_horse",
+      "label": "horse sprites",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 56,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11475
+    },
+    {
+      "id": "art_mage",
+      "label": "mage sprites",
+      "category": "art",
+      "tiles": 5,
+      "estimated_file_bytes": 56,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11475
+    },
+    {
+      "id": "art_conga",
+      "label": "conga sprites",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 55,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11476
+    },
+    {
+      "id": "sun",
+      "label": "Sun",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 54,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11477
+    },
+    {
+      "id": "magic_art",
+      "label": "Spell warning/fire frames",
+      "category": "art",
+      "tiles": 5,
+      "estimated_file_bytes": 53,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11478
+    },
+    {
+      "id": "bleeding",
+      "label": "Blood emission and blood decal rendering",
+      "category": "code",
+      "estimated_file_bytes": 53,
+      "minified_bytes_removed": 241,
+      "probe_file_bytes": 11478
+    },
+    {
+      "id": "room_zero_base",
+      "label": "Room Zero geometry and state creation",
+      "category": "code",
+      "estimated_file_bytes": 52,
+      "minified_bytes_removed": 145,
+      "probe_file_bytes": 11479
+    },
+    {
+      "id": "door_render",
+      "label": "Door rendering and rotation",
+      "category": "code",
+      "estimated_file_bytes": 51,
+      "minified_bytes_removed": 214,
+      "probe_file_bytes": 11480
+    },
+    {
+      "id": "moon",
+      "label": "Moon",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 51,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11480
+    },
+    {
+      "id": "ai_medusa",
+      "label": "medusa behavior branch only",
+      "category": "code",
+      "estimated_file_bytes": 50,
+      "minified_bytes_removed": 216,
+      "probe_file_bytes": 11481
+    },
+    {
+      "id": "armor",
+      "label": "Armor",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 49,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11482
+    },
+    {
+      "id": "art_medusa",
+      "label": "medusa sprites",
+      "category": "art",
+      "tiles": 5,
+      "estimated_file_bytes": 46,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11485
+    },
+    {
+      "id": "pickups",
+      "label": "Pickup/corpse drawing and armor pickup application",
+      "category": "code",
+      "estimated_file_bytes": 43,
+      "minified_bytes_removed": 183,
+      "probe_file_bytes": 11488
+    },
+    {
+      "id": "art_swarm",
+      "label": "swarm sprites",
+      "category": "art",
+      "tiles": 3,
+      "estimated_file_bytes": 43,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11488
+    },
+    {
+      "id": "ai_horse",
+      "label": "horse behavior branch only",
+      "category": "code",
+      "estimated_file_bytes": 43,
+      "minified_bytes_removed": 180,
+      "probe_file_bytes": 11488
+    },
+    {
+      "id": "arrow_render",
+      "label": "Arrow rotation, native sprite selection and shadow",
+      "category": "code",
+      "estimated_file_bytes": 41,
+      "minified_bytes_removed": 267,
+      "probe_file_bytes": 11490
+    },
+    {
+      "id": "original_ring",
+      "label": "Original center ring",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 40,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11491
+    },
+    {
+      "id": "art_kamikaze",
+      "label": "kamikaze sprites",
+      "category": "art",
+      "tiles": 3,
+      "estimated_file_bytes": 35,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11496
+    },
+    {
+      "id": "corpses",
+      "label": "Enemy corpses",
+      "category": "art",
+      "tiles": 5,
+      "estimated_file_bytes": 34,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11497
+    },
+    {
+      "id": "ai_kamikaze",
+      "label": "kamikaze behavior branch only",
+      "category": "code",
+      "estimated_file_bytes": 32,
+      "minified_bytes_removed": 111,
+      "probe_file_bytes": 11499
+    },
+    {
+      "id": "swords",
+      "label": "Sun/moon swords",
+      "category": "art",
+      "tiles": 4,
+      "estimated_file_bytes": 27,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11504
+    },
+    {
+      "id": "art_arrow-single",
+      "label": "All four archer variants (shared sprites)",
+      "category": "art",
+      "tiles": 3,
+      "estimated_file_bytes": 27,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11504
+    },
+    {
+      "id": "art_charge",
+      "label": "charge sprites",
+      "category": "art",
+      "tiles": 3,
+      "estimated_file_bytes": 25,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11506
+    },
+    {
+      "id": "enemy_death",
+      "label": "Enemy death, score increment and corpse creation",
+      "category": "code",
+      "estimated_file_bytes": 22,
+      "minified_bytes_removed": 132,
+      "probe_file_bytes": 11509
+    },
+    {
+      "id": "ai_mage",
+      "label": "mage behavior branch only",
+      "category": "code",
+      "estimated_file_bytes": 21,
+      "minified_bytes_removed": 81,
+      "probe_file_bytes": 11510
+    },
+    {
+      "id": "traps",
+      "label": "Retracted spike/closed trap",
+      "category": "art",
+      "tiles": 2,
+      "estimated_file_bytes": 15,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11516
+    },
+    {
+      "id": "zero_floor",
+      "label": "Room Zero floor tile",
+      "category": "art",
+      "tiles": 1,
+      "estimated_file_bytes": 13,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11518
+    },
+    {
+      "id": "zero_emblem",
+      "label": "Room Zero center emblem",
+      "category": "art",
+      "tiles": 1,
+      "estimated_file_bytes": 12,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11519
+    },
+    {
+      "id": "arrows",
+      "label": "Two active arrow sprites",
+      "category": "art",
+      "tiles": 7,
+      "estimated_file_bytes": 12,
+      "minified_bytes_removed": 0,
+      "probe_file_bytes": 11519,
+      "note": "Seven allocated slots, five already zeroed; only two contain rendered art."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-09",
+  "request": "Find at least 100 more bytes without cutting content",
+  "before_bytes": 10090,
+  "after_bytes": 9979,
+  "saved_bytes": 111,
+  "standalone_limit_bytes": 10000,
+  "remaining_bytes": 21,
+  "sha256": "2b367f3ab5dd8edb4486213d4f97eb2b1c8dd2f6449ea963327f9f58b7ff5771",
+  "release": {
+    "enemy_definitions": 9,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1353,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": true,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 8.17578125,
+    "source_bytes": 23614,
+    "html_bytes": 9979,
+    "unpacked_html_bytes": 23614,
+    "zip_bytes": 10018,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "sprite_data_bytes": 2916,
+    "atlas_tiles": 162,
+    "remaining_file_bytes": 21
+  },
+  "retained": [
+    "Remove unused projectile arguments and pass the current collision grid implicitly in the specialized release.",
+    "Share player/enemy hurtbox representation and resolve plain enemy-rule lookups directly.",
+    "Use one four-tile renderer for doors and Room Zero composite sprites.",
+    "Remove unused enemy-pool allocation, zero theme offsets and redundant actor-frame conditions while preserving random draws.",
+    "Simplify door grid indexing and conga slot reads.",
+    "Enable pure property-read elimination for the game and minify the generated decoder before its exact-program verification."
+  ],
+  "verification": [
+    "npm run build passed: standalone file is below 10000 bytes",
+    "npm test passed",
+    "Exact frame pixels, atlas surfaces and audio: 7 seeds, 600 frames each, every frame checked",
+    "Exact 32 additional seeded mixed-control runs",
+    "Actual browser: Room Zero, dungeon entry, movement and attacks; no console errors"
+  ],
+  "rejected": [
+    "Dictionary encodings for enemy recipes increased the final file size.",
+    "Status-icon alpha factoring increased the combined artifact.",
+    "Removing additional action/weapon state was unnecessary for the requested saving and was not retained."
+  ],
+  "evidence": "dev/snapshots/optimization-century-20261010"
+}

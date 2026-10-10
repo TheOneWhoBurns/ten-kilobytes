@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-09",
+  "task": "Continue optimization without cutting content",
+  "before_bytes": 10199,
+  "after_bytes": 10090,
+  "saved_bytes": 109,
+  "target_bytes": 7000,
+  "jam_limit_bytes": 10000,
+  "over_jam_limit_bytes": 90,
+  "sha256": "2c83f9a112f6d4e1992934addef61bfa2dc7b94222750b086a742217b373cef9",
+  "release": {
+    "enemy_definitions": 9,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1353,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": false,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 8.2509765625,
+    "source_bytes": 23875,
+    "html_bytes": 10090,
+    "unpacked_html_bytes": 23875,
+    "zip_bytes": 10129,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "sprite_data_bytes": 2916,
+    "atlas_tiles": 162,
+    "remaining_file_bytes": -90
+  },
+  "retained": [
+    "Combine starter-blade geometry and collision without a temporary object or duplicate trigonometry; preserve the existing formulas and pose data.",
+    "Use Boolean checks for ordinary enemy life, direct iteration of growing BFS queues, and direct door tunneling without an intermediate mapped array.",
+    "Replace the starter-pose coordinate-column comparisons with an equivalent bit mask.",
+    "Remove the known one-iteration projectile loop and specialize the enemy emitter without its temporary function return.",
+    "Mangle the game-owned dx/dy fields and tune the token abbreviation count to 16."
+  ],
+  "verification": [
+    "npm test passed",
+    "Exact frame pixels, atlas surfaces and scheduled audio for 7 seeds over 600 frames each",
+    "Exact 32 additional seeded mixed-control runs",
+    "Actual in-app browser: Room Zero, entrance traversal and dungeon rendering; no console errors"
+  ],
+  "rejected": [
+    "Sprite delta encodings and global sprite reordering increased the complete artifact size.",
+    "Hash-table decoder alternatives offered tiny savings with larger runtime memory; not retained.",
+    "Active-enemy-only lists saved only three bytes; not retained.",
+    "Function inlining, identifier reorderings, tile-argument rearrangement and most compression sweeps did not beat the selected build.",
+    "Changing the safe-route set to an array saved only two bytes and changed layouts; not retained."
+  ],
+  "evidence": "dev/snapshots/optimization-encore-20261010"
+}

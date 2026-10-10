@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-06",
+  "scope": "Lossless optimization after three entrance rings, per-body astral sizes and title shadow",
+  "before": {
+    "html_bytes": 9859,
+    "expanded_minified_html_bytes": 23233,
+    "temporary_decoder_table_mib": 14
+  },
+  "after": {
+    "html_bytes": 9716,
+    "expanded_minified_html_bytes": 23046,
+    "temporary_decoder_table_mib": 9.611328125,
+    "headroom_bytes": 284
+  },
+  "saved_html_bytes": 143,
+  "candidate_measurements": 94,
+  "retained": [
+    "Column-major sprite bit layout, decoded back to the exact original atlas pixels",
+    "Shared entity distance and bearing calculations",
+    "Decoder hash table sized to actual visited contexts at 85% maximum load, unsigned hashing and increment/wrap probing"
+  ],
+  "rejected": [
+    "Row dictionaries, row/tile XOR and smaller symbol widths increased complete-file size",
+    "Alternative sprite alphabets were larger",
+    "Most source factoring and minifier changes were larger",
+    "Packing-parameter gains in isolation did not survive combination",
+    "Boolean-to-integer coercion was not retained because it weakens primitive-type preservation"
+  ],
+  "future_unproven": [
+    "A separate native-compressed sprite payload could decouple art from code statistics, but needs a new bootstrap and must beat its own overhead",
+    "Canonical sprite symmetry plus per-tile orientation metadata might reduce art cost if enough future sprites share mirrored shapes",
+    "Re-test recipe-table layouts after adding enemy or weapon definitions; the best representation depends on the actual corpus"
+  ],
+  "validation": [
+    "Complete npm test suite passed on combined game/source and table-capacity changes",
+    "Seven before/after seeds matched exact rendered pixels, atlas pixels and scheduled audio",
+    "Final lookup refinement: packing, sparse decoder and current-source equivalence checks rerun separately"
+  ],
+  "notes": [
+    "HTML bytes are the complete standalone file, not ZIP size.",
+    "Decoder memory is exact typed-array table allocation, not total browser RAM.",
+    "The original README was left unchanged.",
+    "Detailed trials and baseline are in ignored dev/snapshots/optimization-rings-20261006"
+  ],
+  "release_sha256": "a7cb3bcadd665d0185682dc2d4eccaa72978fdb8891bdf2c69999a415f515487"
+}

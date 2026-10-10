@@ -1,0 +1,45 @@
+{
+  "before_bytes": 10819,
+  "after_bytes": 10652,
+  "saved_bytes": 167,
+  "remaining_to_10000": 652,
+  "release_sha256": "36c310768b52f56a61f64a31fc9e4e0c4b8c1e7d33b7cc4d43beee5d21cf1df9",
+  "changes": {
+    "rooms": "Doors chosen first; connected paths and random branches form the safe skeleton. Floor grows around that skeleton. Hazard placement reuses it. Conga formations connect all the way to the core. Retains six-room graph and spacious reserved boss arena.",
+    "textures": "Three floor bases and three wall bases, with per-room quarter-turns and alternating reflection. Retains 17 selected props and all enemy art.",
+    "simulation": "Fixed 1/60-second simulation, bounded 0.1-second catch-up, render separated from updates, one movement collision step and bounded single-step arrows for the current catalog.",
+    "space": "Removed stationary aiming, feet planting, thrust anchoring and Room Zero Space label. WASD/arrows, I, O and R remain."
+  },
+  "measurement_sequence": [
+    {
+      "change": "First connected-path rooms and Space removal",
+      "bytes": 10807
+    },
+    {
+      "change": "Material bases and procedural variations",
+      "bytes": 10652
+    },
+    {
+      "change": "Fixed timestep and movement/projectile simplification",
+      "bytes": 10649
+    },
+    {
+      "change": "Preserve full safe connections and existing hazard tags during carving",
+      "bytes": 10652
+    }
+  ],
+  "validation": [
+    "npm test passed, including 2,000 room and 1,000 level checks",
+    "Safe routes between doors, enemies and exits validated",
+    "Movement checked at 30, 60 and 144 render FPS; long stalls bounded",
+    "Space has no hold/aim effect or visible instructions",
+    "Dev game visually inspected with new connected rooms and procedural textures"
+  ],
+  "evidence": "dev/snapshots/three-optimizations-20261009",
+  "notes": [
+    "Actual savings measured from the standalone HTML, not ZIP or RAM.",
+    "No commit, push, publication or README edits.",
+    "Procedural room layouts and material appearances intentionally change.",
+    "Higher display refresh rates still render at the display cadence; simulation advances at 60 Hz."
+  ]
+}

@@ -21,88 +21,8 @@
       29
     ],
     [
-      156,
-      34
-    ],
-    [
-      112,
-      0
-    ],
-    [
-      112,
-      1
-    ],
-    [
-      112,
-      6
-    ],
-    [
-      112,
-      8
-    ],
-    [
-      112,
-      16
-    ],
-    [
-      112,
-      17
-    ],
-    [
       112,
       20
-    ],
-    [
-      112,
-      25
-    ],
-    [
-      112,
-      27
-    ],
-    [
-      112,
-      28
-    ],
-    [
-      112,
-      29
-    ],
-    [
-      112,
-      38
-    ],
-    [
-      112,
-      40
-    ],
-    [
-      112,
-      42
-    ],
-    [
-      112,
-      43
-    ],
-    [
-      112,
-      44
-    ],
-    [
-      128,
-      1
-    ],
-    [
-      128,
-      20
-    ],
-    [
-      128,
-      28
-    ],
-    [
-      128,
-      40
     ],
     [
       115,
@@ -117,164 +37,20 @@
       12
     ],
     [
-      79,
-      12
-    ],
-    [
-      111,
-      3
-    ],
-    [
-      111,
-      6
-    ],
-    [
-      111,
-      8
-    ],
-    [
-      111,
-      17
-    ],
-    [
-      111,
-      25
-    ],
-    [
-      111,
-      27
-    ],
-    [
-      111,
-      28
-    ],
-    [
-      166,
-      6
-    ],
-    [
-      166,
-      12
-    ],
-    [
       166,
       16
-    ],
-    [
-      166,
-      17
-    ],
-    [
-      166,
-      20
-    ],
-    [
-      166,
-      28
-    ],
-    [
-      166,
-      29
-    ],
-    [
-      166,
-      30
-    ],
-    [
-      166,
-      32
-    ],
-    [
-      166,
-      33
-    ],
-    [
-      166,
-      34
     ],
     [
       107,
       39
     ],
     [
-      113,
-      42
-    ],
-    [
-      112,
-      44
-    ],
-    [
-      1,
-      16
-    ],
-    [
-      13,
-      14
-    ],
-    [
-      109,
-      24
-    ],
-    [
-      110,
-      24
-    ],
-    [
-      154,
+      160,
       28
-    ],
-    [
-      202,
-      6
-    ],
-    [
-      200,
-      16
-    ],
-    [
-      180,
-      15
     ],
     [
       176,
       11
-    ],
-    [
-      124,
-      32
-    ],
-    [
-      117,
-      40
-    ],
-    [
-      127,
-      40
-    ],
-    [
-      131,
-      40
-    ],
-    [
-      134,
-      40
-    ],
-    [
-      125,
-      40
-    ],
-    [
-      106,
-      41
-    ],
-    [
-      116,
-      42
-    ],
-    [
-      110,
-      42
     ]
   ],
   "enemies": [
@@ -289,37 +65,35 @@
         "mode": "swarm",
         "count": 20,
         "countStep": 7
-      }
-    },
-    {
-      "id": "arrow-single",
-      "art": {
-        "base": 3,
-        "variants": 3
       },
-      "move": 0.34,
-      "attack": {
-        "mode": "fan",
-        "count": 1
-      }
+      "hitbox": [
+        0.3,
+        0.25,
+        0.02
+      ]
     },
     {
       "id": "arrow-fan",
       "art": {
         "base": 3,
-        "variants": 3
+        "variants": 2
       },
       "move": 0.34,
       "attack": {
         "mode": "fan",
         "count": 5
-      }
+      },
+      "hitbox": [
+        0.34,
+        0.3,
+        0.03
+      ]
     },
     {
       "id": "arrow-sniper",
       "art": {
         "base": 3,
-        "variants": 3
+        "variants": 2
       },
       "move": 0.34,
       "attack": {
@@ -329,88 +103,87 @@
         "life": 1000,
         "cooldown": 2.8,
         "cooldownStep": 0
-      }
-    },
-    {
-      "id": "arrow-rapid",
-      "art": {
-        "base": 3,
-        "variants": 3
       },
-      "move": 0.34,
-      "attack": {
-        "mode": "fan",
-        "count": 5,
-        "cooldown": 0.2,
-        "cooldownStep": 0,
-        "recovery": 0.15,
-        "windup": 0.15
-      }
+      "hitbox": [
+        0.34,
+        0.3,
+        0.03
+      ]
     },
     {
       "id": "kamikaze",
       "art": {
-        "base": 6,
-        "variants": 20
+        "base": 5,
+        "variants": 1
       },
       "move": 0.24,
       "attack": {
         "mode": "kamikaze"
-      }
+      },
+      "hitbox": [
+        0.29,
+        0.39,
+        0
+      ]
     },
     {
       "id": "conga",
       "art": {
-        "base": 26,
-        "variants": 4
+        "base": 6,
+        "variants": 3
       },
       "move": 1.6,
       "attack": {
         "mode": "conga",
         "count": 5,
         "countStep": 3
-      }
+      },
+      "hitbox": [
+        0.32,
+        0.29,
+        0.04
+      ]
     },
     {
       "id": "charge",
       "art": {
-        "base": 30,
-        "variants": 18
+        "base": 9,
+        "variants": 1
       },
       "move": 0.34,
       "attack": {
         "mode": "charge"
-      }
+      },
+      "hitbox": [
+        0.29,
+        0.4,
+        -0.04
+      ]
     },
     {
       "id": "horse",
       "art": {
-        "base": 48,
-        "variants": 4
+        "base": 10,
+        "variants": 1
       },
       "move": 2.4,
       "attack": {
-        "mode": "horse",
-        "chargeSpeed": 12
-      }
-    },
-    {
-      "id": "slow-horse",
-      "art": {
-        "base": 52,
-        "variants": 1
+        "mode": "charge",
+        "chargeSpeed": 12,
+        "windup": 0,
+        "active": 1.2
       },
-      "move": 0.6,
-      "attack": {
-        "mode": "horse",
-        "chargeSpeed": 3
-      }
+      "hitbox": [
+        0.46,
+        0.29,
+        0.06
+      ]
     },
     {
       "id": "mage",
       "art": {
-        "base": 53,
-        "variants": 3
+        "base": 11,
+        "variants": 1
       },
       "move": 0.22,
       "attack": {
@@ -418,194 +191,51 @@
         "cooldown": 3,
         "windup": 0.3,
         "standoff": 7
-      }
+      },
+      "hitbox": [
+        0.28,
+        0.39,
+        -0.04
+      ]
     },
     {
       "id": "medusa",
       "art": {
-        "base": 56,
-        "variants": 13
+        "base": 12,
+        "variants": 1
       },
       "move": 0.5,
       "attack": {
         "mode": "medusa",
         "cooldown": 1,
         "windup": 0.3
-      }
-    }
-  ],
-  "bosses": [
-    {
-      "id": "skull",
-      "attack": {
-        "mode": "ring"
       },
-      "art": {
-        "base": 0,
-        "variants": 1
-      },
-      "drop": [
-        "needle",
-        "fang",
-        "nunchucks",
-        "spin",
-        "double",
-        "thrust",
-        "heavy",
-        "magic"
+      "hitbox": [
+        0.37,
+        0.35,
+        0
       ]
     }
   ],
+  "bosses": [],
   "weapons": [
     {
       "id": "fist",
-      "name": "Fist",
+      "name": "Starting blade",
       "type": 0,
       "attack": {
         "count": 0
       },
       "pitch": 95,
       "cooldown": 2,
-      "rate": 14
-    },
-    {
-      "id": "needle",
-      "name": "Arrow",
-      "type": 1,
-      "sprite": [
-        26,
-        10
-      ],
-      "attack": {
-        "life": 1000,
-        "reachLife": 0,
-        "temperLife": 0
-      },
-      "pitch": 140,
-      "cooldown": 2.4,
-      "rate": 12
-    },
-    {
-      "id": "fang",
-      "name": "Returning fang",
-      "type": 2,
-      "sprite": [
-        43,
-        10
-      ],
-      "traits": [
-        "return"
-      ],
-      "attack": {
-        "life": 1.2,
-        "reachLife": 0,
-        "temperLife": 0
-      },
-      "pitch": 230,
-      "cooldown": 3.4,
-      "rate": 10
-    },
-    {
-      "id": "nunchucks",
-      "name": "Nunchucks",
-      "type": 3,
-      "sprite": [
-        48,
-        10
-      ],
-      "attack": {
-        "count": 0
-      },
-      "cooldown": 3.6,
-      "rate": 9
-    },
-    {
-      "id": "spin",
-      "name": "Whirlwind",
-      "type": 4,
-      "attack": {
-        "count": 0
-      },
-      "cooldown": 5,
-      "sprite": [
-        36,
-        9
-      ],
-      "rate": 7
-    },
-    {
-      "id": "double",
-      "name": "One-two",
-      "type": 5,
-      "attack": {
-        "count": 0
-      },
-      "cooldown": 3,
-      "sprite": [
-        92,
-        33
-      ],
-      "rate": 14
-    },
-    {
-      "id": "thrust",
-      "name": "Thrust",
-      "type": 6,
-      "attack": {
-        "count": 0
-      },
-      "cooldown": 6.5,
-      "sprite": [
-        31,
-        8
-      ],
-      "rate": 6
-    },
-    {
-      "id": "heavy",
-      "name": "Heavy hit",
-      "type": 7,
-      "attack": {
-        "count": 0
-      },
-      "cooldown": 7.5,
-      "sprite": [
-        26,
-        7
-      ],
-      "rate": 4
-    },
-    {
-      "id": "magic",
-      "name": "Rune line",
-      "type": 8,
-      "attack": {
-        "count": 0
-      },
-      "cooldown": 7,
-      "sprite": [
-        47,
-        13
-      ],
-      "rate": 6
+      "rate": 14,
+      "reach": 1
     }
   ],
   "armorSprites": [
     [
-      30,
-      11
-    ],
-    [
       26,
       12
-    ],
-    [
-      39,
-      12
-    ],
-    [
-      2,
-      44
     ]
   ]
 }

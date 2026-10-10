@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-09",
+  "authorization": "Keep all content; allow small behavior differences",
+  "before_bytes": 10534,
+  "after_bytes": 10238,
+  "saved_bytes": 296,
+  "remaining_to_10000": 238,
+  "remaining_to_7000": 3238,
+  "before_sha256": "ecc27366da09c057b917082acbf361beb86c585fe9c4719c250d458063e7704c",
+  "after_sha256": "3c16d238781d7e5c945e4509ec98a8800fdfdb3c9bddeadb061e3aaaa0d6e8b2",
+  "release_report": {
+    "enemy_definitions": 9,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1353,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": false,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 8.39453125,
+    "source_bytes": 24605,
+    "html_bytes": 10238,
+    "unpacked_html_bytes": 24605,
+    "zip_bytes": 10277,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "sprite_data_bytes": 2916,
+    "atlas_tiles": 162,
+    "remaining_file_bytes": -238
+  },
+  "retained": [
+    {
+      "change": "Represent both original and dropped uranium as room loot",
+      "effect": "Normalize once on room entry. One pickup search and one radiation-source list; removes 651 floor checks per simulation step."
+    },
+    {
+      "change": "Share room decoration and encounter selection passes",
+      "effect": "One floor scan; mixed encounters sample the eligible solo pool directly. Boss arena keeps its clear core; singleton hazards still avoid narrow passages."
+    },
+    {
+      "change": "Generate reciprocal door offsets from the floor seed and unordered room pair",
+      "effect": "Aligned screen-edge doors without searching the previously generated room."
+    },
+    {
+      "change": "Conga follows its predecessor through the shared navigation system",
+      "effect": "No per-member breadcrumb arrays. Retains predecessor spacing, dead-leader skipping, staggered startup and three-second movement/one-second rest."
+    },
+    {
+      "change": "Grow rooms from protected door paths and the center pocket",
+      "effect": "Reuses organic frontier growth instead of six separately generated branch targets. Connected, irregular rooms; hazard-free paths retained."
+    },
+    {
+      "change": "Use the existing random source for white noise",
+      "effect": "Same static sound voice, gain ramp and timing; sample sequence becomes random rather than using a separate LCG."
+    },
+    {
+      "change": "Remove redundant movement clamps from the fixed-step standalone controller",
+      "effect": "Real simulation remains 60 Hz; dev helpers retain their generic clamps."
+    },
+    {
+      "change": "Inline seven one-call functions in release compilation",
+      "effect": "Build-time AST checks validate call counts, arguments and returns; authoring functions stay readable."
+    }
+  ],
+  "intentional_differences": [
+    "Procedural layouts, prop positions, encounter choices and door offsets differ for a given seed.",
+    "Conga follows current predecessor position through pathfinding rather than replaying stored points.",
+    "Nearest visible armor or uranium wins interaction; armor now uses the full line-of-sight check.",
+    "Floor uranium uses the existing loot draw layer.",
+    "Static noise samples change, with voice, duration and gain unchanged."
+  ],
+  "preserved": {
+    "enemy_definitions": 9,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "atlas_tiles": 162,
+    "sprite_data_bytes": 2916,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "armor_variants": 4,
+    "hitboxes": "Unchanged",
+    "manual_sword_poses": "Unchanged",
+    "room_zero_art": "Unchanged"
+  },
+  "rejected": {
+    "predictive_sprite_delta": "10797+ bytes before structural changes; added reference data lost more than deltas saved",
+    "sprite_column_dictionary": "10992+ bytes after structural changes; not retained",
+    "ast_source_codec": "12794 bytes",
+    "substring_macros": "10648+ bytes",
+    "canvas_transform_wrapper": "10545 bytes",
+    "context_and_learning_search": "No material savings; previous packing settings retained",
+    "hitbox_corners": "Rejected to preserve precise hitboxes",
+    "spawn_with_replacement": "Not retained; preserves distinct initial enemy positions",
+    "integer_action_timers": "Not retained",
+    "booleans_as_integers": "Rejected after real browser inspection: strict Boolean/numeric comparison hid the sword. Removed from production and covered by the existing release system test."
+  },
+  "validation": {
+    "full_suite": "npm test passed",
+    "generation": "2,000 room seeds; 1,000 level seeds; safe paths, clear arrivals, broad boss arena, hazard checks",
+    "sword": "Exact baseline pixels, all atlas surfaces and audio across 7 seeds, 8 directions and 320 frames per seed in Room Zero",
+    "release_sword_guard": "Existing system test now checks exactly one drawn sword in every phase of all eight directions",
+    "browser": "Standalone Room Zero, dungeon entry, attacks and generated rooms inspected; no console errors",
+    "inliner": "Hardened build-time guards emit byte-identical decoded program",
+    "evidence_screenshot": "dev/screenshots/deep-optimization-game.png"
+  },
+  "evidence_directory": "dev/snapshots/optimization-predictive-20261009",
+  "limitations": [
+    "The 7,000-byte target is not reached. The complete HTML still exceeds 10,000 bytes by 238."
+  ],
+  "notes": [
+    "Complete standalone HTML, not ZIP size or browser RAM.",
+    "No commit, push, publication or README edits."
+  ]
+}

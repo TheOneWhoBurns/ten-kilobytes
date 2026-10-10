@@ -1,0 +1,181 @@
+{
+  "date": "2026-10-09",
+  "scope": "Strictly lossless optimization of the current single-sword game",
+  "target_bytes": 7000,
+  "stretch_target_bytes": 5000,
+  "deadline_utc": "2026-10-10T00:30:00Z",
+  "before": {
+    "enemy_definitions": 11,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1423,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": false,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 10.322265625,
+    "source_bytes": 33195,
+    "html_bytes": 12930,
+    "unpacked_html_bytes": 33195,
+    "zip_bytes": 13032,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 93,
+    "sprite_data_bytes": 4356,
+    "atlas_tiles": 242,
+    "remaining_file_bytes": -2930
+  },
+  "after": {
+    "enemy_definitions": 11,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1423,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": false,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 9.40625,
+    "source_bytes": 27960,
+    "html_bytes": 11531,
+    "unpacked_html_bytes": 27960,
+    "zip_bytes": 11570,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 93,
+    "sprite_data_bytes": 4356,
+    "atlas_tiles": 242,
+    "remaining_file_bytes": -1531
+  },
+  "saved_html_bytes": 1399,
+  "saved_percent": 10.819798917246713,
+  "target_met": false,
+  "remaining_to_target": 4531,
+  "baseline_sha256": "05c753cc5be817e3fbd4df4802bb9c01a5cb9520df96d51b5fa982a4756b881a",
+  "release_sha256": "de78997683db326388f151e4dee156dc8c4b74760b333ee61447e2adccae60ae",
+  "retained": [
+    {
+      "change": "Remove dormant weapons and player-projectile branches",
+      "html_bytes": 12132
+    },
+    {
+      "change": "Share exact flood traversal",
+      "html_bytes": 12073
+    },
+    {
+      "change": "Specialize one-hit enemies and starter attack records",
+      "html_bytes": 11988
+    },
+    {
+      "change": "Inline Room Zero configuration",
+      "html_bytes": 11862
+    },
+    {
+      "change": "Compile atlas recoloring into a palette map",
+      "html_bytes": 11808
+    },
+    {
+      "change": "Remove release state made redundant by current catalog",
+      "html_bytes": 11729
+    },
+    {
+      "change": "Simplify current release action controller",
+      "html_bytes": 11692
+    },
+    {
+      "change": "Remove redundant starter attack wrapper",
+      "html_bytes": 11674
+    },
+    {
+      "change": "Transpose and encode the exact 24 pose rows",
+      "html_bytes": 11646
+    },
+    {
+      "change": "Share ordered neighbor traversal",
+      "html_bytes": 11613
+    },
+    {
+      "change": "Zero five unused miniature slots, preserving every rendered sprite",
+      "html_bytes": 11575
+    },
+    {
+      "change": "Use bounded integer tile coordinates",
+      "html_bytes": 11575
+    },
+    {
+      "change": "Use a single attack record when cooldown prevents overlap",
+      "html_bytes": 11561
+    },
+    {
+      "change": "Specialize exact starter/pickup/walk pose selection",
+      "html_bytes": 11526
+    },
+    {
+      "change": "Preserve the original hitbox arithmetic evaluation order",
+      "html_bytes": 11531
+    }
+  ],
+  "rejected": [
+    {
+      "attempt": "Room-growth margin and removal of connectivity repair",
+      "reason": "Changed generated layouts; restored after strict lossless clarification"
+    },
+    {
+      "attempt": "Bake pullback arm clipping into old frame slots",
+      "reason": "Rendered-pixel mismatch at dungeon seed 83"
+    },
+    {
+      "attempt": "Bake pullback arm clipping into separate frame slots",
+      "reason": "Same rendered-pixel mismatch at seed 83; not retained"
+    },
+    {
+      "attempt": "Inline player-only spell hitbox",
+      "reason": "Complete HTML grew by one byte"
+    },
+    {
+      "attempt": "Cache spell sine/cosine components in field records",
+      "reason": "Complete HTML grew by 18 bytes"
+    },
+    {
+      "attempt": "Shared blur/visibility handler",
+      "reason": "Only one byte saved; left current handlers unchanged"
+    },
+    {
+      "attempt": "Sprite layouts, bit alphabets, delta layouts, range coding, compressor parameter/context sweeps, minifier sweeps and declaration ordering",
+      "reason": "Previously explored territory; stopped after user correction. No new packer/layout settings retained."
+    }
+  ],
+  "validation": {
+    "full_suite": "PASS: npm test, including room/level generation, gameplay, controls, content, packing, hazards, music, score and weapon geometry",
+    "baseline_pixels_and_audio": "PASS: seven dungeon seeds, four all-eight-direction per-frame sequences, and 64 additional 600-frame mixed-input sequences",
+    "browser": "Final standalone loaded in existing preview tab without console errors; Room Zero renders. Earlier retained release also verified dungeon entry, arrows and death overlay.",
+    "comparison_scope": "Seven dungeon seeds; four seeds with every frame of all eight sword directions; 64 additional seeds with 600-frame mixed-input sequences. Pixel and scheduled-audio equality against immutable pre-pass release. Unused atlas slots excluded from whole-atlas equality.",
+    "assets": "No authored sprite, pose or content files changed in this pass.",
+    "completed_utc": "2026-10-10T00:29:31.892Z"
+  },
+  "repeat_work_policy": "Read this report and older optimization reports before trying another representation. Re-run failed approaches only with a materially different hypothesis or changed content.",
+  "evidence_directory": "dev/snapshots/optimization-starter-20261009",
+  "notes": [
+    "No commit, push, publication or README change.",
+    "Complete standalone HTML size is the budget metric, not ZIP size or total browser RAM.",
+    "Temporary decoder allocation is reported separately in decoder_model_mb.",
+    "The 7,000-byte target was not reached; no gameplay, rendered art or sound cuts were accepted."
+  ],
+  "inventory": {
+    "file": "dev/snapshots/optimization-starter-20261009/size-inventory.json",
+    "baseline_html_bytes": 11526,
+    "note": "Measured before the final five-byte restoration of hitbox arithmetic order; the matching HTML is inventory-baseline.html in the same directory."
+  },
+  "exact_file_breakdown": {
+    "compressed_program_and_art": 10634,
+    "compressed_decompressor": 565,
+    "html_bootstrap": 327,
+    "transport_escapes": 5
+  },
+  "stop_reason": "User-specified 7:30 p.m. GMT-5 cutoff; 7,000-byte target remains unmet"
+}

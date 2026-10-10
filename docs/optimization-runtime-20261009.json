@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-09",
+  "scope": "Lossless release specialization without content cuts",
+  "before_bytes": 10652,
+  "after_bytes": 10534,
+  "saved_bytes": 118,
+  "remaining_to_10000": 534,
+  "remaining_to_7000": 3534,
+  "before_sha256": "36c310768b52f56a61f64a31fc9e4e0c4b8c1e7d33b7cc4d43beee5d21cf1df9",
+  "after_sha256": "ecc27366da09c057b917082acbf361beb86c585fe9c4719c250d458063e7704c",
+  "release_report": {
+    "enemy_definitions": 9,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1353,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": false,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 8.5859375,
+    "source_bytes": 25434,
+    "html_bytes": 10534,
+    "unpacked_html_bytes": 25434,
+    "zip_bytes": 10574,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "sprite_data_bytes": 2916,
+    "atlas_tiles": 162,
+    "remaining_file_bytes": -534
+  },
+  "retained": [
+    "Resolve unused optional release arguments so dev noclip and unused projectile plumbing disappear; fail on incompatible call arity or signature",
+    "Encode internal attack/interact selectors as numbers in the standalone release",
+    "Share each swarm sprite choice during spawning, retaining random calls and exact forms",
+    "Inline fixed room dimensions in the release using AST identifier edits"
+  ],
+  "rejected": {
+    "fixed_dt": 10664,
+    "rule_dictionary": 10694,
+    "rule_columns": 10712,
+    "separate_sprite_stream": 10875,
+    "frame_pose_cache": 10662,
+    "live_enemy_counter": 10681,
+    "radiation_source_cache": 10693,
+    "clamp_helper": 10658,
+    "field_map": 10666,
+    "axis_dispatch": 10670,
+    "native_brotli": 11383
+  },
+  "not_retained": [
+    "Unused frame blanking: only four bytes saved; final atlas remains byte-for-byte visually identical",
+    "Cached spell tile lists: one-byte isolated gain did not justify storing extra tile lists",
+    "Other two-byte isolated rewrites left out to keep implementation focused"
+  ],
+  "validation": {
+    "full_suite": "npm test passed",
+    "exact_comparison": "Seven seeds with every rendered frame across 600 frames each, plus 32 additional seeds with mixed controls; exact rendered pixels, complete atlas and scheduled audio equality against immutable before.html",
+    "browser": "Final standalone loaded, traversed Room Zero, moved and attacked; no browser console errors",
+    "source": "git diff --check passed"
+  },
+  "evidence_directory": "dev/snapshots/optimization-runtime-20261009",
+  "notes": [
+    "No enemies, images, sounds or mechanics removed; no README changes, commit, push or publication",
+    "Measurements are complete standalone HTML bytes, not ZIP size",
+    "7,000-byte goal remains unmet; this is a 118-byte gain, not a major size breakthrough"
+  ],
+  "browser_format_research": {
+    "url": "https://raw.githubusercontent.com/mdn/browser-compat-data/main/api/DecompressionStream.json",
+    "finding": "Native Brotli format has limited browser support and its measured full file was larger; not adopted"
+  }
+}

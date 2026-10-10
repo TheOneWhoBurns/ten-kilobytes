@@ -1,0 +1,17 @@
+{
+  "astralBody": "random",
+  "sunSize": 6,
+  "moonSize": 8,
+  "innerRingSize": 2,
+  "middleRingSize": 5,
+  "outerRingSize": 7.1,
+  "sunColor": "e94007",
+  "moonColor": "575cff",
+  "innerRingColor": "303030",
+  "middleRingColor": "303030",
+  "outerRingColor": "303030",
+  "astralRotation": 0,
+  "innerRingRotation": 45,
+  "middleRingRotation": 45,
+  "outerRingRotation": 0
+}

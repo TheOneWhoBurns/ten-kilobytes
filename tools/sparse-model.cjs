@@ -21,7 +21,8 @@ function contextCount(values,{sparseSelectors,contextBits,inBits,modelQuotes}){
  return visited.size;
 }
 module.exports=(code,values,options)=>{
- const count=contextCount(values,options),capacity=2**Math.ceil(Math.log2(Math.max(1,count/.85))),mask=capacity-1;
+ // Size the table to visited contexts, with 15% spare slots instead of power-of-two rounding.
+ const count=contextCount(values,options),capacity=Math.ceil(Math.max(1,count/.85)/1024)*1024;
  const call=acorn.parse(code,{ecmaVersion:2020}).body[0]?.expression?.arguments?.[0],fn=call?.callee;
  if(fn?.type!=='ArrowFunctionExpression'||fn.body.type!=='BlockStatement')throw Error('Unknown sparse decoder function');
  const edits=[];let bytes=4,predictions=0,counts=0,selector;
@@ -52,7 +53,7 @@ module.exports=(code,values,options)=>{
  const m=masks[0],expression=code.slice(arrow.body.start,m.start)+contextMask+code.slice(m.end,arrow.body.end),[key,slot]=arrow.params.map(p=>p.name);
  // Reuse callback parameters after the original context expression is evaluated.
  // Returning its hash-table slot avoids a second map and temporary array per bit.
- edits.push([arrow.body.start,arrow.body.end,`{${key}=(${expression})+1;${slot}=${key}*997&${mask};while(K[${slot}]&&K[${slot}]!==${key})${slot}=${slot}+1&${mask};K[${slot}]=${key};return ${slot}}`]);
+ edits.push([arrow.body.start,arrow.body.end,`{${key}=(${expression})+1;${slot}=${key}%${capacity};while(K[${slot}]&&K[${slot}]-${key})${slot}=(${slot}+1)%${capacity};K[${slot}]=${key};return ${slot}}`]);
  edits.push([fn.body.start+1,fn.body.start+1,`let K=new Uint32Array(${capacity});`]);
  for(const [a,b,text]of edits.sort((a,b)=>b[0]-a[0]))code=code.slice(0,a)+text+code.slice(b);
  return{code,memoryMB:capacity*bytes/1048576,contexts:count,capacity};

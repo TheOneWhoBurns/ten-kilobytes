@@ -1,0 +1,40 @@
+{
+  "before_bytes": 9587,
+  "after_bytes": 9564,
+  "saved_bytes": 23,
+  "sha256": "706b44d9f3a1927f56845ba06600ae1fecfaed24e315d2ad2a94e4ae11545013",
+  "quick_before_bytes": 9592,
+  "quick_after_bytes": 9569,
+  "retained": [
+    "Prepare conga terrain and spawn cells before decoration/hazard classification; remove subsequent placement repair and protected-cell cleanup.",
+    "Share sample(array) across dungeon branching, enemy selection and hazard placement.",
+    "Share canvas translate/rotate/flip setup across background tiles, rings, doors, blood, enemies, projectiles, sword poses and mirrored player frames.",
+    "Keep parentheses in release roster specialization so shared sample calls remain valid."
+  ],
+  "behavior_changes": [
+    "Seeded room contents change because encounter selection and conga carving now precede decoration rolls. All enemy definitions, sprites, hazard types and audio rules are retained."
+  ],
+  "rejected": [
+    {
+      "change": "Shared destructive array selection",
+      "quick_bytes": 9597
+    },
+    {
+      "change": "Shared flame animation lookup",
+      "quick_bytes": 9597
+    },
+    {
+      "change": "Shared cell-to-pixel draw helper on combined renderer",
+      "quick_bytes": 9576
+    },
+    {
+      "change": "Merged doorway carving and opening loop",
+      "quick_bytes": 9570
+    }
+  ],
+  "validation": {
+    "rendering": "14 scenarios, seven seeds in Room Zero and dungeon; 360 frames each. Old renderer on the new generated rooms matches new renderer exactly in pixels, atlas and audio.",
+    "system_checks": "All npm test checks passed across the full run and resumed tail after updating the existing landmark harness to load the shared transform helper. 2,000 room seeds, 1,000 levels, 2,000 updated world snapshots, combat, hazard safety, content extensions, input, audio, death/revival and packing."
+  },
+  "evidence_directory": "dev/snapshots/shared-generation-rendering-20261010"
+}

@@ -1,0 +1,183 @@
+{
+  "source_build_bytes": 9947,
+  "source_build_sha256": "906080a9e97e8650a2fd76251ae930721ba498a6094b80ed952e3c7342d1bbf2",
+  "cuts": {
+    "props": [
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        16,
+        36
+      ],
+      [
+        16,
+        5
+      ],
+      [
+        15,
+        5
+      ],
+      [
+        9,
+        9
+      ],
+      [
+        15,
+        9
+      ],
+      [
+        0,
+        10
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        18,
+        33
+      ],
+      [
+        27,
+        3
+      ]
+    ],
+    "enemies": [
+      [
+        156,
+        34
+      ],
+      [
+        112,
+        6
+      ],
+      [
+        112,
+        27
+      ],
+      [
+        79,
+        12
+      ],
+      [
+        111,
+        6
+      ],
+      [
+        166,
+        29
+      ],
+      [
+        113,
+        42
+      ],
+      [
+        112,
+        44
+      ],
+      [
+        1,
+        16
+      ],
+      [
+        109,
+        24
+      ],
+      [
+        125,
+        17
+      ],
+      [
+        178,
+        14
+      ],
+      [
+        186,
+        17
+      ],
+      [
+        131,
+        40
+      ],
+      [
+        125,
+        40
+      ],
+      [
+        106,
+        41
+      ],
+      [
+        110,
+        42
+      ]
+    ],
+    "armor": [
+      [
+        30,
+        11
+      ],
+      [
+        39,
+        12
+      ],
+      [
+        2,
+        44
+      ]
+    ]
+  },
+  "removed_sprites": 31,
+  "remaining": {
+    "props": 6,
+    "enemies": 13,
+    "armor": 1
+  },
+  "enemy_types": [
+    {
+      "id": "swarm",
+      "variants": 3
+    },
+    {
+      "id": "arrow-fan",
+      "variants": 2
+    },
+    {
+      "id": "arrow-sniper",
+      "variants": 2
+    },
+    {
+      "id": "kamikaze",
+      "variants": 1
+    },
+    {
+      "id": "conga",
+      "variants": 3
+    },
+    {
+      "id": "charge",
+      "variants": 1
+    },
+    {
+      "id": "horse",
+      "variants": 1
+    },
+    {
+      "id": "mage",
+      "variants": 1
+    },
+    {
+      "id": "medusa",
+      "variants": 1
+    }
+  ],
+  "result_build_bytes": 9587,
+  "saved_bytes": 360,
+  "result_build_sha256": "6c2fec1973411d36d142079dbe001b1165a01b6c73b1f41a5637f576738ef709"
+}

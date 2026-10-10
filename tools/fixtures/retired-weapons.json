@@ -1,0 +1,124 @@
+[
+  {
+    "id": "needle",
+    "name": "Arrow",
+    "type": 1,
+    "sprite": [
+      26,
+      10
+    ],
+    "attack": {
+      "life": 1000,
+      "reachLife": 0,
+      "temperLife": 0
+    },
+    "pitch": 140,
+    "cooldown": 2.4,
+    "rate": 12
+  },
+  {
+    "id": "fang",
+    "name": "Returning fang",
+    "type": 2,
+    "sprite": [
+      43,
+      10
+    ],
+    "traits": [
+      "return"
+    ],
+    "attack": {
+      "life": 1.2,
+      "reachLife": 0,
+      "temperLife": 0
+    },
+    "pitch": 230,
+    "cooldown": 3.4,
+    "rate": 10
+  },
+  {
+    "id": "nunchucks",
+    "name": "Nunchucks",
+    "type": 3,
+    "sprite": [
+      34,
+      6
+    ],
+    "attack": {
+      "count": 0
+    },
+    "cooldown": 1.8,
+    "rate": 18
+  },
+  {
+    "id": "spin",
+    "name": "Whirlwind",
+    "type": 4,
+    "attack": {
+      "count": 0
+    },
+    "cooldown": 5,
+    "sprite": [
+      33,
+      9
+    ],
+    "rate": 7
+  },
+  {
+    "id": "double",
+    "name": "One-two",
+    "type": 5,
+    "attack": {
+      "count": 0
+    },
+    "cooldown": 3,
+    "sprite": [
+      92,
+      33
+    ],
+    "rate": 14,
+    "reach": 0.45
+  },
+  {
+    "id": "thrust",
+    "name": "Thrust",
+    "type": 6,
+    "attack": {
+      "count": 0
+    },
+    "cooldown": 6.5,
+    "sprite": [
+      31,
+      8
+    ],
+    "rate": 6
+  },
+  {
+    "id": "heavy",
+    "name": "Heavy hit",
+    "type": 7,
+    "attack": {
+      "count": 0
+    },
+    "cooldown": 7.5,
+    "sprite": [
+      26,
+      7
+    ],
+    "rate": 4
+  },
+  {
+    "id": "magic",
+    "name": "Rune line",
+    "type": 8,
+    "attack": {
+      "count": 0
+    },
+    "cooldown": 7,
+    "sprite": [
+      49,
+      13
+    ],
+    "rate": 6
+  }
+]

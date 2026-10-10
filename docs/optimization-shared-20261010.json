@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-10",
+  "scope": "Additional release-state and code-size optimization; all existing content retained",
+  "before_bytes": 10238,
+  "after_bytes": 10199,
+  "saved_bytes": 39,
+  "remaining_to_10000": 199,
+  "remaining_to_7000": 3199,
+  "before_sha256": "3c16d238781d7e5c945e4509ec98a8800fdfdb3c9bddeadb061e3aaaa0d6e8b2",
+  "after_sha256": "bbf8e965ad339b3377a319c7df4ac42ee7e9b26ef439ac4880755e5aa983ef9e",
+  "release_report": {
+    "enemy_definitions": 9,
+    "weapon_definitions": 1,
+    "boss_definitions": 0,
+    "power_definitions": 0,
+    "definition_source_bytes": 1353,
+    "visual_profile": "rgb444",
+    "limit": 10000,
+    "budget_metric": "standalone_html",
+    "compliant": false,
+    "packing": "roadroller-byte-stream+deflate",
+    "source_encoding": "iso-8859-5",
+    "decoder_model_mb": 8.3603515625,
+    "source_bytes": 24203,
+    "html_bytes": 10199,
+    "unpacked_html_bytes": 24203,
+    "zip_bytes": 10238,
+    "sprite_count": 1,
+    "enemy_sprite_count": 30,
+    "pantry_tiles": 30,
+    "sprite_data_bytes": 2916,
+    "atlas_tiles": 162,
+    "remaining_file_bytes": -199
+  },
+  "retained": [
+    "Use zero as the unvisited pathfinding distance, avoiding a fill pass while preserving gradient order and tie-breaking.",
+    "The release reads held attack from the keyboard array; preserves fresh-press requirements after room changes, blur and key repeats.",
+    "Capture the native random function once in the release; remove unused level seed and generator random arguments.",
+    "Encode oscillator waveform choices as small selectors resolved inside tone().",
+    "Omit the unobserved release maximum-health counter; current health and armor increments remain unchanged, dev maximum health remains available. The compiler rejects new live reads of this value.",
+    "Share Math.round in the release after recipe definitions are assembled."
+  ],
+  "validation": {
+    "suite": "npm test passed",
+    "baseline_comparison": "Exact frame pixels, atlas surfaces and scheduled audio for 7 seeds × 600 per-frame samples plus 32 mixed-input seeds × 600 simulation steps (sampled every 12 frames).",
+    "browser": "Final standalone reload renders Room Zero and the ready sword; no console errors."
+  },
+  "intentional_gameplay_changes": [],
+  "rejected": {
+    "sprite_cropping": "Variable-width and symmetric column cropping increased the final file despite shrinking raw sprite text.",
+    "scaled_enemy_tables": "Integer-scaled tables increased total HTML.",
+    "ai_pursuit_and_visibility": "Shared pursuit/visibility variants did not reduce the final build.",
+    "wide_prediction_contexts": "25–27-bit context models offered no meaningful savings.",
+    "pipeline_variants": "Alternative minification pipelines did not improve the retained final combination.",
+    "function_order": "40 candidate orders found an isolated gain, but the combined build was larger than the selected result.",
+    "other_math_aliases": "Aliasing trigonometry, min/max and other math calls grew the packed file."
+  },
+  "evidence_directory": "dev/snapshots/optimization-shared-20261010",
+  "notes": [
+    "Budget counts the complete standalone HTML, not ZIP.",
+    "The saving this round is small: 39 bytes. The 7,000-byte target remains unmet.",
+    "No content cuts, README changes, commit, push or publication."
+  ]
+}

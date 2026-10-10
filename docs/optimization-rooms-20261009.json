@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-09",
+  "scope": "Lossless optimization after room-category and landmark changes",
+  "before_bytes": 8853,
+  "after_bytes": 8807,
+  "saved_bytes": 46,
+  "headroom": 1193,
+  "itch_total": 8966,
+  "candidates": 113,
+  "retained": [
+    "Mangle game-owned floor, wall, hazard and gaze properties; keep Math.floor untouched",
+    "Use a local gaze accumulator instead of a persistent room property",
+    "Omit unused enemy cycle state only when no ring attacks or attack sequences require it",
+    "Reorder hoisted function declarations without changing initialization order"
+  ],
+  "validation": {
+    "original_baseline_exact_pixels_atlas_audio_seeds": [
+      1,
+      2,
+      7,
+      19,
+      83,
+      104,
+      2026
+    ],
+    "full_existing_suite": "passed before final gaze-property mangling"
+  },
+  "release_sha256": "8bb9fecc700846655ce3196eb30fc2e92ec72dca6c3610d0c767a6e932c4fd0e"
+}

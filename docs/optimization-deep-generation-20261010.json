@@ -1,0 +1,37 @@
+{
+  "before_bytes": 9564,
+  "after_bytes": 9360,
+  "saved_bytes": 204,
+  "sha256": "433e01cae9e23642e114a5701e1ed1b8925289539f0372976c37eb98dcd610e5",
+  "retained_content": {
+    "enemies": 9,
+    "enemy_sprites": 13,
+    "weapons": 1,
+    "bosses": 0,
+    "powers": 0,
+    "atlas_tiles": 131
+  },
+  "changes": [
+    "Six-room branching tree with reciprocal doors and the final arena at maximum depth.",
+    "Thirty-two random bending paths share the door and conga tunnel routine.",
+    "Protected routes use a byte mask; hazard growth uses a single specialized frontier.",
+    "Terrain and static props share one rendering pass; tiles use their native orientation.",
+    "Music, palette and theme derive from one random word with matching dev/release random consumption.",
+    "Shared needle clock, fixed 24-cell hazard target and mean decoration density.",
+    "Remove redundant release spawn/gate metadata and atlas compositing reset.",
+    "Retune entropy packing precision and learning rate."
+  ],
+  "tradeoffs": [
+    "Room topology and layouts change; topology is a tree without loops.",
+    "Per-tile floor/wall rotation and reflection removed.",
+    "Hazard patch target sizes and needle timing no longer vary by room."
+  ],
+  "validation": [
+    "2,000 room seeds and 1,000 full levels passed.",
+    "1,000 additional dungeon graphs preserve a furthest-depth final arena.",
+    "All npm test stages passed; combat and thrust stages rerun after isolating generated uranium from the empty combat test arena.",
+    "Current-source packed pixel/audio equality passed.",
+    "Actual dev-game rendering inspected."
+  ],
+  "harness_fix": "Combat harness clears generated loot along with its synthetic room terrain and enemies, preventing incidental uranium deaths during pathfinding checks."
+}

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-09",
+  "scope": "Lossless sprite encoding and decoder optimization",
+  "before_bytes": 8807,
+  "after_bytes": 8781,
+  "saved_bytes": 26,
+  "remaining_bytes": 1219,
+  "itch_total_bytes": 8940,
+  "temporary_decoder_mib": 8.01171875,
+  "candidate_measurements": 67,
+  "retained": [
+    "Six-bit sprite alphabet starts at ASCII 63 and skips only backslash; exact masks retained",
+    "Sparse decoder maps context identities directly to initial slots and resolves collisions with a shorter modulo loop"
+  ],
+  "rejected": [
+    "Delta sprite masks",
+    "Repeated sprite-part dictionaries",
+    "Hex sprite encoding",
+    "Shared canvas operations and math aliases",
+    "Alternative identifier alphabets",
+    "Denser and coarser-rounded decoder allocations"
+  ],
+  "validation": [
+    "Full existing npm test suite passed",
+    "Original-baseline exact pixel, sprite-atlas and audio comparisons on seeds 1,2,7,19,83,104,2026",
+    "Existing decoder tests cover all 256 byte values and asynchronous browser bootstrap"
+  ],
+  "sha256": "77e0153d33bdd3fdc98584986af35bfc13a259e5969734d3bb5cc6ea9703a60c"
+}

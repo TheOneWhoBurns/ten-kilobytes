@@ -10,7 +10,7 @@ for(let seed=0;seed<fixture.seed_count;seed++)for(const depth of fixture.depths)
  let bytes=0;
  for(const room of world.rooms){
   // Expand cell tags into observable geometry and decoration for the fixture.
-  room.hazards=require('./hazard-view.cjs')(room);delete room.offset;
+  room.hazards=require('./hazard-view.cjs')(room);delete room.offset;room.floor=room.floorTile;delete room.floorTile;
   assert(Number.isInteger(room.spawn)&&room.spawn>=0&&room.spawn<651);
   room.spawn={x:room.spawn%31+.5,y:Math.floor(room.spawn/31)+.5};
   assert.equal(room.cells.byteLength,651);bytes+=room.cells.byteLength;

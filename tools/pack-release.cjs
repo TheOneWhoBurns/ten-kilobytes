@@ -56,6 +56,7 @@ async function roller(html,options,optimize=0,binary=false){
  let code=packed.firstLine+packed.secondLine,stream,memoryMB=packer.memoryUsageMB;
  const effectiveOptions=sparseModel?{...packer.options,maxMemoryMB:modelOptions.maxMemoryMB??packer.options.maxMemoryMB,contextBits:modelOptions.contextBits}:packer.options;
  if(binary){const raw=await require('./byte-stream.cjs')(packer,{data,type:'js',action:'eval'},code,sparseModel,effectiveOptions);code=raw.code;stream=raw.data;memoryMB=raw.memoryMB??memoryMB;}
+ if(binary)code=(await require('terser').minify(code,{compress:{passes:3},mangle:false})).code;
  // Preprocessing normalizes string escapes. Compare parsed programs, not source spelling.
  let restored;require('node:vm').runInNewContext(code,{eval:s=>restored=s,TextDecoder,a:stream&&Array.from(stream)},{timeout:10000});
  const canonical=s=>JSON.stringify(require('acorn').parse(s,{ecmaVersion:2020}),function(k,v){return ['start','end'].includes(k)||k==='raw'&&!Object.hasOwn(this,'cooked')?undefined:v;});

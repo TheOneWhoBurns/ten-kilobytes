@@ -1,0 +1,18 @@
+Hipocrene entrance rings — 2026-10-06
+Tool mode: built-in image generation, transparent background, one call per asset.
+
+LARGE PROMPT
+Use case: game-asset. Create ONE standalone white magic circle sprite for a one-bit pixel-art roguelike. It will be the LARGE outer ring, displayed about 170 game pixels wide over a sun/moon, with a separate smaller ring inside it. Native design grid 96 by 96 pixels, shown enlarged with nearest-neighbor hard square pixels. Flat orthographic top-down. Pure opaque WHITE marks and truly TRANSPARENT empty pixels only. Center precisely on canvas. Composition: a thin circular outer boundary, another delicate broken circle just inside it, eight sparse geometric rune clusters distributed evenly around the annular band, four small compass diamonds. Broad completely empty transparent center, at least 72% of diameter, so it can surround other artwork without obscuring it. Precise horizontal and vertical mirror symmetry. Pixel strokes mostly ONE native pixel wide, occasional two-pixel accents; delicate spacious details, NOT chunky road markings or a square frame. Keep every mark within the circle's bounds. Uniform small transparent margin. No glow, blur, gradients, shadows, background, text labels, perspective, extra circles elsewhere, sheet grid, mockup or screenshots. Single isolated production sprite.
+
+MEDIUM PROMPT
+Use case: game-asset. Create ONE standalone magic seal sprite for a one-bit pixel-art roguelike. This is the MEDIUM ring to display about 112 game pixels in diameter concentrically inside a different larger runic circle. Native design grid 72x72 pixels, enlarged nearest-neighbor so each pixel is an obvious crisp square. Pure opaque white pixels on a genuinely TRANSPARENT background. Flat orthographic top-down. Centered perfectly. Delicate angular geometric design: two thin overlapping rotated squares forming an eight-point star inside a single thin circular rim; eight tiny hollow diamond nodes where star tips meet rim. The central 55% diameter remains COMPLETELY EMPTY AND TRANSPARENT. All lines mostly ONE native pixel wide, sparse, clear, elegant, no thick white blocks. Exact vertical and horizontal mirror symmetry. Distinct from a rune-decorated outer ring: this one should read as a geometric star seal. No lettering, writing, watermark, glow, blur, shading, gradients, filled center, background, perspective, game mockup, sprite-sheet grid or extra objects. Only one isolated complete ring.
+
+ORIGINALS
+ring-large-original.png: exec-98e2dca0-bdee-4208-aa8f-bdc1a30ebd4a.png
+ring-medium-original.png: exec-cfed007e-8579-4960-af42-d6e185a8b089.png
+Both originals are 1254×1254. Kept unchanged.
+
+INGESTION
+node tools/prepare-rings.cjs
+Crops to alpha bounds; box samples and averages matching quadrants; thresholds to one-bit, symmetric 96×96 and 72×72 masks.
+Outputs ring-large.png and ring-medium.png. The atlas stores only their upper-left quarters (16 + 9 tiles); runtime mirrors them about the gate center. Visible diameters preserve the previous controls' scale: 19 × size, or 165.3 and 112.1 game pixels at 8.7× and 5.9×.

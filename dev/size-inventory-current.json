@@ -1,0 +1,101 @@
+{
+  "measured_at_utc": "2026-10-10T05:17:30.812Z",
+  "sha256": "6c2fec1973411d36d142079dbe001b1165a01b6c73b1f41a5637f576738ef709",
+  "total_bytes": 9587,
+  "quick_baseline_bytes": 9592,
+  "exact_file_breakdown": {
+    "game_and_art": 8690,
+    "decompressor": 563,
+    "bootstrap": 327,
+    "escaping": 7
+  },
+  "method": "Independent removal probes of the current complete HTML, using quick packing with the same game/data decoder settings. Differences are marginal estimates, overlap and do not add up. New artwork is not counted as code. No probe changes the playable build.",
+  "features": [
+    {
+      "id": "generation",
+      "label": "Dungeon graph, rooms, doors, spawns and hazard placement",
+      "bytes": 989,
+      "raw_bytes": 2554
+    },
+    {
+      "id": "movement_collision",
+      "label": "Movement, ice, navigation visibility and collision geometry",
+      "bytes": 716,
+      "raw_bytes": 2192
+    },
+    {
+      "id": "enemy_ai",
+      "label": "Enemy behavior, timing and shared navigation",
+      "bytes": 675,
+      "raw_bytes": 2070
+    },
+    {
+      "id": "sword_player",
+      "label": "Player and sword drawing, poses and strike collision",
+      "bytes": 660,
+      "raw_bytes": 1913
+    },
+    {
+      "id": "audio",
+      "label": "Procedural music and all sound effects",
+      "bytes": 563,
+      "raw_bytes": 1421
+    },
+    {
+      "id": "terrain",
+      "label": "Room painting, palette recoloring and astral/ring rendering",
+      "bytes": 507,
+      "raw_bytes": 1541
+    },
+    {
+      "id": "hazards_spells",
+      "label": "Hazards, spell shapes and exposure damage",
+      "bytes": 398,
+      "raw_bytes": 1387
+    },
+    {
+      "id": "controls",
+      "label": "Keyboard handling and action dispatch",
+      "bytes": 267,
+      "raw_bytes": 719
+    },
+    {
+      "id": "arrows",
+      "label": "Enemy arrow creation, motion, collisions and drawing",
+      "bytes": 185,
+      "raw_bytes": 657
+    }
+  ],
+  "art": [
+    {
+      "label": "All sprite artwork",
+      "bytes": 1304,
+      "tiles": 131
+    },
+    {
+      "label": "Room Zero artwork",
+      "bytes": 324,
+      "tiles": 31
+    },
+    {
+      "label": "Pickups, hazards and effect artwork",
+      "bytes": 307,
+      "tiles": 36
+    },
+    {
+      "label": "Environment and door artwork",
+      "bytes": 297,
+      "tiles": 27
+    },
+    {
+      "label": "Enemy artwork",
+      "bytes": 188,
+      "tiles": 13
+    },
+    {
+      "label": "Player and sword artwork",
+      "bytes": 145,
+      "tiles": 24
+    }
+  ]
+}

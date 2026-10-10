@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "units": "native pixels",
+  "origin": "character feet before actor offset",
+  "directions": [
+    "East",
+    "South-east",
+    "South",
+    "South-west",
+    "West",
+    "North-west",
+    "North",
+    "North-east"
+  ],
+  "ready": [
+    {
+      "x": 4,
+      "y": -1,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": 270,
+      "behind": false,
+      "flipX": false,
+      "flipY": false,
+      "frame": 0
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": 135,
+      "behind": false,
+      "flipX": true,
+      "flipY": true,
+      "frame": 0
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": 180,
+      "behind": false,
+      "flipX": false,
+      "flipY": false,
+      "frame": 12
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": -135,
+      "behind": false,
+      "flipX": false,
+      "flipY": true,
+      "frame": 12
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": 270,
+      "behind": false,
+      "flipX": false,
+      "flipY": false,
+      "frame": 6
+    },
+    {
+      "x": 3,
+      "y": -2,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": 0,
+      "behind": false,
+      "flipX": true,
+      "flipY": false,
+      "frame": 6
+    },
+    {
+      "x": -3,
+      "y": -1,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": 270,
+      "behind": true,
+      "flipX": false,
+      "flipY": false,
+      "frame": 18
+    },
+    {
+      "x": -3,
+      "y": -2,
+      "actorX": 0,
+      "actorY": 0,
+      "angle": -45,
+      "behind": true,
+      "flipX": false,
+      "flipY": false,
+      "frame": 18
+    }
+  ]
+}

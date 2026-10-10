@@ -5,6 +5,9 @@ const quantizeColors=require('./quantize-colors.cjs'),releaseLayout=require('./r
 const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const sheet=PNG.sync.read(fs.readFileSync(path.join(root,'assets/source/urizen.png')));
 const spec=JSON.parse(read('assets/selection.json'));
+const doors=JSON.parse(read('assets/generated/door-arches.json'));
+if(doors.length!==2||doors.some(frame=>frame.length!==24||frame.some(row=>!/^([.#]{24})$/.test(row))))throw Error('Door arches must be two 24×24 masks');
+const rings=['large','medium'].map(name=>PNG.sync.read(fs.readFileSync(path.join(root,`assets/generated/ring-${name}.png`))));
 const characterSheet=PNG.sync.read(fs.readFileSync(path.join(root,'assets/generated/104-sheet.png')));
 if(characterSheet.width!==72||characterSheet.height!==48)throw Error('104 sheet must be 6 × 4 tiles');
 const characterBits=Buffer.alloc(25*18);
@@ -13,6 +16,12 @@ for(let t=0;t<24;t++)for(let p=0;p<144;p++){
  const flip=t<12&&(t%6===5?p>=36&&p<84:t%6>2&&p<60),n=((Math.floor(t/6)*12+Math.floor(p/12))*72+(t%6)*12+(flip?11-p%12:p%12))*4;
  if(characterSheet.data[n+3]>127)characterBits[t*18+(p>>3)]|=128>>(p&7);
 }
+for(const {frame,rows} of JSON.parse(read('assets/generated/starter-left-thrust.json'))){characterBits.fill(0,frame*18,(frame+1)*18);for(let p=0;p<144;p++)if(rows[p/12|0][p%12]==='#')characterBits[frame*18+(p>>3)]|=128>>(p&7);}
+const punch=JSON.parse(read('assets/generated/punch.json')),punchBits=Buffer.alloc(18);
+if(punch.length!==12||punch.some(row=>!/^([.#]{12})$/.test(row)))throw Error('Punch must be a 12×12 mask');
+for(let p=0;p<144;p++)if(punch[p/12|0][p%12]==='#')punchBits[p>>3]|=128>>(p&7);
+const smallSprites=JSON.parse(read('assets/generated/small-sprites.json')),smallBits=Buffer.alloc(smallSprites.length*18);
+for(const [i,{rows}]of smallSprites.entries()){if(rows.length>12||rows.some(r=>r.length>12||!/^[.#]+$/.test(r)))throw Error('Invalid native small sprite');for(let y=0;y<rows.length;y++)for(let x=0;x<rows[y].length;x++)if(rows[y][x]==='#'){const p=y*12+x;smallBits[i*18+(p>>3)]|=128>>(p&7);}}
 const death=JSON.parse(read('assets/player-death.json'));
 if(death.length!==12||death.some(r=>!/^[.#]{12}$/.test(r)))throw Error('Death pose must be a 12px binary mask');
 for(let p=0;p<144;p++)if(death[p/12|0][p%12]==='#')characterBits[24*18+(p>>3)]|=128>>(p&7);
@@ -23,6 +32,16 @@ function pack(tiles){
  tiles.forEach((tile,i)=>{
   // A blank pantry slot keeps the six-slot biome stride without carrying art.
   if(tile.blank)return;
+  if(tile.door!==undefined){for(let p=0;p<144;p++)if(doors[tile.door][(tile.part>>1)*12+(p/12|0)][tile.part%2*12+p%12]==='#')bytes[i*18+(p>>3)]|=128>>(p&7);return;}
+  if(tile.ring!==undefined){
+   const image=rings[tile.ring],ratio=image.width/48;
+   for(let p=0;p<144;p++){
+    const left=(tile.part%2*12+p%12)*ratio,top=((tile.part>>1)*12+(p/12|0))*ratio;let coverage=0;
+    for(let y=Math.floor(top);y<Math.ceil(top+ratio);y++)for(let x=Math.floor(left);x<Math.ceil(left+ratio);x++)if(image.data[(y*image.width+x)*4+3]>127)coverage+=(Math.min(x+1,left+ratio)-Math.max(x,left))*(Math.min(y+1,top+ratio)-Math.max(y,top));
+    if(coverage/ratio**2>=.3)bytes[i*18+(p>>3)]|=128>>(p&7);
+   }
+   return;
+  }
   if(!Number.isInteger(tile.x)||!Number.isInteger(tile.y)||tile.x<0||tile.y<0||tile.x*13+13>sheet.width||tile.y*13+13>sheet.height)throw Error('Invalid tile coordinate');
   for(let p=0;p<144;p++){
    const x=1+tile.x*13+p%12,y=1+tile.y*13+Math.floor(p/12),offset=(y*sheet.width+x)*4;
@@ -32,42 +51,50 @@ function pack(tiles){
  });
  return bytes;
 }
-// Six slots per biome, then textures. Unused second slots in water/archive share art.
-// Slots: two wall props, floor prop, hazard, two floor props. The cistern has no wall props or hazards.
-const pantry=[[5,39],[8,39],[7,42],[28,21],[34,25],null, null,null,[4,9],null,[5,10],null, [2,36],[2,36],[16,36],[4,39],[0,39],null, [5,6],[8,6],[10,6],[0,3],[10,3],[1,4]].map(p=>p?{x:p[0],y:p[1]}:{blank:true});
+const pantry=require('./environment-data.cjs').tiles;
 async function build({catalog=contentData.load(),write=true,development=true,sourceOnly=false,diagnostics=false,sourceTransform=s=>s,packingOptions=require('./packing-options.json'),quick=false,packMode='roadroller',functionOrder,spriteEncoder=require('./sprite-data.cjs'),minifier,compressOptions}={}){
-const runtime=['src/room.js','src/actions.js','src/world.js','src/combat.js','src/game.js'].map(read).join('\n');
+const runtime=require('./specialize-weapons.cjs')(['src/room.js','src/actions.js','src/world.js','src/combat.js','src/game.js'].map(read).join('\n'),catalog);
 const developmentSource=read('src/dev.js');
 const usedFields=new Set([...(runtime+'\n'+developmentSource).matchAll(/\b[EW]_[A-Z_]+\b/g)].map(m=>m[0]));
 const content=contentData.compile(catalog,{specialize:true,usedFields});
 content.enemyTiles=require('./order-sprites.cjs')(catalog,content.enemyTiles,pack(content.enemyTiles));
 const {enemyTiles,weaponTiles,armorTiles}=content;
-const bossTiles=[28].flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
-if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,armor:armorTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
+const thrust=catalog.weapons.findIndex(w=>w.type===6),thrustBits=thrust<0?Buffer.alloc(0):require('./thrust-sprite.cjs')(pack([weaponTiles[content.weaponRows[thrust][10]]])),extraPunch=catalog.weapons.some(w=>w.type===5)?punchBits:Buffer.alloc(0),extraCount=(thrustBits.length+extraPunch.length)/18;
+const starterTiles=[{x:38,y:6},{x:31,y:6}],starterBits=Buffer.concat(starterTiles.map(p=>require('./starter-sprite.cjs')(pack([p]))));
+const bossTiles=(catalog.bosses.length?[28]:[]).flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
+if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,starters:starterTiles,armor:armorTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
 const reports={},artifacts={};
-const effects=[[33,10],[87,34],[88,34],[89,34],[90,34]].map(([x,y])=>({x,y}));
+const effects=[[33,10],[87,34],[88,34],[89,34],[90,34],[63,17]].map(([x,y])=>({x,y}));
+const trapBits=Buffer.alloc(2*18);for(const [i,name]of ['spikes-down','trap-closed'].entries()){const rows=JSON.parse(read('assets/generated/'+name+'.json'));if(rows.length!==12||rows.some(r=>!/^[.#]{12}$/.test(r)))throw Error('Invalid trap mask '+name);for(let p=0;p<144;p++)if(rows[p/12|0][p%12]==='#')trapBits[i*18+(p>>3)]|=128>>(p&7);}
 const fireBits=Buffer.alloc(5*18);
 // Two rising rune masks and three asymmetrical, hollow-tongued fire poses.
 const masks=[['............','.....#......','............','..#.....#...','............','.....#......','....###.....','...#####....','..#######...','.#########..','............','............'],['............','..#.....#...','.###...###..','..#.....#...','.....#......','....###.....','.....#......','..#.....#...','.###...###..','..#.....#...','............','............'],['.....#......','.....##.....','....###.....','....##..#...','...###..#...','.#.##..##...','.####.###...','.###..####..','..##.#####..','..#######...','...#####....','....###.....'],['......#.....','.....##.....','.....##.....','..#..###....','..##.###....','..#####.#...','.####..##...','.###..####..','.###.#####..','..#######...','...#####....','....###.....'],['....#.......','....##......','....###.....','.#..###.....','.##..###....','.###.###.#..','..####.###..','..###..###..','.####.####..','..#######...','...#####....','....###.....']];
 for(let i=0;i<5;i++)for(let p=0;p<144;p++)if(masks[i][p/12|0][p%12]==='#')fireBits[i*18+(p>>3)]|=128>>(p&7);
-const ring=[65,66,67,68].map(x=>({x,y:4}));
+const ring=rings.flatMap((image,ring)=>Array.from({length:4},(_,part)=>({ring,part}))).concat([65,66,67,68].map(x=>({x,y:4})));
 // Fallen bodies left where enemies die (column 201 of the sheet).
+const bloodTiles=[[0,25],[2,25],[4,25],[61,17],[5,25],[16,34],[8,42],[18,17],[90,40],[67,16]].map(([x,y])=>({x,y}));
+const doorTiles=Array.from({length:8},(_,n)=>({door:n>>2,part:n%4}));
 const corpses=[0,6,18,26,33].map(y=>({x:201,y}));
 // HIPOCRENE in the sheet's gothic capitals, in title order.
 // A 2×2 sun and moon; the entrance draws one under its ring.
-const sky=[[78,16],[79,16],[78,17],[79,17],[80,16],[81,16],[80,17],[81,17],[13,0]].map(([x,y])=>({x,y}));
+const sky=[[78,16],[79,16],[78,17],[79,17],[80,16],[81,16],[80,17],[81,17],[13,0],[26,13]].map(([x,y])=>({x,y}));
 const title=[[79,48],[80,48],[87,48],[86,48],[99,47],[89,48],[101,47],[85,48],[101,47]].map(([x,y])=>({x,y}));
 for(const dev of development?[true,false]:[false]){
+ const miniatureBits=Buffer.from(smallBits);
+ if(!dev&&require('./specialize-weapons.cjs').eligible(catalog))for(const n of [0,1,2,5,6])miniatureBits.fill(0,n*18,(n+1)*18);
  const enemyColumns=enemyTiles;
  const letters='',font=[];
- const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...corpses,...title,...sky,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,dev?characterBits:Buffer.concat([characterBits.subarray(0,6*18),characterBits.subarray(12*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
+ const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...corpses,...title,...sky,...bloodTiles,...doorTiles,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,trapBits,thrustBits,extraPunch,starterBits,miniatureBits,characterBits.subarray(9*18,10*18),dev?characterBits:Buffer.concat([characterBits.subarray(0,6*18),characterBits.subarray(12*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
  const encodedBitmap=dev?undefined:spriteEncoder(bits),bitText=encodedBitmap?.text??bits.toString('base64');
- const assets=JSON.stringify({bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,corpses:enemies+enemyTiles.length+armorTiles.length+effects.length+4,title:enemies+enemyTiles.length+armorTiles.length+effects.length+9,sky:enemies+enemyTiles.length+armorTiles.length+effects.length+18,ring:tiles.length-font.length-4,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,actor:tiles.length+5});
- if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,ring,font},null,2)+'\n');}
+ const assets=JSON.stringify({entrance:JSON.parse(read('assets/entrance.json')),bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,corpses:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length,title:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+5,sky:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+14,blood:tiles.length-font.length-ring.length-18,doors:tiles.length-font.length-ring.length-8,ring:tiles.length-font.length-ring.length,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,traps:tiles.length+5,thrust:tiles.length+7,thrustCount:thrustBits.length/18,punch:tiles.length+7+thrustBits.length/18,punchCount:extraPunch.length/18,starter:tiles.length+7+extraCount,mini:tiles.length+11+extraCount,actor:tiles.length+12+extraCount+smallSprites.length});
+ if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,doors:doorTiles,ring,font},null,2)+'\n');}
  let template=quantizeColors(read(dev?'src/dev.html':'src/index.html'));
  if(!dev&&diagnostics)template=template.replace('<script>','<aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button><button id="interact"></button></aside><script>');
  const css=template.match(/<style>([\s\S]*?)<\/style>/)[1];
- let candidateSource=quantizeColors(sourceTransform(content.source+require('./landmark-data.cjs')()+content.transform(dev?runtime:require('./specialize-release.cjs')(runtime))));
+ let candidateSource=content.source+content.transform(dev?runtime:require('./specialize-release.cjs')(runtime,{catalog,diagnostics}));
+ if(!dev&&!diagnostics)candidateSource=require('./compact-runtime.cjs')(candidateSource,catalog);
+ candidateSource=quantizeColors(sourceTransform(candidateSource));
+ if(!dev&&!diagnostics)candidateSource=require('./share-release-state.cjs').round(candidateSource);
  if(diagnostics)candidateSource=candidateSource.replaceAll('DEV/*diagnostics*/','true');
  if(encodedBitmap?.loader)candidateSource=candidateSource.replace(/const bits=atob\(assets.bits\);[\s\S]*?\nmakeActor\(\);/,()=>quantizeColors(encodedBitmap.loader)+'\nmakeActor();');
  let program='const assets='+assets+';\n'+(dev?content.transform(developmentSource):'')+'\n'+(dev?candidateSource:sourceOnly?compactSource(candidateSource):releaseLayout(candidateSource,functionOrder));
@@ -78,7 +105,7 @@ for(const dev of development?[true,false]:[false]){
   code=transformSync(program,{minify:true,format:'iife',target:'es2020',define:{DEV:String(dev)}}).code;
   // Standard built-ins are assumed; floating-point order and native Boolean types stay intact.
   // The property allowlist contains game-owned fields only; keep browser API properties out.
-  if(!dev)code=(await require('terser').minify(code,{compress:{passes:3,unsafe:true,unsafe_arrows:true,ecma:2020,...compressOptions},mangle:{nth_identifier:require('./identifier-order.cjs'),properties:{nth_identifier:require('./identifier-order.cjs'),builtins:true,regex:/^(guard|slot|trail|follow|formation|burn|looking|prize|armorCount|armors|effects|warning|flame|motif|song|reward|to|dir|hp|tone|exit|t|letters|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
+  if(!dev)code=(await require('terser').minify(code,{compress:{passes:3,unsafe:true,unsafe_arrows:true,pure_getters:true,ecma:2020,...compressOptions},mangle:{nth_identifier:require('./identifier-order.cjs'),properties:{nth_identifier:require('./identifier-order.cjs'),builtins:true,regex:/^(dx|dy|texture|mini|starter|punch|rx|ry|exposure|blood|traps|look|floorTile|wall|hazard|guard|slot|trail|follow|formation|burn|looking|prize|armorCount|armors|effects|warning|flame|motif|song|reward|to|dir|hp|tone|exit|t|letters|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
  }
  const shell=template.replace(css,()=>transformSync(css,{loader:'css',minify:true}).code.trim()),render=js=>shell.replace('__CODE__',()=>js);
  let html=Buffer.from(render(code)),encoding='utf-8';

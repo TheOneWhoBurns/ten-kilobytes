@@ -1,0 +1,20 @@
+{
+  "id": "skull",
+  "attack": {
+    "mode": "ring"
+  },
+  "art": {
+    "base": 0,
+    "variants": 1
+  },
+  "drop": [
+    "needle",
+    "fang",
+    "nunchucks",
+    "spin",
+    "double",
+    "thrust",
+    "heavy",
+    "magic"
+  ]
+}

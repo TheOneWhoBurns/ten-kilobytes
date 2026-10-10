@@ -1,0 +1,34 @@
+{
+  "before_bytes": 11521,
+  "after_chosen_cuts_bytes": 10909,
+  "after_compact_rings_bytes": 10819,
+  "saved_bytes": 702,
+  "remaining_to_10000": 819,
+  "chosen_plan": "docs/chosen-cuts-20261009.json",
+  "removed": {
+    "props": 33,
+    "floors": 9,
+    "walls": 8
+  },
+  "retained": {
+    "props": 17,
+    "floors": 13,
+    "walls": 6,
+    "enemy_sprites": 30,
+    "blood_sprites": 10
+  },
+  "room_zero": {
+    "large_ring_source": 96,
+    "medium_ring_source": 72,
+    "both_runtime_masks": 48,
+    "changes": "Area-coverage downsampling at build time, preserving quadrant symmetry and on-screen size; original source images retained. Ring assembly uses four quarter tiles per generated ring instead of sixteen/nine.",
+    "unchanged": "Original inner ring, sun/moon artwork, title, layout, palette, gameplay and controls"
+  },
+  "validation": [
+    "npm test passed",
+    "All 50 selected coordinates absent from the active environment pools",
+    "Dev and final standalone inspected in browser; no console errors",
+    "Planner updated to remaining assets and current file size"
+  ],
+  "release_sha256": "196ab76f3b234d0cb234930b82862059c5720cb082d9788f8a1ad1a0f19ba2f7"
+}
