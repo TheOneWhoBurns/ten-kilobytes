@@ -33,5 +33,46 @@
     "Current-source packed pixel/audio equality passed.",
     "Actual dev-game rendering inspected."
   ],
-  "harness_fix": "Combat harness clears generated loot along with its synthetic room terrain and enemies, preventing incidental uranium deaths during pathfinding checks."
+  "harness_fix": "Combat harness clears generated loot along with its synthetic room terrain and enemies, preventing incidental uranium deaths during pathfinding checks.",
+  "followup_probes": {
+    "checkpoint": "557945b",
+    "quick_baseline_bytes": 9363,
+    "retained": false,
+    "results": [
+      {
+        "change": "Share an active canvas context across tile, quad and transform helpers",
+        "quick_bytes": 9363
+      },
+      {
+        "change": "Build graph doors directly into final room objects",
+        "quick_bytes": 9364
+      },
+      {
+        "change": "Breadth-first hazard growth instead of random frontier selection",
+        "quick_bytes": 9357,
+        "rejected_reason": "Only six bytes; makes hazard patches more regular."
+      },
+      {
+        "change": "Unroll four-corner collision into bitwise cell checks",
+        "quick_bytes": 9371
+      },
+      {
+        "change": "Hoist collision bounds outside corner loops",
+        "quick_bytes": 9368
+      },
+      {
+        "change": "Construct doors through the shared tile-point helper",
+        "quick_bytes": 9362
+      },
+      {
+        "change": "Use the same fourth-power brush for the central clearing",
+        "quick_bytes": 9363
+      },
+      {
+        "change": "Flatten doorway carving into a nine-cell loop",
+        "quick_bytes": 9362
+      }
+    ],
+    "note": "Write-free complete-file probes. One-byte differences were not retained; no playable changes after this checkpoint."
+  }
 }
