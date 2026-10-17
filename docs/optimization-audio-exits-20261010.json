@@ -1,0 +1,2218 @@
+{
+  "date": "2026-10-10",
+  "scope": "Lossless complete-file optimization with all current content retained",
+  "before": {
+    "standalone": 10532,
+    "itchExtracted": 12113,
+    "itchZip": 11837
+  },
+  "after": {
+    "standalone": 10511,
+    "itchExtracted": 11058,
+    "itchZip": 11229
+  },
+  "saved": {
+    "standalone": 21,
+    "itchExtracted": 1055
+  },
+  "sha256": "83ab8512968e9673f9fc31304c3b3d5f057559f09113e306e76ccf213d8cb6ba",
+  "retained": [
+    "Embed automatic leaderboard submission in the compressed itch game; remove the iframe, message bridge and second loader document.",
+    "Trim exit descriptor fields that equal renderer defaults.",
+    "Resolve sound waveform selectors at build time instead of looking them up again at runtime.",
+    "Write the fixed six-room adjacency array directly."
+  ],
+  "validation": [
+    "Full npm test passed.",
+    "Seven seeds × 600 consecutive frames exactly match starting-build pixels, atlas and scheduled audio.",
+    "Embedded itch game matches standalone pixels and scheduled audio.",
+    "Packed itch system check: two-file archive, automatic death submission, stable browser name, restart and pending-run token isolation.",
+    "Real browser: direct loader, Room Zero, movement and attack; no console errors."
+  ],
+  "measuredProbeCount": 159,
+  "results": {
+    "probes.json": [
+      {
+        "name": "baseline",
+        "bytes": 10535,
+        "source": 25725
+      },
+      {
+        "name": "shared_alive",
+        "bytes": 10533,
+        "source": 25674
+      },
+      {
+        "name": "shared_angle",
+        "bytes": 10535,
+        "source": 25725
+      },
+      {
+        "name": "direct_sound_waves",
+        "bytes": 10527,
+        "source": 25716
+      },
+      {
+        "name": "integer_sound",
+        "bytes": 10534,
+        "source": 25693
+      },
+      {
+        "name": "no_optional_audio",
+        "bytes": 10526,
+        "source": 25721
+      },
+      {
+        "name": "grouped_sound_loop",
+        "bytes": 10537,
+        "source": 25729
+      },
+      {
+        "name": "shared_distance",
+        "bytes": 10539,
+        "source": 25738
+      },
+      {
+        "name": "inline_health",
+        "bytes": 10532,
+        "source": 25721
+      },
+      {
+        "name": "constants_arrays",
+        "bytes": 10526,
+        "source": 25715
+      },
+      {
+        "name": "common_tilepoint",
+        "bytes": 10540,
+        "source": 25749
+      }
+    ],
+    "packing-probes.json": [
+      {
+        "name": "baseline",
+        "patch": {},
+        "bytes": 10535
+      },
+      {
+        "name": "precision14",
+        "patch": {
+          "precision": 14
+        },
+        "bytes": 10534
+      },
+      {
+        "name": "precision15",
+        "patch": {
+          "precision": 15
+        },
+        "bytes": 10532
+      },
+      {
+        "name": "precision16",
+        "patch": {
+          "precision": 16
+        },
+        "bytes": 10530
+      },
+      {
+        "name": "precision18",
+        "patch": {
+          "precision": 18
+        },
+        "bytes": 10538
+      },
+      {
+        "name": "count2",
+        "patch": {
+          "modelMaxCount": 2
+        },
+        "bytes": 10592
+      },
+      {
+        "name": "count3",
+        "patch": {
+          "modelMaxCount": 3
+        },
+        "bytes": 10533
+      },
+      {
+        "name": "count5",
+        "patch": {
+          "modelMaxCount": 5
+        },
+        "bytes": 10539
+      },
+      {
+        "name": "count6",
+        "patch": {
+          "modelMaxCount": 6
+        },
+        "bytes": 10552
+      },
+      {
+        "name": "learning1000",
+        "patch": {
+          "recipLearningRate": 1000
+        },
+        "bytes": 10555
+      },
+      {
+        "name": "learning1500",
+        "patch": {
+          "recipLearningRate": 1500
+        },
+        "bytes": 10540
+      },
+      {
+        "name": "learning2500",
+        "patch": {
+          "recipLearningRate": 2500
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "learning3000",
+        "patch": {
+          "recipLearningRate": 3000
+        },
+        "bytes": 10534
+      },
+      {
+        "name": "abbreviations0",
+        "patch": {
+          "numAbbreviations": 0
+        },
+        "bytes": 10548
+      },
+      {
+        "name": "abbreviations8",
+        "patch": {
+          "numAbbreviations": 8
+        },
+        "bytes": 10532
+      },
+      {
+        "name": "abbreviations24",
+        "patch": {
+          "numAbbreviations": 24
+        },
+        "bytes": 10549
+      },
+      {
+        "name": "abbreviations32",
+        "patch": {
+          "numAbbreviations": 32
+        },
+        "bytes": 10572
+      },
+      {
+        "name": "recipbase16",
+        "patch": {
+          "modelRecipBaseCount": 16
+        },
+        "bytes": 10533
+      },
+      {
+        "name": "recipbase32",
+        "patch": {
+          "modelRecipBaseCount": 32
+        },
+        "bytes": 10529
+      },
+      {
+        "name": "recipbase48",
+        "patch": {
+          "modelRecipBaseCount": 48
+        },
+        "bytes": 10538
+      }
+    ],
+    "context-probes.json": [
+      {
+        "name": "baseline",
+        "bytes": 10535,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:0",
+        "bytes": 10647,
+        "selectors": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:1",
+        "bytes": 10913,
+        "selectors": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:2",
+        "bytes": 10580,
+        "selectors": [
+          0,
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:3",
+        "bytes": 10669,
+        "selectors": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:4",
+        "bytes": 10531,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:5",
+        "bytes": 10556,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:6",
+        "bytes": 10542,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:7",
+        "bytes": 10535,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          8,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:8",
+        "bytes": 10529,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:10",
+        "bytes": 10540,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:11",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:12",
+        "bytes": 10530,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:13",
+        "bytes": 10545,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:17",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:21",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:27",
+        "bytes": 10539,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:42",
+        "bytes": 10556,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:8388608",
+        "bytes": 10535,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:8388609",
+        "bytes": 10530,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8390656
+        ]
+      },
+      {
+        "name": "drop0:8390656",
+        "bytes": 10532,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609
+        ]
+      },
+      {
+        "name": "add0:15",
+        "bytes": 10528,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:16",
+        "bytes": 10536,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          16,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:23",
+        "bytes": 10532,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          23,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:31",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          31,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:63",
+        "bytes": 10532,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          63,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:127",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          127,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:255",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          255,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:511",
+        "bytes": 10538,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          511,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:1023",
+        "bytes": 10541,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          1023,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:8388610",
+        "bytes": 10531,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8388610,
+          8390656
+        ]
+      },
+      {
+        "name": "add0:8392704",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656,
+          8392704
+        ]
+      },
+      {
+        "name": "drop1:0",
+        "bytes": 10669,
+        "selectors": [
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:1",
+        "bytes": 10919,
+        "selectors": [
+          0,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:2",
+        "bytes": 10576,
+        "selectors": [
+          0,
+          1,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:3",
+        "bytes": 10666,
+        "selectors": [
+          0,
+          1,
+          2,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:5",
+        "bytes": 10550,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:6",
+        "bytes": 10538,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:7",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:10",
+        "bytes": 10539,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:11",
+        "bytes": 10535,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:12",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:13",
+        "bytes": 10539,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:15",
+        "bytes": 10529,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:17",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:21",
+        "bytes": 10538,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:27",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:42",
+        "bytes": 10558,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:8388608",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:8388609",
+        "bytes": 10535,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8390656
+        ]
+      },
+      {
+        "name": "drop1:8390656",
+        "bytes": 10532,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609
+        ]
+      },
+      {
+        "name": "add1:16",
+        "bytes": 10536,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          16,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:23",
+        "bytes": 10532,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          23,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:31",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          31,
+          42,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:63",
+        "bytes": 10532,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          63,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:127",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          127,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:255",
+        "bytes": 10537,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          255,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:511",
+        "bytes": 10538,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          511,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:1023",
+        "bytes": 10541,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          1023,
+          8388608,
+          8388609,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:8388610",
+        "bytes": 10531,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8388610,
+          8390656
+        ]
+      },
+      {
+        "name": "add1:8392704",
+        "bytes": 10534,
+        "selectors": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          13,
+          15,
+          17,
+          21,
+          27,
+          42,
+          8388608,
+          8388609,
+          8390656,
+          8392704
+        ]
+      }
+    ],
+    "minifier-probes.json": [
+      {
+        "name": "passes10",
+        "options": {
+          "passes": 10
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "inline0",
+        "options": {
+          "inline": 0
+        },
+        "bytes": 10544
+      },
+      {
+        "name": "inline1",
+        "options": {
+          "inline": 1
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "inline2",
+        "options": {
+          "inline": 2
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "hoist_vars",
+        "options": {
+          "hoist_vars": true
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "hoist_funs",
+        "options": {
+          "hoist_funs": true
+        },
+        "bytes": 10642
+      },
+      {
+        "name": "hoist_props_off",
+        "options": {
+          "hoist_props": false
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "unsafe_methods",
+        "options": {
+          "unsafe_methods": true
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "reduce_funcs_off",
+        "options": {
+          "reduce_funcs": false
+        },
+        "bytes": 10570
+      },
+      {
+        "name": "collapse_off",
+        "options": {
+          "collapse_vars": false
+        },
+        "bytes": 10549
+      },
+      {
+        "name": "reduce_vars_off",
+        "options": {
+          "reduce_vars": false
+        },
+        "bytes": 10945
+      },
+      {
+        "name": "defaults_off",
+        "options": {
+          "defaults": false,
+          "dead_code": true,
+          "evaluate": true,
+          "conditionals": true,
+          "booleans": true,
+          "side_effects": true,
+          "unused": true
+        },
+        "bytes": 10955
+      },
+      {
+        "name": "toplevel",
+        "options": {
+          "toplevel": true
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "sequence20",
+        "options": {
+          "sequences": 20
+        },
+        "bytes": 10535
+      },
+      {
+        "name": "sequence0",
+        "options": {
+          "sequences": false
+        },
+        "bytes": 10557
+      },
+      {
+        "name": "unsafe_math",
+        "options": {
+          "unsafe_math": true
+        },
+        "bytes": 10533
+      }
+    ],
+    "name-probes.json": [
+      {
+        "name": "rotate1",
+        "alphabet": "BCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$_A",
+        "bytes": 10535
+      },
+      {
+        "name": "rotate3",
+        "alphabet": "DEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$_ABC",
+        "bytes": 10543
+      },
+      {
+        "name": "rotate7",
+        "alphabet": "HIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$_ABCDEFG",
+        "bytes": 10550
+      },
+      {
+        "name": "rotate11",
+        "alphabet": "LMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$_ABCDEFGHIJK",
+        "bytes": 10553
+      },
+      {
+        "name": "rotate17",
+        "alphabet": "RSTUVWXYZabcdefghijklmnopqrstuvwxyz$_ABCDEFGHIJKLMNOPQ",
+        "bytes": 10546
+      },
+      {
+        "name": "rotate23",
+        "alphabet": "XYZabcdefghijklmnopqrstuvwxyz$_ABCDEFGHIJKLMNOPQRSTUVW",
+        "bytes": 10565
+      },
+      {
+        "name": "rotate26",
+        "alphabet": "abcdefghijklmnopqrstuvwxyz$_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "bytes": 10577
+      },
+      {
+        "name": "rotate31",
+        "alphabet": "fghijklmnopqrstuvwxyz$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcde",
+        "bytes": 10564
+      },
+      {
+        "name": "rotate37",
+        "alphabet": "lmnopqrstuvwxyz$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk",
+        "bytes": 10570
+      },
+      {
+        "name": "rotate43",
+        "alphabet": "rstuvwxyz$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq",
+        "bytes": 10566
+      },
+      {
+        "name": "rotate49",
+        "alphabet": "xyz$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw",
+        "bytes": 10573
+      },
+      {
+        "name": "frequency",
+        "alphabet": "etaoinsrhdlucmfywgpbvkxqjzETAOINSRHDLUCMFYWGPBVKXQJZ$_",
+        "bytes": 10607
+      },
+      {
+        "name": "reverse",
+        "alphabet": "_$zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA",
+        "bytes": 10590
+      }
+    ],
+    "layout-probes.json": [
+      {
+        "name": "sound-musicTick",
+        "bytes": 10527
+      },
+      {
+        "name": "sound-tone",
+        "bytes": 10522
+      },
+      {
+        "name": "sound-frame",
+        "bytes": 10526
+      },
+      {
+        "name": "sound-hitEnemy",
+        "bytes": 10523
+      },
+      {
+        "name": "sound-makeLevel",
+        "bytes": 10525
+      },
+      {
+        "name": "quad-musicTick",
+        "bytes": 10524
+      },
+      {
+        "name": "quad-tone",
+        "bytes": 10526
+      },
+      {
+        "name": "quad-frame",
+        "bytes": 10525
+      },
+      {
+        "name": "quad-hitEnemy",
+        "bytes": 10524
+      },
+      {
+        "name": "quad-makeLevel",
+        "bytes": 10527
+      },
+      {
+        "name": "alphabetical",
+        "bytes": 10554
+      },
+      {
+        "name": "size-desc",
+        "bytes": 10543
+      },
+      {
+        "name": "size-asc",
+        "bytes": 10535
+      }
+    ],
+    "combination-probes.json": [
+      {
+        "flags": 0,
+        "layout": false,
+        "bytes": 10526
+      },
+      {
+        "flags": 0,
+        "layout": true,
+        "bytes": 10522
+      },
+      {
+        "flags": 1,
+        "layout": false,
+        "bytes": 10519
+      },
+      {
+        "flags": 1,
+        "layout": true,
+        "bytes": 10519
+      },
+      {
+        "flags": 2,
+        "layout": false,
+        "bytes": 10520
+      },
+      {
+        "flags": 2,
+        "layout": true,
+        "bytes": 10520
+      },
+      {
+        "flags": 3,
+        "layout": false,
+        "bytes": 10514
+      },
+      {
+        "flags": 3,
+        "layout": true,
+        "bytes": 10515
+      }
+    ],
+    "final-packing-probes.json": [
+      {
+        "name": "baseline",
+        "bytes": 10514,
+        "packingOptions": {
+          "sparseSelectors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            17,
+            21,
+            27,
+            42,
+            8388608,
+            8388609,
+            8390656
+          ],
+          "maxMemoryMB": 10,
+          "contextBits": 24,
+          "sparseModel": true,
+          "precision": 17,
+          "modelMaxCount": 4,
+          "modelRecipBaseCount": 24,
+          "recipLearningRate": 2000,
+          "numAbbreviations": 16,
+          "dynamicModels": 1
+        }
+      },
+      {
+        "name": "precision16",
+        "bytes": 10515,
+        "packingOptions": {
+          "sparseSelectors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            17,
+            21,
+            27,
+            42,
+            8388608,
+            8388609,
+            8390656
+          ],
+          "maxMemoryMB": 10,
+          "contextBits": 24,
+          "sparseModel": true,
+          "precision": 16,
+          "modelMaxCount": 4,
+          "modelRecipBaseCount": 24,
+          "recipLearningRate": 2000,
+          "numAbbreviations": 16,
+          "dynamicModels": 1
+        }
+      },
+      {
+        "name": "recipbase32",
+        "bytes": 10514,
+        "packingOptions": {
+          "sparseSelectors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            17,
+            21,
+            27,
+            42,
+            8388608,
+            8388609,
+            8390656
+          ],
+          "maxMemoryMB": 10,
+          "contextBits": 24,
+          "sparseModel": true,
+          "precision": 17,
+          "modelMaxCount": 4,
+          "modelRecipBaseCount": 32,
+          "recipLearningRate": 2000,
+          "numAbbreviations": 16,
+          "dynamicModels": 1
+        }
+      },
+      {
+        "name": "abbreviations8",
+        "bytes": 10514,
+        "packingOptions": {
+          "sparseSelectors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            17,
+            21,
+            27,
+            42,
+            8388608,
+            8388609,
+            8390656
+          ],
+          "maxMemoryMB": 10,
+          "contextBits": 24,
+          "sparseModel": true,
+          "precision": 17,
+          "modelMaxCount": 4,
+          "modelRecipBaseCount": 24,
+          "recipLearningRate": 2000,
+          "numAbbreviations": 8,
+          "dynamicModels": 1
+        }
+      },
+      {
+        "name": "context",
+        "bytes": 10518,
+        "packingOptions": {
+          "sparseSelectors": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            10,
+            11,
+            12,
+            13,
+            15,
+            17,
+            21,
+            27,
+            42,
+            8388608,
+            8388609,
+            8390656
+          ],
+          "maxMemoryMB": 10,
+          "contextBits": 24,
+          "sparseModel": true,
+          "precision": 16,
+          "modelMaxCount": 4,
+          "modelRecipBaseCount": 32,
+          "recipLearningRate": 2000,
+          "numAbbreviations": 16,
+          "dynamicModels": 1
+        }
+      }
+    ]
+  },
+  "rejected": [
+    "Alternate exit bitfields/string encodings had no useful complete-file advantage.",
+    "Sound table dictionaries, integer scaling, flattened/default-filled rows did not beat the retained table.",
+    "Enemy recipe flattening, shared distance/angle helpers, array keyboard state and arithmetic rewrites gave no worthwhile gain.",
+    "Alternative identifier alphabets, minifier passes/options, packing precisions, context subsets and learning parameters did not beat the retained combined build.",
+    "Native Deflate-only game was 12,080 bytes.",
+    "Native Brotli requires missing Chromium support; not adopted."
+  ],
+  "limitations": [
+    "The standalone game remains 511 bytes over 10,000.",
+    "The complete itch upload remains 1,058 bytes over 10,000.",
+    "Most savings are hosting integration overhead, not gameplay engine code.",
+    "No game upload, Git commit or push performed in this optimization round."
+  ]
+}

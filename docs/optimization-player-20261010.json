@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-10",
+  "before": 10511,
+  "after": 10449,
+  "saved": 62,
+  "remainingTo10000": 449,
+  "itch": {
+    "game": 10839,
+    "loader": 157,
+    "total": 10996,
+    "zip": 11168
+  },
+  "changes": [
+    "Remove three unused legacy attack frames and five empty miniature atlas slots.",
+    "Bake three mirrored player masks during the build, removing runtime mirroring and its frame-selection branches.",
+    "Use four-column player frames and direct directional lookup.",
+    "Limit atlas palette metadata to actual tiles."
+  ],
+  "retained": {
+    "enemies": 9,
+    "bosses": 6,
+    "weapon": 1,
+    "enemySprites": 23,
+    "pantryTiles": 14
+  },
+  "atlas": {
+    "before": 164,
+    "after": 159,
+    "rawBytesSaved": 90
+  },
+  "validation": {
+    "fullExistingSuite": "passed",
+    "itchLifecycle": "passed",
+    "baselineFrames": [
+      {
+        "seed": 1,
+        "frames": 600,
+        "exactFrames": 600,
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "audioIdentical": true
+      },
+      {
+        "seed": 2,
+        "frames": 600,
+        "exactFrames": 600,
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "audioIdentical": true
+      },
+      {
+        "seed": 7,
+        "frames": 600,
+        "exactFrames": 600,
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "audioIdentical": true
+      },
+      {
+        "seed": 19,
+        "frames": 600,
+        "exactFrames": 600,
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "audioIdentical": true
+      },
+      {
+        "seed": 83,
+        "frames": 600,
+        "exactFrames": 600,
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "audioIdentical": true
+      },
+      {
+        "seed": 104,
+        "frames": 600,
+        "exactFrames": 583,
+        "maxChannelDelta": 1,
+        "changedPixels": 208,
+        "audioIdentical": true
+      },
+      {
+        "seed": 2026,
+        "frames": 600,
+        "exactFrames": 600,
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "audioIdentical": true
+      }
+    ],
+    "visualDifference": "208 pixel occurrences across 17 of 4200 frames differ by at most 1/255 in RGB during left-facing damage flashing; alpha and geometry match. Pre-mirroring changes Canvas opacity rounding. Audio traces match exactly for all seven seeds."
+  },
+  "rejected": [
+    "Blanking unused player frames alone only saved 10 quick-build bytes.",
+    "Runtime packed mirroring was smaller than baseline but 8 bytes larger than baked mirroring.",
+    "Deduplicating the identical upward idle/thrust mask did not improve the final packed file.",
+    "Alternative packing parameters did not improve the retained build."
+  ],
+  "snapshot": "dev/snapshots/optimization-player-20261010"
+}

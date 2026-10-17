@@ -4,7 +4,7 @@ process.chdir(path.resolve(__dirname,'..'));
 const spriteFile=require.resolve('./sprite-data.cjs'),encode=require(spriteFile),build=require('./build.cjs');
 let masked=[];
 const usage=JSON.parse(fs.readFileSync('assets/catalog/runtime-selection.json')),groups=[];let offset=0;
-for(const [name,count] of [['environment',usage.pantry.length],['weapons',usage.weapons.length],['enemies',usage.enemyTiles.length],['armor',usage.armor.length],['effects',6],['boss',usage.bossTiles.length],['corpses',5],['title',9],['astral',10],['blood',10],['doors',8],['ring',usage.ring.length],['legend',usage.font.length],['spell_art',5],['traps',2],['starter_swords',4],['small_icons',7],['player',20]]){groups.push({name,start:offset,count,raw_bytes:count*18});offset+=count;}
+for(const [name,count] of [['environment',usage.pantry.length],['weapons',usage.weapons.length],['enemies',usage.enemyTiles.length],['armor',usage.armor.length],['effects',6],['boss',usage.bossTiles.length],['corpses',5],['title',9],['astral',10],['blood',10],['doors',8],['ring',usage.ring.length],['legend',usage.font.length],['spell_art',5],['traps',2],['starter_swords',4],['small_icons',7],['player',17]]){groups.push({name,start:offset,count,raw_bytes:count*18});offset+=count;}
 require.cache[spriteFile].exports=bits=>{assert.equal(bits.length,offset*18);const copy=Buffer.from(bits);for(const name of masked){const g=groups.find(g=>g.name===name);assert(g);copy.fill(0,g.start*18,(g.start+g.count)*18);}return encode(copy);};
 function blank(source,names){const nodes=acorn.parse(source,{ecmaVersion:2020}).body.filter(n=>n.type==='FunctionDeclaration'&&names.includes(n.id.name));assert.equal(nodes.length,names.length,'all measured functions found');for(const n of nodes.reverse())source=source.slice(0,n.body.start)+'{}'+source.slice(n.body.end);return source;}
 function cut(source,start,end){const a=source.indexOf(start),b=source.indexOf(end,a+start.length);assert(a>=0&&b>a,'measurement markers found: '+start);return source.slice(0,a)+source.slice(b);}
@@ -25,7 +25,7 @@ const cases=[
  ['landmarks','Exit landmarks and visible room-door drawing',s=>blank(s,['drawGate'])],
  ['player_render','Player pose selection, rendering and punch effect',s=>blank(s,['drawActor','drawPlayerFrame','actorDirection','actionFrame'])],
  ['enemy_render','Enemy/boss rendering, squash/bob animation and boss health bar',enemyArt],
- ['movement','Shared movement integration and tile collision',s=>blank(s,['movePlayer','canFit','moveHero','movementFactor'])],
+ ['movement','Shared movement integration and tile collision',s=>blank(s,['movePlayer','canFit','moveHero'])],
  ['entrance','Room Zero route, labels and stair/ring painting, including its exclusive art',entrance,['ring','title','astral']],
  ['hazards','Environmental hazards, radiation exposure, carried uranium and fire clearing',s=>blank(s,['tickHazards','hazardAt','extinguish'])],
  ['sprites','All sprite bitmap content; keeps decoder and atlas dimensions',s=>s,groups.map(g=>g.name)]

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "game": "Hipocrene",
+  "cuts": [
+    {
+      "id": "floors:5,6",
+      "group": "floors",
+      "coordinate": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "floors:58,1",
+      "group": "floors",
+      "coordinate": [
+        58,
+        1
+      ]
+    },
+    {
+      "id": "props:19,33",
+      "group": "props",
+      "coordinate": [
+        19,
+        33
+      ]
+    },
+    {
+      "id": "props:20,33",
+      "group": "props",
+      "coordinate": [
+        20,
+        33
+      ]
+    },
+    {
+      "id": "effects:87,34",
+      "group": "effects",
+      "coordinate": [
+        87,
+        34
+      ]
+    }
+  ]
+}

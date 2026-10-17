@@ -2,19 +2,20 @@ const assert=require('assert/strict'),boot=require('./combat-harness.cjs'),fs=re
 for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  const g=boot(specialize,release,require('./content-examples.cjs').weapons(data.load())),id=g.ids;
  // Contact-independent movement, committed charges, formations and path following.
+ for(const name of ['swarm','conga','charge','horse','mage','medusa','arrow-fan']){g.init();g.clock(1);const distant=g.enemy(id[name],5.5,10.5);g.tick(20);assert(Math.hypot(distant.x-5.5,distant.y-10.5)<=.51,name+' approaches at no more than 2.5 tiles/s while distant');}
  g.init();let e=g.enemy(id.swarm,5.5,10.5);g.tick(50);assert(Math.abs(e.x-6.125)<.03,'swarm walks slowly toward player');
- for(const [name,speed] of [['horse',12]]){g.init();e=g.enemy(id[name],5.5,10.5);g.tick(10);assert(Math.abs(e.x-5.5-speed*.1)<.03,'horse charges immediately at specified speed');g.position(15.5,15.5);const y=e.y;g.tick(10);assert.equal(e.y,y,'horse does not steer during straight charge');}
+ g.init();e=g.enemy(id.horse,5.5,10.5);g.tick(100);assert(Math.abs(e.x-8)<.03,'distant horse approaches at 2.5 tiles per second');assert.equal(e.phase,0);g.position(e.x+3.5,e.y);const chargeX=e.x;g.tick(10);assert.equal(e.phase,2);assert(Math.abs(e.x-chargeX-1)<.04,'nearby horse charges at 10 tiles per second');g.position(15.5,15.5);const chargeY=e.y;g.tick(10);assert.equal(e.y,chargeY,'horse commits to its straight charge');g.tick(35);assert.equal(e.phase,0,'horse finishes its short charge and returns to walking');const slowX=e.x,slowY=e.y;g.tick(50);assert.equal(e.phase,0,'horse walks through its cooldown');assert(Math.hypot(e.x-slowX,e.y-slowY)<1.3);g.position(e.x+3.5,e.y);g.tick(70);assert.equal(e.phase,2,'nearby horse can charge again after its slow interval');
  g.init();const swarm=[g.enemy(id.swarm,5.5,10.5),g.enemy(id.swarm,5.5,10.5),g.enemy(id.swarm,5.5,10.5)];g.tick(100);assert(Math.max(...swarm.map(e=>e.x))-Math.min(...swarm.map(e=>e.x))>.2,'swarm separates after bunching');
- g.init();e=g.enemy(id.charge,6.5,10.5);g.tick(1);assert.equal(e.phase,1);const x=e.x;g.tick(20);assert.equal(e.x,x,'charge keeps windup');
- for(const name of ['horse','charge']){g.init();g.wall(7,10);e=g.enemy(id[name],6.7,10.5,{phase:2,angle:0,wait:1});g.tick(2);assert.equal(e.phase,3,name+' enters shared recovery after hitting a wall');const stopped=e.x;g.tick(20);assert.equal(e.x,stopped,name+' stays stopped during recovery');}
- g.init();g.clock(1);const a=g.enemy(id.conga,8.5,10.5,{trail:[{x:8.5,y:10.5}]}),b=g.enemy(id.conga,7.5,10.5,{follow:a,trail:[{x:7.5,y:10.5}]});g.tick(30);assert(Math.abs(a.x-10.9)<.04,'conga leader moves at 8, below player speed');assert(a.x-b.x>.75&&a.x-b.x<1.15,'follower retains line spacing');a.hp=0;const bx=b.x;g.tick(10);assert(b.x>bx,'dead leader does not stall conga');assert(b.trail.length<=64);
- g.init();for(let y=10;y<20;y++)g.wall(10,y);const leader=g.enemy(id.conga,9.5,11.5,{trail:[],form:0}),follower=g.enemy(id.conga,9.5,12.5,{follow:leader,trail:[]});g.position(15.5,11.5);g.tick(90);assert(follower.x>10.5,'follower follows the traversed bend around a wall');
+ g.init();e=g.enemy(id.charge,10.5,10.5);g.tick(1);assert.equal(e.phase,1);const x=e.x;g.tick(20);assert.equal(e.x,x,'charge keeps windup');
+ for(const name of ['horse','charge']){g.init();g.wall(7,10);e=g.enemy(id[name],6.7,10.5,{phase:2,angle:0,wait:1});g.tick(2);assert.equal(e.phase,3,name+' enters shared recovery after hitting a wall');const stopped=e.x;g.tick(20);if(name==='horse')assert.equal(e.phase,0,'horse resumes approach after its brief recovery');else assert.equal(e.x,stopped,'charge stays stopped during recovery');}
+ g.init();g.position(13.5,10.5);g.clock(1);const a=g.enemy(id.conga,8.5,10.5,{trail:[{x:8.5,y:10.5}]}),b=g.enemy(id.conga,7.5,10.5,{follow:a,trail:[{x:7.5,y:10.5}]});g.tick(30);assert(Math.abs(a.x-10.6)<.04,'conga leader moves at 7, below player speed');assert(a.x-b.x>.75&&a.x-b.x<1.15,'follower retains line spacing');a.hp=0;const bx=b.x;g.tick(10);assert(b.x>bx,'dead leader does not stall conga');assert(b.trail.length<=64);
+ g.init();for(let y=10;y<20;y++)g.wall(10,y);const leader=g.enemy(id.conga,9.5,11.5,{trail:[],form:0}),follower=g.enemy(id.conga,9.5,12.5,{follow:leader,trail:[]});g.position(15.5,11.5);g.tick(220);assert(follower.x>10.5,'follower follows the traversed bend around a wall');
 
  g.init();g.clock(0);g.position(28.5,10.5);
  const dancers=Array.from({length:3},()=>g.enemy(id.conga,4.5,10.5,{trail:[]}));for(let i=1;i<3;i++)dancers[i].follow=dancers[i-1];
  g.tick(10);assert(dancers[0].x>4.5);assert.equal(dancers[1].x,4.5);assert.equal(dancers[2].x,4.5);
- g.tick(10);assert(dancers[1].x>4.5);assert.equal(dancers[2].x,4.5,'each follower has its own start lag');
- g.tick(30);assert(dancers[2].x>4.5);assert(dancers[0].x-dancers[1].x>.8&&dancers[1].x-dancers[2].x>.8,'bunched conga spreads back into a line');
+ g.tick(30);assert(dancers[1].x>4.5);assert.equal(dancers[2].x,4.5,'each follower has its own start lag');
+ g.tick(70);assert(dancers[2].x>4.5);assert(dancers[0].x-dancers[1].x>.8&&dancers[1].x-dancers[2].x>.8,'bunched conga spreads back into a line');
  g.clock(3.5);const stopped=dancers.map(e=>e.x);g.tick(10);assert.deepEqual(dancers.map(e=>e.x),stopped,'all followers have a full rest window');
  g.clock(4);g.tick(10);assert(dancers[0].x>stopped[0]);assert.equal(dancers[1].x,stopped[1],'follower lag repeats each cycle');
  for(const name of ['swarm','conga','charge','horse','mage','medusa','arrow-fan']){
@@ -39,7 +40,7 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  const signatures=new Set();for(const shape of [0,1,4,5]){g.init();g.cast({x:6.5,y:10.5},0,shape);const f=g.state.fields[0];assert(f.cells.size>0);signatures.add([...f.cells.keys()].sort().join(','));for(const [n]of f.cells)assert(n>=0&&n<31*21&&g.state.room.cells[n]===1);f.age=f.burn-.3;assert(g.frameSprites().every(n=>n===338),'bright warning');f.age=f.burn-.1;assert.equal(g.frameSprites().length,0,'blank beat before fire');f.age=f.burn+.1;assert(g.frameSprites().every(n=>n>=339&&n<=341),'generated animated fire');}assert.equal(signatures.size,4,'four distinct spell geometries');
  g.init();g.cast(g.state.player,0,5);g.combat(79);assert.equal(g.state.health,20,'warning does not hurt');g.combat(2);assert.equal(g.state.health,19,'burn damages');g.combat(100);assert(g.state.fields.length,'fire lingers past half a second');g.combat(60);assert.equal(g.state.fields.length,0,'expired spell storage released');
  g.init();g.enemy(id['arrow-fan'],2.5,2.5,{wait:999});e=g.enemy(id.kamikaze,14.75,10.5,{wait:1.5});g.tick(1);assert.equal(g.state.fields[0].cells.size,9);assert.equal(g.state.fields[0].burn,.8);g.tick(77);assert.equal(e.hp,1,'kamikaze survives the shared warning and blank beat');assert.equal(g.state.health,20);g.tick(3);assert.equal(e.hp,0,'kamikaze dies as its field ignites');assert.equal(g.state.health,19);
- g.init();e=g.enemy(id.medusa,5.5,10.5);g.tick(20);assert.equal(g.state.gaze,0,'gaze range ends at seven tiles');assert(e.x>5.5,'medusa closes in to keep the player in its gaze');g.init();e=g.enemy(id.medusa,9.5,10.5,{angle:Math.PI});g.tick(150);assert(Math.cos(e.angle)>.99,'medusa turns its cone after the player');g.init();e=g.enemy(id.medusa,9.5,10.5);g.tick(299);assert.equal(g.state.health,20);assert(g.state.gaze>2.9);assert(g.frameSprites().includes(335));g.tick(2);assert.equal(g.state.health,19);assert(g.state.gaze<.02);
+ g.init();e=g.enemy(id.medusa,5.5,10.5);g.tick(20);assert.equal(g.state.gaze,0,'gaze range ends at seven tiles');assert(e.x>5.5,'medusa closes in to keep the player in its gaze');g.init();e=g.enemy(id.medusa,9.5,10.5,{angle:Math.PI});g.tick(150);assert(Math.cos(e.angle)>.99,'medusa turns its cone after the player');g.init();e=g.enemy(id.medusa,9.5,10.5);g.tick(299);assert.equal(g.state.health,20);assert(g.state.gaze>2.9);assert(g.frameSprites().includes(334));g.tick(2);assert.equal(g.state.health,19);assert(g.state.gaze<.02);
  g.init();g.enemy(id.medusa,9.5,10.5);g.tick(150);g.wall(11,10);g.tick(1);assert.equal(g.state.gaze,0,'cover resets accumulated gaze');g.tick(800);assert.equal(g.state.health,20,'walls occlude gaze');
  g.init();g.enemy(id.medusa,9.5,10.5);g.tick(100);g.position(9.5,15.5);g.tick(1);assert.equal(g.state.gaze,0,'leaving locked cone resets gaze');
  g.init();g.enemy(id.medusa,9.5,10.5);g.tick(299);g.hurt();g.tick(2);assert.equal(g.state.health,19);assert.equal(g.state.gaze,3,'gaze waits at the threshold during invulnerability');g.tick(80);assert.equal(g.state.health,18,'gaze hits after invulnerability expires');assert(g.state.gaze<.05,'gaze resets after the actual hit');
@@ -92,18 +93,18 @@ for(const release of [false,true]){
 }
 console.log('PASS compact weapon-art ranges: every boss weapon shows its single icon');
 
-// Live roster has no boss. Its arena remains reachable, and an empty arena cannot unlock descent.
-assert.equal(catalog.bosses.length,0);
+assert.equal(catalog.bosses.length,6);
 assert.deepEqual(require('../assets/catalog/runtime-selection.json').bossTiles,[]);
 for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  const g=boot(specialize,release);
  for(let seed=0;seed<100;seed++){
   const w=g.level(seed,1);
-  assert(w.rooms.every(r=>r.enemies.every(e=>!e.boss)),'retired boss never spawns');
-  assert.equal(w.rooms[w.boss].enemies.length,0,'reserved boss arena is empty');
+  assert(w.rooms.every((r,i)=>i===w.boss?r.enemies.length>0:r.enemies.every(e=>!e.boss)),'bosses only spawn in the final arena');
  }
- g.init();g.arena();assert.equal(g.interact(),false,'reserved exit stays inactive until replacement boss exists');
- g.tick(100);assert.equal(g.state.level,1);assert.equal(g.state.shots.length,0,'empty arena emits no projectiles');
- g.reset();g.position(15.5,10.5);assert.equal(g.interact(),true,'Room Zero entrance still works');
+ g.init();g.arena();const gate={...g.state.room.gate},blocker=g.enemy(g.ids.swarm,5.5,5.5);assert.equal(g.interact(),false,'living enemies lock the level exit');
+ for(const e of g.state.room.enemies){e.wait=0;g.hit(e,10000);}g.position(15.5,10.5);assert.equal(g.interact(),false,'exit requires nearby interaction');
+ g.position(gate.x,gate.y);assert.equal(g.interact(),false,'exit stays inactive while appearing');g.position(15.5,10.5);g.tick(110);const oldWorld=g.state.world;g.health(2);g.hurt();g.position(gate.x,gate.y);g.tick(1);assert.equal(g.interact(),false,'walk-on transition cannot retrigger');
+ g.tick(100);assert.equal(g.state.level,2);assert.notEqual(g.state.world,oldWorld,'next floor is freshly generated');assert.equal(g.state.chamber,0);assert.equal(g.state.health,1,'descent does not heal');assert.equal(g.state.shots.length,0,'empty arena emits no projectiles');
+ g.reset();g.position(15.5,10.5);g.tick(1);assert.equal(g.interact(),false,'Room Zero starts the same walk-on transition');
 }
-console.log('PASS boss removal: empty reserved arena, locked exit, no boss shots, working prologue');
+console.log('PASS level exits: combat lock, interaction range, single descent, fresh floor, persistent health and working prologue');

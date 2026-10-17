@@ -17,6 +17,7 @@ for(let t=0;t<24;t++)for(let p=0;p<144;p++){
  if(characterSheet.data[n+3]>127)characterBits[t*18+(p>>3)]|=128>>(p&7);
 }
 for(const {frame,rows} of JSON.parse(read('assets/generated/starter-left-thrust.json'))){characterBits.fill(0,frame*18,(frame+1)*18);for(let p=0;p<144;p++)if(rows[p/12|0][p%12]==='#')characterBits[frame*18+(p>>3)]|=128>>(p&7);}
+const playerBits=Buffer.concat(Array.from({length:25},(_,i)=>i).filter(i=>i%6!==5).map(i=>characterBits.subarray(i*18,(i+1)*18)));
 const punch=JSON.parse(read('assets/generated/punch.json')),punchBits=Buffer.alloc(18);
 if(punch.length!==12||punch.some(row=>!/^([.#]{12})$/.test(row)))throw Error('Punch must be a 12×12 mask');
 for(let p=0;p<144;p++)if(punch[p/12|0][p%12]==='#')punchBits[p>>3]|=128>>(p&7);
@@ -32,6 +33,8 @@ function pack(tiles){
  tiles.forEach((tile,i)=>{
   // A blank pantry slot keeps the six-slot biome stride without carrying art.
   if(tile.blank)return;
+  if(tile.generated){const rows=JSON.parse(read('assets/generated/'+tile.generated+'.json'));for(let p=0;p<144;p++)if(rows[p/12|0][p%12]==='#')bytes[i*18+(p>>3)]|=128>>(p&7);return;}
+  if(tile.solid){bytes.fill(255,i*18,(i+1)*18);return;}
   if(tile.door!==undefined){for(let p=0;p<144;p++)if(doors[tile.door][(tile.part>>1)*12+(p/12|0)][tile.part%2*12+p%12]==='#')bytes[i*18+(p>>3)]|=128>>(p&7);return;}
   if(tile.ring!==undefined){
    const image=rings[tile.ring],ratio=image.width/48;
@@ -61,10 +64,10 @@ content.enemyTiles=require('./order-sprites.cjs')(catalog,content.enemyTiles,pac
 const {enemyTiles,weaponTiles,armorTiles}=content;
 const thrust=catalog.weapons.findIndex(w=>w.type===6),thrustBits=thrust<0?Buffer.alloc(0):require('./thrust-sprite.cjs')(pack([weaponTiles[content.weaponRows[thrust][10]]])),extraPunch=catalog.weapons.some(w=>w.type===5)?punchBits:Buffer.alloc(0),extraCount=(thrustBits.length+extraPunch.length)/18;
 const starterTiles=[{x:38,y:6},{x:31,y:6}],starterBits=Buffer.concat(starterTiles.map(p=>require('./starter-sprite.cjs')(pack([p]))));
-const bossTiles=(catalog.bosses.length?[28]:[]).flatMap(x=>[0,1,2,3].map(i=>({x:x+i%2,y:48+(i>>1)})));
+const bossTiles=[];
 if(write)fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({pantry,enemyTiles,bossTiles,weapons:weaponTiles,starters:starterTiles,armor:armorTiles,player:[{x:104,y:0},{x:104,y:46},{x:105,y:46},{x:106,y:46}]},null,2)+'\n');
 const reports={},artifacts={};
-const effects=[[33,10],[87,34],[88,34],[89,34],[90,34],[63,17]].map(([x,y])=>({x,y}));
+const effects=[[33,10],[88,34],[89,34],[90,34],[63,17]].map(([x,y])=>({x,y}));
 const trapBits=Buffer.alloc(2*18);for(const [i,name]of ['spikes-down','trap-closed'].entries()){const rows=JSON.parse(read('assets/generated/'+name+'.json'));if(rows.length!==12||rows.some(r=>!/^[.#]{12}$/.test(r)))throw Error('Invalid trap mask '+name);for(let p=0;p<144;p++)if(rows[p/12|0][p%12]==='#')trapBits[i*18+(p>>3)]|=128>>(p&7);}
 const fireBits=Buffer.alloc(5*18);
 // Two rising rune masks and three asymmetrical, hollow-tongued fire poses.
@@ -74,25 +77,28 @@ const ring=rings.flatMap((image,ring)=>Array.from({length:4},(_,part)=>({ring,pa
 // Fallen bodies left where enemies die (column 201 of the sheet).
 const bloodTiles=[[0,25],[2,25],[4,25],[61,17],[5,25],[16,34],[8,42],[18,17],[90,40],[67,16]].map(([x,y])=>({x,y}));
 const doorTiles=Array.from({length:8},(_,n)=>({door:n>>2,part:n%4}));
-const corpses=[0,6,18,26,33].map(y=>({x:201,y}));
+const corpses=[0].map(y=>({x:201,y}));
 // HIPOCRENE in the sheet's gothic capitals, in title order.
 // A 2×2 sun and moon; the entrance draws one under its ring.
 const sky=[[78,16],[79,16],[78,17],[79,17],[80,16],[81,16],[80,17],[81,17],[13,0],[26,13]].map(([x,y])=>({x,y}));
 const title=[[79,48],[80,48],[87,48],[86,48],[99,47],[89,48],[101,47],[85,48],[101,47]].map(([x,y])=>({x,y}));
 for(const dev of development?[true,false]:[false]){
+ const compactPlayer=!dev&&!diagnostics&&require('./compact-player.cjs').eligible(catalog);
  const miniatureBits=Buffer.from(smallBits);
  if(!dev&&require('./specialize-weapons.cjs').eligible(catalog))for(const n of [0,1,2,5,6])miniatureBits.fill(0,n*18,(n+1)*18);
  const enemyColumns=enemyTiles;
  const letters='',font=[];
- const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...corpses,...title,...sky,...bloodTiles,...doorTiles,...ring,...font],bits=Buffer.concat([pack(tiles),fireBits,trapBits,thrustBits,extraPunch,starterBits,miniatureBits,characterBits.subarray(9*18,10*18),dev?characterBits:Buffer.concat([characterBits.subarray(0,6*18),characterBits.subarray(12*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
- const encodedBitmap=dev?undefined:spriteEncoder(bits),bitText=encodedBitmap?.text??bits.toString('base64');
- const assets=JSON.stringify({entrance:JSON.parse(read('assets/entrance.json')),bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,corpses:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length,title:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+5,sky:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+14,blood:tiles.length-font.length-ring.length-18,doors:tiles.length-font.length-ring.length-8,ring:tiles.length-font.length-ring.length,font:tiles.length-font.length,letters,warning:tiles.length,flame:tiles.length+2,traps:tiles.length+5,thrust:tiles.length+7,thrustCount:thrustBits.length/18,punch:tiles.length+7+thrustBits.length/18,punchCount:extraPunch.length/18,starter:tiles.length+7+extraCount,mini:tiles.length+11+extraCount,actor:tiles.length+12+extraCount+smallSprites.length});
+ const characters=dev?spec.tiles:[],tiles=[...characters,...pantry,...weaponTiles,...enemyTiles,...armorTiles,...effects,...bossTiles,...corpses,...title,...sky,...bloodTiles,...doorTiles,...ring,...font],baseTiles=tiles.length,exits=require('./exit-data.cjs')(tiles),bits=Buffer.concat([pack(tiles),fireBits,trapBits,thrustBits,extraPunch,starterBits,miniatureBits,characterBits.subarray(9*18,10*18),dev?playerBits:Buffer.concat([playerBits.subarray(0,5*18),playerBits.subarray(10*18)])]),enemies=characters.length+pantry.length+weaponTiles.length;
+ const packedBits=compactPlayer?require('./compact-scene.cjs').bits(require('./compact-player.cjs').bits(bits),enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+corpses.length):bits;
+ const encodedBitmap=dev?undefined:spriteEncoder(packedBits),bitText=encodedBitmap?.text??bits.toString('base64');
+ const assets=JSON.stringify({exits:exits.frames,exitColors:exits.colors,exitArt:baseTiles,exitArtCount:tiles.length-baseTiles,entrance:JSON.parse(read('assets/entrance.json')),bits:bitText,last:dev?103+characters.length-1:104,pantry:characters.length,weapon:characters.length+pantry.length,weaponCount:weaponTiles.length,enemies,enemyCount:enemyTiles.length,armors:enemies+enemyTiles.length,armorCount:armorTiles.length,effects:enemies+enemyTiles.length+armorTiles.length,bosses:enemies+enemyTiles.length+armorTiles.length+effects.length,corpses:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length,title:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+corpses.length,sky:enemies+enemyTiles.length+armorTiles.length+effects.length+bossTiles.length+corpses.length+9,blood:baseTiles-font.length-ring.length-18,doors:baseTiles-font.length-ring.length-8,ring:baseTiles-font.length-ring.length,font:baseTiles-font.length,letters,warning:tiles.length,flame:tiles.length+2,traps:tiles.length+5,thrust:tiles.length+7,thrustCount:thrustBits.length/18,punch:tiles.length+7+thrustBits.length/18,punchCount:extraPunch.length/18,starter:tiles.length+7+extraCount,mini:tiles.length+11+extraCount,atlasTiles:packedBits.length/18,actor:tiles.length+12+extraCount+smallSprites.length-(compactPlayer?6:0)});
  if(write&&!dev){const usage=JSON.parse(read('assets/catalog/runtime-selection.json'));fs.writeFileSync(path.join(root,'assets/catalog/runtime-selection.json'),JSON.stringify({...usage,doors:doorTiles,ring,font},null,2)+'\n');}
  let template=quantizeColors(read(dev?'src/dev.html':'src/index.html'));
- if(!dev&&diagnostics)template=template.replace('<script>','<aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button><button id="interact"></button></aside><script>');
+ if(!dev&&diagnostics)template=template.replace('<script>','<aside hidden><div id="run-status"></div><div id="pickup-status"></div><button id="attack"></button></aside><script>');
  const css=template.match(/<style>([\s\S]*?)<\/style>/)[1];
  let candidateSource=content.source+content.transform(dev?runtime:require('./specialize-release.cjs')(runtime,{catalog,diagnostics}));
  if(!dev&&!diagnostics)candidateSource=require('./compact-runtime.cjs')(candidateSource,catalog);
+ if(compactPlayer)candidateSource=require('./compact-scene.cjs').source(require('./compact-player.cjs').source(candidateSource),catalog);
  candidateSource=quantizeColors(sourceTransform(candidateSource));
  if(!dev&&!diagnostics)candidateSource=require('./share-release-state.cjs').round(candidateSource);
  if(diagnostics)candidateSource=candidateSource.replaceAll('DEV/*diagnostics*/','true');
@@ -103,10 +109,10 @@ for(const dev of development?[true,false]:[false]){
  if(minifier&&!dev)code=await minifier(program);
  else{
   code=transformSync(program,{minify:true,format:'iife',target:'es2020',define:{DEV:String(dev)}}).code;
-  // Standard built-ins are assumed; floating-point order and native Boolean types stay intact.
   // The property allowlist contains game-owned fields only; keep browser API properties out.
-  if(!dev)code=(await require('terser').minify(code,{compress:{passes:3,unsafe:true,unsafe_arrows:true,pure_getters:true,ecma:2020,...compressOptions},mangle:{nth_identifier:require('./identifier-order.cjs'),properties:{nth_identifier:require('./identifier-order.cjs'),builtins:true,regex:/^(dx|dy|texture|mini|starter|punch|rx|ry|exposure|blood|traps|look|floorTile|wall|hazard|guard|slot|trail|follow|formation|burn|looking|prize|armorCount|armors|effects|warning|flame|motif|song|reward|to|dir|hp|tone|exit|t|letters|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
+  if(!dev)code=(await require('terser').minify(code,{compress:{passes:3,unsafe:true,unsafe_arrows:true,pure_getters:true,ecma:2020,booleans_as_integers:true,unsafe_comps:true,...compressOptions},mangle:{nth_identifier:require('./identifier-order.cjs'),properties:{nth_identifier:require('./identifier-order.cjs'),builtins:true,regex:/^(cleared|dx|dy|texture|mini|starter|punch|rx|ry|exposure|blood|traps|look|floorTile|wall|hazard|guard|slot|trail|follow|formation|burn|looking|prize|armorCount|armors|effects|warning|flame|motif|song|reward|to|dir|hp|tone|exit|t|letters|ring|bossHit|traits|weaponCount|enemyCount|enemies|bosses|pantry|loot|actor|bits|hazards|features|spawn|condition|detail|solid|objects|gate|visited|offset|temper|damage|friendly|curve|pattern|phase|cooldown|direction|inputs|shape|rooms|nodes|doors|props|flash|cycle|angle|wait|form|rule|hue|spellWait|stat|disc|hit|boss|rate|pierce|weapon|cells|kind|life|age|health|reach|animation)$/}}})).code;
  }
+ if(!dev)code=code.replaceAll('.imageSmoothingEnabled=0','.imageSmoothingEnabled=!1');
  const shell=template.replace(css,()=>transformSync(css,{loader:'css',minify:true}).code.trim()),render=js=>shell.replace('__CODE__',()=>js);
  let html=Buffer.from(render(code)),encoding='utf-8';
  if(!dev&&sourceOnly){
@@ -126,7 +132,7 @@ for(const dev of development?[true,false]:[false]){
   html=selected.html;zip=selected.zip;packing=packMode==='native'?'deflate':'roadroller-byte-stream+deflate';encoding='iso-8859-5';modelMemoryMB=packed.memoryMB;
  }else zip=zipSync({'index.html':[html,{mtime:new Date(2026,9,4)}]},{level:9});
  artifacts[dev?'development':'release']={html,zip};
- const report={enemy_definitions:catalog.enemies.length,weapon_definitions:catalog.weapons.length,boss_definitions:catalog.bosses.length,power_definitions:0,definition_source_bytes:Buffer.byteLength(content.source),visual_profile:'rgb444',limit:10000,budget_metric:sourceOnly?'minified_source_with_assets':'standalone_html',compliant:html.length<=10000,packing,source_encoding:encoding,decoder_model_mb:modelMemoryMB,source_bytes:unpackedBytes,html_bytes:html.length,unpacked_html_bytes:unpackedBytes,zip_bytes:zip.length,sprite_count:dev?characters.length-1:1,enemy_sprite_count:enemyColumns.length,pantry_tiles:pantry.length,sprite_data_bytes:bits.length,atlas_tiles:bits.length/18,remaining_file_bytes:10000-html.length};
+ const report={enemy_definitions:catalog.enemies.length,weapon_definitions:catalog.weapons.length,boss_definitions:catalog.bosses.length,power_definitions:0,definition_source_bytes:Buffer.byteLength(content.source),visual_profile:'rgb444',limit:10000,budget_metric:sourceOnly?'minified_source_with_assets':'standalone_html',compliant:html.length<=10000,packing,source_encoding:encoding,decoder_model_mb:modelMemoryMB,source_bytes:unpackedBytes,html_bytes:html.length,unpacked_html_bytes:unpackedBytes,zip_bytes:zip.length,sprite_count:dev?characters.length-1:1,enemy_sprite_count:enemyColumns.length,pantry_tiles:pantry.length,sprite_data_bytes:packedBits.length,atlas_tiles:packedBits.length/18,remaining_file_bytes:10000-html.length};
  reports[dev?'development':'release']=report;
  if(write&&!dev)fs.writeFileSync(path.join(root,'dev/release-preview.html'),html);
  const decoded=unzipSync(zip);if(!Buffer.from(decoded['index.html']).equals(html))throw Error('ZIP verification failed');

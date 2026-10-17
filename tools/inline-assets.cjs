@@ -2,7 +2,7 @@
 // zero offsets and unused registry fields disappear from the release.
 const acorn=require('acorn');
 module.exports=(source,values)=>{
- source=require('./pose-data.cjs')(source);
+ source=require('./compact-exits.cjs')(require('./pose-data.cjs')(source),values);
  if(source.includes('const setup=assets.entrance,'))source=source.replace(/\bsetup\.(\w+)/g,(text,key)=>{if(!Object.hasOwn(values.entrance,key))throw Error('Unknown entrance field');return JSON.stringify(values.entrance[key]);});
  if(!values.weaponCount&&source.includes("  art.globalCompositeOperation='source-atop';"))source=require('./palette-codec.cjs')(source,values);
  const ast=acorn.parse(source,{ecmaVersion:2020}),edits=[];let declarations=0;
@@ -22,5 +22,5 @@ module.exports=(source,values)=>{
  }
  walk(ast);
  for(const[a,b,s]of edits.sort((a,b)=>b[0]-a[0]))source=source.slice(0,a)+s+source.slice(b);
- return source;
+ return source.replace(/(['"])rgb\((\d+),(\d+),(\d+)\)\1/g,(_,q,r,g,b)=>q+'#'+[r,g,b].map(v=>(+v).toString(16).padStart(2,'0')).join('')+q);
 };

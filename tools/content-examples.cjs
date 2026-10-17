@@ -1,6 +1,6 @@
 // Benchmark/test content only. These entries are never added to the live catalog.
 function weapons(c){if(c.weapons.length===1)c.weapons.push(...JSON.parse(JSON.stringify(require('./fixtures/retired-weapons.json'))));return c;}
-function boss(c){weapons(c);if(!c.bosses.length)c.bosses.push(JSON.parse(JSON.stringify(require('./fixtures/legacy-boss.json'))));return c;}
+function boss(c){weapons(c);c.bosses=[JSON.parse(JSON.stringify(require('./fixtures/legacy-boss.json')))];return c;}
 function enemy(c,newArt=false,index=0){
  const row={id:'benchmark-creature-'+index,attack:{mode:['ring','charge','fan'][index%3],count:5+index%4,speed:3.6+index*.1,windup:.5,cooldown:1.1,standoff:7},art:{base:6,variants:2},move:.28};
  if(newArt){row.art={base:c.enemySprites.length,variants:1};c.enemySprites.push([115,10]);}

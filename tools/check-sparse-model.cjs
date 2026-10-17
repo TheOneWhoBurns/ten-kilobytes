@@ -16,7 +16,7 @@ const {roller}=require('./pack-release.cjs'),{contextCount}=require('./sparse-mo
  }
  const value=String.fromCharCode(...values),source='<html><script>result='+JSON.stringify(value)+'</script></html>';
  for(const sparseSelectors of [[0,1,3,23],[0,1,3,(1<<23)|1]])for(const precision of [8,16,17])for(const dynamicModels of [0,1]){
-  const options={...require('./packing-options.json'),maxMemoryMB:2,contextBits:16,precision,dynamicModels,sparseSelectors};
+  const options={...require('./packing-options.json'),syntaxSelectors:[],maxMemoryMB:2,contextBits:16,precision,dynamicModels,sparseSelectors};
   const dense=await roller(source,{...options,sparseModel:false},0,true),sparse=await roller(source,{...options,sparseModel:true},0,true);
   assert.deepEqual(sparse.data,dense.data,'sparse lookup leaves the encoded stream unchanged');
   let before,after;
@@ -26,7 +26,7 @@ const {roller}=require('./pack-release.cjs'),{contextCount}=require('./sparse-mo
   assert(sparse.memoryMB<dense.memoryMB,'small inputs allocate only the contexts they visit');
  }
  for(const precision of [8,16,17])for(const inBits of [7,8])for(const modelQuotes of [false,true]){
-  const input=values.map(n=>n&((1<<inBits)-1)),options={...require('./packing-options.json'),contextBits:16,precision,inBits,outBits:-253,modelQuotes};
+  const input=values.map(n=>n&((1<<inBits)-1)),options={...require('./packing-options.json'),syntaxSelectors:[],contextBits:16,precision,inBits,outBits:-253,modelQuotes};
   const dense=compressWithDefaultModel(input,options),sparse=await require('./sparse-encoder.cjs')(input,options);
   assert.equal(sparse.state,dense.state);assert.deepEqual(sparse.buf,dense.buf,'sparse encoder emits exactly the dense encoder stream');
   assert.equal(sparse.contexts,contextCount(input,options),'encoder and decoder agree on visited contexts');

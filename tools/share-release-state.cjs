@@ -2,12 +2,12 @@ const acorn=require('acorn');
 module.exports=source=>{
  const replace=(from,to)=>{if(!source.includes(from))throw Error('Review shared release state: '+from);source=source.replace(from,to);};
  replace('let heldAttack=false;','');
- source=source.replace(/\bheldAttack\b/g,'keys[73]');
+ source=source.replace(/\bheldAttack\b/g,'keys[32]');
  const declaration=acorn.parse(source,{ecmaVersion:2020}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='holdAction');
  if(!declaration)throw Error('Missing held input function');
  source=source.slice(0,declaration.body.start)+'{performAction(type);}'+source.slice(declaration.body.end);
- replace('const k=e.keyCode;keys[k]=1;','const k=e.keyCode;if(!e.repeat||k!==73)keys[k]=1;');
- replace('if(e.keyCode===73)releaseAction(0);','');
+ replace('const k=e.keyCode;keys[k]=1;','const k=e.keyCode;if(!e.repeat||k!==32)keys[k]=1;');
+ replace('if(e.keyCode===32)releaseAction(0);','');
  if(source.includes('rng=Math.random;')){
   source=source.replaceAll('Math.random','rng');
   replace('let rng;','let rng=Math.random;');

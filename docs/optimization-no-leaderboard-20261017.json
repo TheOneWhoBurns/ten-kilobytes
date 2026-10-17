@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-17",
+  "beforeBytes": 10223,
+  "afterBytes": 9859,
+  "savedBytes": 364,
+  "standaloneBytes": 9999,
+  "files": [
+    {
+      "name": "g",
+      "bytes": 9658,
+      "sha256": "257005628bc591b881127db3f7201eface8611cb250042dfe05c422ef435b2b1"
+    },
+    {
+      "name": "index.html",
+      "bytes": 201,
+      "sha256": "f6276adaaec06e2828274a15cf8d3aca4e414e8b03fef598080445e8d318c509"
+    }
+  ],
+  "leaderboardRemoved": true,
+  "deathScoreRetained": true,
+  "zipBytes": 10012
+}

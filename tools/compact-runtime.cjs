@@ -25,7 +25,7 @@ module.exports=(source,catalog)=>{
  }
  specialize('movePlayer',[0],{cells:'room.cells'},'cells,p,dx,dy,dt,speed');
  specialize('canFit',[0],{cells:'room.cells'},'cells,x,y,radius');
- if(!catalog.enemies.some(e=>[].concat(e.attack.mode).includes('ring'))){
+ if(![...catalog.enemies,...catalog.bosses].some(e=>[].concat(e.attack.mode).includes('ring'))){
  if(!source.includes('ring=false;'))throw Error('Review projectile grammar');
  replace('if(CURVED_SHOTS&&s&&curve)s.curve=(s.dx*Math.sin(a)-s.dy*Math.cos(a))*curve;','');
  specialize('volley',[4,6,7,8,9,10],{spread:'.23'},'p,a,count,speed,damage,life,friendly,flags,spread,curve,gap');
@@ -34,10 +34,11 @@ module.exports=(source,catalog)=>{
  if(!getter||source.slice(getter.body.start,getter.body.end).replace(/\s/g,'')!=='{returne.rule;}')throw Error('Review enemy recipe getter');
  const reads=[];walk(parse(),n=>{if(n.type==='CallExpression'&&n.callee.name==='enemyRule'){if(n.arguments.length!==1)throw Error('Enemy recipe arity');reads.push([n.start,n.end,'('+source.slice(n.arguments[0].start,n.arguments[0].end)+').rule']);}});apply(reads);
  const box=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='hurtbox'),boxBody=source.slice(box.body.start,box.body.end).replace(/\s/g,'');
- if(boxBody!=='{if(e===player)return{x:e.x,y:e.y-.22,rx:.22,ry:.28};construle=(e).rule;return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X],ry:rule[E_RADIUS_Y]};}')throw Error('Review player hurtbox');
+ if(boxBody!=='{if(e===player)return{x:e.x,y:e.y-.22,rx:.22,ry:.28};construle=(e).rule,stage=e.form-rule[E_ART],scale=(SEQUENCED_ENEMIES?rule[E_MODE][0]:rule[E_MODE])===12?stage?(8-stage)/4:2:1;return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X]*scale,ry:rule[E_RADIUS_Y]*scale};}')throw Error('Review player hurtbox');
  const values=new Map(columns.map((n,i)=>[n,['.22','.28','-.22'][i]])),row=Array.from({length:Math.max(...columns)+1},(_,i)=>values.get(i)||'').join(',');
- apply([[box.body.start,box.body.end,'{const rule=e.rule||['+row+'];return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X],ry:rule[E_RADIUS_Y]};}']]);
+ apply([[box.body.start,box.body.end,'{const rule=e.rule||['+row+'],stage=e.form-rule[E_ART],scale=e.rule&&(SEQUENCED_ENEMIES?rule[E_MODE][0]:rule[E_MODE])===12?stage?(8-stage)/4:2:1;return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X]*scale,ry:rule[E_RADIUS_Y]*scale};}']]);
  if(/\bquad\b/.test(source))throw Error('Quad helper collides');
+ replace('for(let i=0;i<4;i++)tile(ctx,assets.enemies+e.form+i,(i%2-1)*12,((i>>1)-1)*12);','quad(ctx,assets.enemies+e.form,-12,-12,12);');
  replace('for(let i=0;i<n*n;i++)tile(floor,index+i,(i%n-n)*unit,((i/n|0)-n)*unit,unit);','quad(floor,index,-2*unit,-2*unit,unit);');
  replace('for(let i=0;i<4;i++)tile(floor,index+i,i%2*size-(moon?12:12.5)*scale,(i>>1)*size-(moon?11.5:12.5)*scale,size);','quad(floor,index,-(moon?12:12.5)*scale,-(moon?11.5:12.5)*scale,size);');
  replace('for(let j=0;j<4;j++)tile(ctx,assets.doors+open*4+j,-12+j%2*12,-6+(j>>1)*12);','quad(ctx,assets.doors+open*4,-12,-6,12);');
@@ -47,20 +48,18 @@ module.exports=(source,catalog)=>{
  replace('const [dx,dy]=directions[d.dir],x=d.x|0,y=d.y|0;for(let k=0;k<3;k++)for(let w=-1;w<=1;w++)cells[(y-dy*k+dx*w)*31+x-dx*k+dy*w]','const [dx,dy]=directions[d.dir],n=(d.y|0)*31+(d.x|0),step=dy*31+dx,side=dx*31+dy;for(let k=0;k<3;k++)for(let w=-1;w<=1;w++)cells[n-step*k+side*w]');
  if(!source.includes('e.slot=j;'))throw Error('Conga slots are not initialized');
  replace('const lag=(e.slot||0)*.18','const lag=e.slot*.18');
- replace('assets.actor+(row&&row-1)*6+phase%6','assets.actor+phase-(row?6:0)');
  replace('walking?(step===1?1:step===3?2:0):0','(step===1?1:step===3?2:0)');
- replace('Math.floor(interactPhase*3)<2','interactPhase*3<2');
  const level=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='makeLevel');
  let poolReads=0;walk(level.body,(n,p,k)=>{if(n.type==='Identifier'&&n.name==='pool'&&!(p?.type==='VariableDeclarator'&&k==='id'))poolReads++;});
  if(!poolReads)replace('const pool=enemyPools?enemyPools[theme]:enemyRules.slice(0,ENEMY_COUNT).map((_,k)=>k),boss=','const boss=');
  const generator=parse().body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='generate'),result=generator?.body.body.at(-1);
  if(result?.type!=='ReturnStatement'||source.slice(result.start,result.end)!=='return{cells,spawn,safe};')throw Error('Review room construction result');
  replace('const {cells,spawn,safe}=generate(doors),r={cells,spawn,doors}',source.slice(generator.body.start+1,result.start)+'const r={cells,spawn,doors}');
- replace('action=interactPhase<1?2:0;','');
+ replace('action=0;','');
  source=source.replaceAll('weaponArt=0;','').replaceAll('weapon=0;','');
- if(!catalog.bosses.length)replace('r.gate=tilePoint(i===result.boss?108:325);','');
  replace('player=tilePoint(room.spawn);','player=tilePoint(level?325:313);');
  replace('r={cells,spawn,doors}','r={cells,doors}');
  replace('spawn:313,','');
- return source;
+ replace('Array.from({length:6},()=>[])','[[],[],[],[],[],[]]');
+ return require('./compact-sound.cjs')(source);
 };

@@ -17,7 +17,7 @@ function simulate(html,seed,frames=240,metrics,unusedAtlasPixels=0,sharedActorAt
  function param(id,key){let value=0;const result={};Object.defineProperty(result,'value',{get:()=>value,set:v=>{value=v;audio.push([id,key,'value',v]);}});for(const method of ['setValueAtTime','linearRampToValueAtTime','exponentialRampToValueAtTime','setTargetAtTime'])result[method]=(...args)=>audio.push([id,key,method,...args]);return result;}
  class AudioContext{get currentTime(){return time/1000;}get destination(){return {id:'out'};}resume(){}createOscillator(){return node('oscillator');}get sampleRate(){return 44100;}createBuffer(c,n){const data=new Float32Array(n);return{getChannelData:()=>data};}createBufferSource(){return node('noise');}createGain(){return node('gain');}}
  function node(type){const id=nodeID++,n={id,frequency:param(id,'frequency'),gain:param(id,'gain'),connect:target=>audio.push([id,'connect',target.id??'parameter']),disconnect:()=>audio.push([id,'disconnect']),start:t=>audio.push([id,'start',t]),stop:t=>{audio.push([id,'stop',t]);n.end=t;}};let waveform='sine';Object.defineProperty(n,'type',{get:()=>waveform,set:v=>{waveform=v;audio.push([id,'type',v]);}});nodes.push(n);return n;}
- const sandbox={Math:Object.assign(Object.create(Math),{random:require('./test-random.cjs')(seed+':1')}),document,AudioContext,Int16Array:class extends Int16Array{constructor(...args){super(...args);if(metrics)metrics.navigationAllocations=(metrics.navigationAllocations||0)+1;}},ResizeObserver:class{observe(){}},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=seed;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
+ const sandbox={fetch:()=>Promise.resolve({ok:true,json:()=>Promise.resolve({token:'00000000-0000-4000-8000-000000000000'})}),AbortSignal,localStorage:{getItem:()=>null,setItem(){}},Math:Object.assign(Object.create(Math),{random:require('./test-random.cjs')(seed+':1')}),document,AudioContext,Int16Array:class extends Int16Array{constructor(...args){super(...args);if(metrics)metrics.navigationAllocations=(metrics.navigationAllocations||0)+1;}},ResizeObserver:class{observe(){}},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{randomUUID:()=>'00000000-0000-4000-8000-000000000000',getRandomValues(a){a[0]=seed;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
  require('./dom-events.cjs')(sandbox,handlers);
  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],sandbox,{timeout:5000});
  const key=(type,k)=>handlers[type]({key:k,keyCode:({ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40}[k]||k.toUpperCase().charCodeAt(0)),target:fields.game,repeat:false,preventDefault(){}});
@@ -25,7 +25,7 @@ function simulate(html,seed,frames=240,metrics,unusedAtlasPixels=0,sharedActorAt
  // Traverse the playable prologue before comparing the ordinary combat loop.
  time+=1000/60;raf.shift()(time);
  const currentRoute=html.includes('dEpxQxgKCAc0BgwLCDphK1AeCQ8Z');
- const openEntrance=html.includes('SPACE -> HOLD')||html.includes(' -> MOVE'),route=openEntrance?[['d',63]]:(currentRoute||html.includes('@ -> '))?(()=>{let x=.5,y=1.5;const steps=[];for(const [xx,yy]of require('./fixtures/entrance-route.json')){if(xx!==x)steps.push([xx>x?'d':'a',Math.round(Math.abs(xx-x)*6)]);if(yy!==y)steps.push([yy>y?'s':'w',Math.round(Math.abs(yy-y)*6)]);x=xx;y=yy;}return steps;})():null;
+ const openEntrance=html.includes('SPACE -> HOLD')||html.includes(' -> MOVE'),route=openEntrance?[['d',72]]:(currentRoute||html.includes('@ -> '))?(()=>{let x=.5,y=1.5;const steps=[];for(const [xx,yy]of require('./fixtures/entrance-route.json')){if(xx!==x)steps.push([xx>x?'d':'a',Math.round(Math.abs(xx-x)*6)]);if(yy!==y)steps.push([yy>y?'s':'w',Math.round(Math.abs(yy-y)*6)]);x=xx;y=yy;}return steps;})():null;
  if(!metrics?.entrance&&(!fields['run-status']||fields['run-status'].textContent==='Room Zero'))for(const [k,n] of route|| [['d',174],['s',108],['a',168],['w',96],['d',36],['s',12],['d',108],['w',12],['d',12],['s',84],['a',144],['w',60],['d',120],['s',48],['a',108],['w',36],['d',30],['s',12],['d',27],['w',3]]){key('keydown',k);for(let j=0;j<n;j++){time+=1000/60;raf.shift()(time);}key('keyup',k);}
  key('keydown','o');key('keyup','o');for(let j=0;j<30;j++){time+=1000/60;entranceVisible=false;raf.shift()(time);}
  if(openEntrance&&!metrics?.entrance)assert(!entranceVisible,'pixel comparison actually enters the dungeon');
@@ -33,12 +33,13 @@ function simulate(html,seed,frames=240,metrics,unusedAtlasPixels=0,sharedActorAt
  if(currentRoute)assert(minimapSeen,'canvas-only release reaches the dungeon and draws a visited room');
  const pictures=[],hud=[];let direction;
  for(let i=0;i<frames;i++){
+  if(metrics?.beforeFrame)metrics.beforeFrame(sandbox,i);
   if(metrics?.script){for(const [type,k] of metrics.script[i]||[])key(type,k);}else{
   if(i%60===0){if(direction)key('keyup',direction);direction=['d','s','a','w'][i/60%4];key('keydown',direction);}
-  if(i===12)key('keydown','i');if(i===190)key('keyup','i');}
+  if(i===12)key('keydown',' ');if(i===190)key('keyup',' ');}
   time+=1000/60;for(const n of nodes)if(n.end!==undefined&&n.end<=time/1000&&!n.ended){n.ended=true;n.onended?.();}
   raf.shift()(time);
-  if(i%(metrics?.frameStep||12)===0){pictures.push(hash(main.getContext('2d').getImageData(0,0,372,252).data));if(fields['run-status'])hud.push([fields['run-status'].textContent,fields['pickup-status'].textContent,fields.attack['data-active'],fields.interact['data-active']]);}
+  if(i%(metrics?.frameStep||12)===0){pictures.push(hash(main.getContext('2d').getImageData(0,0,372,252).data));if(fields['run-status'])hud.push([fields['run-status'].textContent,fields['pickup-status'].textContent,fields.attack['data-active'],fields.interact?.['data-active']]);}
  }
  // The old release included two unused leading tiles. Compare every retained
  // atlas pixel after removing only those slots, as well as all rendered surfaces.

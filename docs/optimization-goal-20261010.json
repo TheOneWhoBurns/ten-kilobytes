@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-10",
+  "goal": "complete extracted itch distribution strictly below 10000 bytes; preserve all content",
+  "status": "active",
+  "before": {
+    "standalone": 10298,
+    "game": 10689,
+    "loader": 157,
+    "itchTotal": 10846
+  },
+  "after": {
+    "standalone": 10206,
+    "game": 10228,
+    "loader": 208,
+    "itchTotal": 10436,
+    "zip": 10600
+  },
+  "saved": 410,
+  "remainingTo9999": 437,
+  "sha256": "26046f13e6e309171ab0484d1529568f70e9ff3dc41051ec2ed4fd0738065dd1",
+  "retained": [
+    "Direct raw binary itch loader eliminates nested HTML decoding",
+    "Full 256-byte rANS alphabet for itch payload, without HTML-safe remapping",
+    "Leaderboard redundant submission guard and initial resolved Promise removed; single guarded death hook retained",
+    "Flattened atlas bit coordinates, identical sprite pixels",
+    "Spell tile coordinates and warning delays computed once and reused for collision and drawing"
+  ],
+  "checks": [
+    "npm test passed",
+    "4620 before/after frames: exact pictures, atlas, audio and HUD",
+    "Actual itch loader exercised with native DecompressionStream in existing system check",
+    "Automatic score submission, immediate restart, stable name, original run-token isolation passed",
+    "Packed itch game pixel/audio equality passed",
+    "Binary packing 256-byte round trips passed",
+    "Native in-app browser Room Zero rendering and empty warning/error console verified",
+    "Sprite planner and exit showcase refreshed",
+    "git diff --check passed"
+  ],
+  "rejected": {
+    "pngHorizontal": 2067,
+    "pngTransposed": 2110,
+    "pngReason": "Larger than existing marginal sprite payload",
+    "combination": "Sparse generation mask and array keyboard state did not improve combined spell candidate",
+    "leaderboardHeader": "JSON Content-Type is required by current server; retained"
+  },
+  "next": [
+    "Standalone still needs at least 207 bytes removed; full itch upload needs 437. Goal remains active.",
+    "Avoid repeating the new two-row quad atlas, PNG/WebP, pose cache, recipe prototypes, generic literal pooling, and Room Zero background-cache experiments: measured larger or no improvement.",
+    "Any new changes must preserve every enemy/boss/art pool and automatic leaderboard lifecycle. Existing baseline snapshots remain immutable."
+  ],
+  "snapshot": "dev/snapshots/optimization-goal-20261010/",
+  "passes": [
+    {
+      "before": {
+        "standalone": 10264,
+        "game": 10284,
+        "loader": 208,
+        "itchTotal": 10492,
+        "zip": 10656
+      },
+      "after": {
+        "standalone": 10206,
+        "game": 10228,
+        "loader": 208,
+        "itchTotal": 10436,
+        "zip": 10600
+      },
+      "saved": 56,
+      "changes": [
+        "Unified boss/group/solo encounter recipe selection",
+        "Dense behavior IDs ordered so conga is zero and shared movement/timing/facing classes are contiguous",
+        "Cleared-room flag reused for doors, exits, music and rewards; hazards cleared once",
+        "Sparse safe-path mask and keyboard arrays",
+        "AudioContext resume called without redundant state query"
+      ],
+      "checks": [
+        "Full npm test suite passed",
+        "2000 complete generated worlds identical after reversing internal mode IDs, including all six boss recipes",
+        "All ten behavior IDs preserve branch, movement, facing and lunge predicates",
+        "4620 baseline frames, atlas pixels, audio and HUD exact",
+        "Packed itch pixel/audio equality and native binary loader/leaderboard lifecycle passed"
+      ],
+      "probes": {
+        "quadAtlas": 10336,
+        "recipePrototype": 10274,
+        "recipeSetPrototype": 10276,
+        "sharedPose": 10280,
+        "polarProjectiles": 10260,
+        "literalPool": 10354,
+        "nativeWebP": 1946,
+        "nativeWebPTranspose": 1954,
+        "entranceCache": 10221,
+        "entranceCacheFixedCoordinates": 10217
+      },
+      "rejected": "Larger candidates retained only as ignored snapshots. Shared clear-state first trial failed on undefined door opacity/index arithmetic; explicit boolean conversion fixed it before adoption."
+    }
+  ]
+}

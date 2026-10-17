@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path');
 const schema={
- E:['MODE','COUNT','COUNT_STEP','SPEED','WIND','ACTIVE','COOL','COOL_STEP','MOVE','SPREAD','ART','THEME','FRAMES','ANIM','RECOVER','RANGE','STANDOFF','CONTACT','LIFE','CHARGE','RADIUS_X','RADIUS_Y','BODY_Y'],
+ E:['MODE','COUNT','COUNT_STEP','SPEED','WIND','ACTIVE','COOL','COOL_STEP','MOVE','SPREAD','ART','THEME','FRAMES','ANIM','RECOVER','RANGE','STANDOFF','CONTACT','LIFE','CHARGE','RADIUS_X','RADIUS_Y','BODY_Y','CAST','RADIATION','HP'],
  W:['FLAGS','COUNT','SPEED','LIFE','REACH_LIFE','TEMPER_LIFE','SPREAD','TEMPER_SPREAD','CURVE','PITCH','SPRITE','DAMAGE','REACH','COOLDOWN','TYPE','RATE']
 };
 const load=()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/content.json'),'utf8'));
@@ -12,7 +12,6 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
   if(!Array.isArray(catalog[group])||(!catalog[group].length&&group!=='bosses'))fail('empty '+group);
   const ids=catalog[group].map(x=>x.id);if(ids.some(x=>typeof x!=='string'||!x)||new Set(ids).size!==ids.length)fail('invalid/duplicate '+group+' id');
  }
- if(catalog.bosses.length>1)fail('at most one boss definition supported');
  if(catalog.weapons[0].id!=='fist')fail('fist must remain weapon zero');
  const number=(n,lo,hi,label)=>{if(!Number.isFinite(n)||n<lo||n>hi)fail(label+' out of range');return n;};
  const integer=(n,lo,hi,label)=>{number(n,lo,hi,label);if(!Number.isInteger(n))fail(label+' must be integer');return n;};
@@ -34,12 +33,12 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
  const curves=weaponRows.some(row=>row[8]),piercing=weaponRows.some(row=>row[0]&1);
  const sequenced=[...catalog.enemies,...catalog.bosses].some(e=>Array.isArray(e.attack?.mode)&&e.attack.mode.length>1);
  const enemyRows=[...catalog.enemies,...catalog.bosses].map((e,i)=>{
-  const boss=i>=catalog.enemies.length,a=e.attack||{},art=e.art||{},modes=(Array.isArray(a.mode)?a.mode:[a.mode]).map(m=>({fan:0,charge:1,ring:2,swarm:3,shield:4,kamikaze:5,conga:6,horse:7,mage:8,medusa:9})[m]);if(!modes.length||modes.length>8||modes.some(m=>!Number.isInteger(m)))fail('unknown enemy attack '+a.mode);const mode=modes[0];
-  keys(e,['id','attack','art','drop','move','contact','biomes','weight','hitbox'],'enemy');
+  const boss=i>=catalog.enemies.length,a=e.attack||{},art=e.art||{},modes=(Array.isArray(a.mode)?a.mode:[a.mode]).map(m=>({fan:0,charge:1,ring:2,swarm:3,shield:4,kamikaze:5,conga:6,horse:7,mage:8,medusa:9,passive:10,thrust:11,slime:12})[m]);if(!modes.length||modes.length>8||modes.some(m=>!Number.isInteger(m)))fail('unknown enemy attack '+a.mode);const mode=modes[0];
+  keys(e,['id','attack','art','drop','move','contact','biomes','weight','hitbox','spellRate','radiation','hp'],'enemy');
   keys(a,['mode','count','countStep','speed','chargeSpeed','windup','active','cooldown','cooldownStep','spread','recovery','range','standoff','life'],'enemy attack');
   keys(art,['base','themeStride','variants','animation'],'enemy art');
-  const charge=mode===1,body=e.hitbox??(boss?[.75,.8,-.1]:[.32,.36,0]);if(!Array.isArray(body)||body.length!==3)fail('enemy hitbox');number(body[0],.1,2,'hitbox width');number(body[1],.1,2,'hitbox height');number(body[2],-.5,.5,'hitbox offset');
-  const row=[sequenced?modes:mode,a.count??(boss?7:0),a.countStep??(boss?2:0),a.speed??(boss?4.5:3.2),a.windup??(charge?.38:.6),a.active??(charge?.32:.24),a.cooldown??.7,a.cooldownStep??.22,e.move??(boss?.22:.34),a.spread??.23,art.base??0,art.themeStride??0,art.variants??1,art.animation??0,a.recovery??.45,a.range??10,a.standoff??6,e.contact??(boss?1.1:.55),a.life??2.5,a.chargeSpeed??(charge?a.speed??11.5:11.5),...body];
+  const charge=mode===1||mode===11,body=e.hitbox??(boss?[.75,.8,-.1]:[.32,.36,0]);if(!Array.isArray(body)||body.length!==3)fail('enemy hitbox');number(body[0],.1,2,'hitbox width');number(body[1],.1,2,'hitbox height');number(body[2],-.5,.5,'hitbox offset');
+  const row=[sequenced?modes:mode,a.count??(boss?7:0),a.countStep??(boss?2:0),a.speed??(boss?4.5:3.2),a.windup??(charge?.38:.6),a.active??(charge?.32:.24),a.cooldown??.7,a.cooldownStep??.22,e.move??(boss?.22:.34),a.spread??.23,art.base??0,art.themeStride??0,art.variants??1,art.animation??0,a.recovery??.45,a.range??10,a.standoff??6,e.contact??.55,a.life??2.5,a.chargeSpeed??(charge?a.speed??11.5:11.5),...body,e.spellRate??(mode===8?1:0),+!!e.radiation,e.hp??0];
   row.forEach((n,j)=>{if(j!==0)number(n,j===22?-.5:0,1000,'enemy '+e.id+' '+schema.E[j]);});
   integer(row[1],0,32,'volley count');integer(row[2],0,16,'volley count step');if(mode<3)integer(row[1]+2*row[2],0,32,'maximum volley count');integer(row[10],0,enemyTiles.length-1,'enemy art');integer(row[11],0,enemyTiles.length,'theme stride');integer(row[12],1,enemyTiles.length,'animation frames');
   if(row[10]+2*row[11]+row[12]>enemyTiles.length)fail('enemy frames outside atlas');
@@ -47,7 +46,7 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
  });
  // Normalize fields that a behavior never reads. Future recipes retain every field
  // used by any mode in their sequence; constant-column specialization can then fold it.
- const uses={COUNT:[0,2,3,4,6],COUNT_STEP:[0,2,3,4,6],SPEED:[0,2],WIND:[0,1,2],ACTIVE:[0,1,2],COOL:[0,1,2],COOL_STEP:[0,1,2],MOVE:[0,1,2,3,5,6,8,9],SPREAD:[0,2],RECOVER:[0,1,2],RANGE:[0,1,2],STANDOFF:[0,2],LIFE:[0,2],CHARGE:[1,7]};
+ const uses={COUNT:[0,2,3,4,6],COUNT_STEP:[0,2,3,4,6],SPEED:[0,2],WIND:[0,1,2,11,12],ACTIVE:[0,1,2,11],COOL:[0,1,2,11],COOL_STEP:[0,1,2,11],MOVE:[0,1,2,3,5,6,8,9,10,11,12],SPREAD:[0,2],RECOVER:[0,1,2,11],RANGE:[0,1,2,11],STANDOFF:[0,2],LIFE:[0,2],CHARGE:[1,7,11]};
  for(const [name,modes] of Object.entries(uses)){
   const column=schema.E.indexOf(name),used=row=>(Array.isArray(row[0])?row[0]:[row[0]]).some(m=>modes.includes(m)),counts=new Map();
   for(const row of enemyRows)if(used(row))counts.set(row[column],(counts.get(row[column])||0)+1);
@@ -55,7 +54,7 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
   for(const row of enemyRows)if(!used(row))row[column]=value;
  }
  const bossDrops=catalog.bosses.map(b=>{
-  const ids=Array.isArray(b.drop)?b.drop:[b.drop];if(!ids.length)fail('empty boss drop pool');
+  const ids=b.drop===undefined?[]:Array.isArray(b.drop)?b.drop:[b.drop];
   return ids.map(id=>{const n=catalog.weapons.findIndex(w=>w.id===id);if(n<1)fail('boss drop must reference a weapon');return n;});
  });
  const pools=[0,1,2].map(theme=>catalog.enemies.flatMap((e,i)=>{
@@ -78,7 +77,7 @@ function compile(catalog=load(),{specialize=false,usedFields}={}){
  }
  const contiguousForms=weaponForms.every(row=>row.every((n,i)=>n===row[0]+i));
  const enemyTable=specialize?require('./recipe-rows.cjs')(tables.E):JSON.stringify(tables.E);
- const source=require('./environment-data.cjs').source+'const '+indices.join(',')+',CONTIGUOUS_FORMS='+contiguousForms+',CURVED_SHOTS='+curves+',PIERCING_SHOTS='+piercing+',SEQUENCED_ENEMIES='+sequenced+',ARMOR_COUNT='+(catalog.armorSprites||[]).length+',BOSS_COUNT='+catalog.bosses.length+',ENEMY_COUNT='+catalog.enemies.length+',enemyPools='+JSON.stringify(enemyPools)+',bossDrops='+JSON.stringify(bossDrops)+',enemyRules='+enemyTable+',weaponRules='+JSON.stringify(tables.W)+',weaponForms='+JSON.stringify(contiguousForms?weaponForms.map(row=>[row[0],row.length]):weaponForms)+',enemyNames='+JSON.stringify(catalog.enemies.map(e=>e.id))+',weaponNames='+JSON.stringify(catalog.weapons.map(w=>w.name))+';\n';
+ const source=require('./environment-data.cjs').source+'const EXIT_COUNT='+require('../assets/exits.json').length+','+indices.join(',')+',CONTIGUOUS_FORMS='+contiguousForms+',CURVED_SHOTS='+curves+',PIERCING_SHOTS='+piercing+',SEQUENCED_ENEMIES='+sequenced+',ARMOR_COUNT='+(catalog.armorSprites||[]).length+',BOSS_COUNT='+catalog.bosses.length+',ENEMY_COUNT='+catalog.enemies.length+',enemyPools='+JSON.stringify(enemyPools)+',bossDrops='+JSON.stringify(bossDrops)+',enemyRules='+enemyTable+',weaponRules='+JSON.stringify(tables.W)+',weaponForms='+JSON.stringify(contiguousForms?weaponForms.map(row=>[row[0],row.length]):weaponForms)+',enemyNames='+JSON.stringify(catalog.enemies.map(e=>e.id))+',bossNames='+JSON.stringify(catalog.bosses.map(e=>e.id))+',weaponNames='+JSON.stringify(catalog.weapons.map(w=>w.name))+';\n';
  function transform(text){
   if(!specialize)return text;
   const ast=require('acorn').parse(text,{ecmaVersion:2020}),edits=[];

@@ -1,19 +1,20 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 function boot(file,saved,peaceful=true,dungeon=true,runSeed=1){
- const handlers={},fields={},raf=[],storage=new Map(saved?[['room-zero-dev-v1',saved]]:[]);let entropy=0,time=0,lastDraw,strokes=0,hitFrames=0,actorSprite=104,mapCount=0,lettering=[],ink=[],starterFrames=[],drawOrder=[],shadow=[];
+ const handlers={},fields={},raf=[],storage=new Map(saved?[['room-zero-dev-v1',saved]]:[]);let entropy=0,time=0,lastDraw,strokes=0,hitFrames=0,actorSprite=104,mapCount=0,lettering=[],ink=[],starterFrames=[],drawOrder=[],shadow=[],messages=[],requests=[];
  class Element{constructor(tagName='BUTTON',value=''){this.tagName=tagName;this.value=value;this.checked=false;this.style={};this.dataset={};}appendChild(){}setAttribute(k,v){this[k]=v;}click(){this.onclick?.();}focus(){}setPointerCapture(){}}
  class Input extends Element{constructor(value){super('INPUT',value);}}
  let html=require('./read-build.cjs')(file);
  for(const match of html.matchAll(/<(input|button|select|span|div|canvas|p)[^>]*\bid="([^"]+)"[^>]*>/g)){
   fields[match[2]]=match[1]==='input'?new Input(match[0].match(/value="([^"]*)"/)?.[1]||''):new Element(match[1].toUpperCase());
  }
- const context={fillText(text){lettering.push(text);},clip(){},clearRect(){},save(){},restore(){this.flip=null;},rotate(){},translate(x,y){this.at=[x,y];},scale(x){if(x<0)this.flip=this.at;},fillRect(x,y,w,h){if(['#090c08','#110'].includes(this.fillStyle)&&w===8&&h===3)shadow=[x,y];if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){const base=args[0].width/12-(file==='dev/play.html'?25:19)-12,index=args[1]/12;if(index>=base&&index<base+4){starterFrames.push(index-base);drawOrder.push('sword');}if(args[0].width===12||index>=args[0].width/12-(file==='dev/play.html'?26:20))drawOrder.push('actor');if(args[0].width===12)lastDraw=args;else if(args[1]/12>=args[0].width/12-(file==='dev/play.html'?26:20)){lastDraw=this.flip?[...args.slice(0,5),this.flip[0]-12,this.flip[1],12,12]:args;lastDraw.flip=!!this.flip;}const letters='@',i=args[1]/12-(args[0].width/12-30-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},rect(){},ellipse(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
+ const compactPlayer=!fields.seed&&!fields['run-status'],actorFrames=fields.seed?21:compactPlayer?17:16,miniFrames=compactPlayer?2:7,actorExtra=compactPlayer?0:1;
+ const context={fillText(text){lettering.push(text);},clip(){},clearRect(){},save(){},restore(){this.flip=null;},rotate(){},translate(x,y){this.at=[x,y];},scale(x){if(x<0)this.flip=this.at;},fillRect(x,y,w,h){if(['#090c08','#110'].includes(this.fillStyle)&&w===8&&h===3)shadow=[x,y];if(w===5&&h===5)mapCount++;if(['#d56','#df5665'].includes(this.fillStyle))hitFrames++;},drawImage(...args){if(args.length===9){const base=args[0].width/12-actorFrames-4-miniFrames-actorExtra,index=args[1]/12;if(index>=base&&index<base+4){starterFrames.push(index-base);drawOrder.push('sword');}if(args[0].width===12||index>=args[0].width/12-(actorFrames+actorExtra))drawOrder.push('actor');if(args[0].width===12)lastDraw=args;else if(args[1]/12>=args[0].width/12-(actorFrames+actorExtra)){lastDraw=this.flip?[...args.slice(0,5),this.flip[0]-12,this.flip[1],12,12]:args;lastDraw.flip=!!this.flip;}const letters='@',i=args[1]/12-(args[0].width/12-30-letters.length);if(i>=0&&i<letters.length&&args[2]===0)ink.push(letters[i]);}},beginPath(){},rect(){},ellipse(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){strokes++;},strokeRect(){strokes++;}};
  const canvas=fields.game;canvas.getContext=()=>context;canvas.parentElement={getBoundingClientRect:()=>({width:1200,height:650})};
  const document={getElementById:id=>fields[id],createElement:()=>{const node={};node.getContext=()=>({...context,drawImage(...args){if(node.width===12&&node.height===456&&args[0]!==node&&args[6]===0)actorSprite=args[1]/12+103;}});return node;},addEventListener:(name,fn)=>handlers[name]=fn};
  let audioContexts=0,audioNotes=0;
  class AudioContext{constructor(){audioContexts++;this.state='running';}get currentTime(){return time/1000;}get destination(){return{};}resume(){this.state='running';}createOscillator(){return{frequency:{},connect(){},disconnect(){},start(){audioNotes++;},stop(){}};}createBuffer(c,n){return{getChannelData:()=>new Float32Array(n)};}get sampleRate(){return 44100;}createBufferSource(){return{connect(){},start(){},stop(){}};}createGain(){return{gain:{setValueAtTime(){},setTargetAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}}
  let randomCalls=0,random=require('./test-random.cjs')(runSeed+':1');
- const sandbox={AudioContext,Math:Object.assign(Object.create(Math),{random(){randomCalls++;return random();}}),document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{getRandomValues(a){a[0]=runSeed+entropy++;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
+ const sandbox={fetch:(url,options)=>{const body=JSON.parse(options.body);requests.push({url,body});const requestId=requests.length;return Promise.resolve({ok:true,status:200,json:()=>Promise.resolve(url.endsWith('/api/runs')?{token:'00000000-0000-4000-8000-'+String(requestId).padStart(12,'0')}:{rank:1,scores:[]})});},AbortSignal,parent:{postMessage(data){messages.push(JSON.parse(JSON.stringify(data)));}},AudioContext,Math:Object.assign(Object.create(Math),{random(){randomCalls++;return random();}}),document,HTMLInputElement:Input,ResizeObserver:class{observe(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},atob:s=>Buffer.from(s,'base64').toString('binary'),crypto:{randomUUID:()=>'00000000-0000-4000-8000-000000000000',getRandomValues(a){a[0]=runSeed+entropy++;return a;}},requestAnimationFrame:fn=>raf.push(fn),addEventListener:(name,fn)=>handlers[name]=fn};
  require('./dom-events.cjs')(sandbox,handlers);
  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],sandbox);
  if(fields.seed)assert(/Room Zero|Floor/.test(fields.info.textContent),'room generated');
@@ -28,14 +29,14 @@ function boot(file,saved,peaceful=true,dungeon=true,runSeed=1){
    if(Math.abs(lastDraw[axis]-target)<1)continue;const dir=lastDraw[axis]>target?negative:positive,button=bindings?.[dir]||{left:'a',right:'d',up:'w',down:'s'}[dir];
    key('keydown',button);let steps=0;while(Math.abs(lastDraw[axis]-target)>=1&&steps++<1000)tick(1,1000/120);key('keyup',button);assert(steps<1000,'narrow entrance traversal reaches each bend');
   }
-  if(enter){key('keydown',bindings?.interact||'o');key('keyup',bindings?.interact||'o');tick(30);}else tick();
+  if(enter){key('keydown',bindings?.right||'d');tick(9);key('keyup',bindings?.right||'d');tick(30);}else tick();
  };
  const goDungeon=()=>{
   if(fields['room-select']){fields['room-select'].value='0';fields['room-select'].onchange({target:fields['room-select']});tick();}else walkEntrance();
   if(peaceful)fields['clear-room']?.click();tick(30);
  };
  if(dungeon){random=require('./test-random.cjs')(runSeed+':1');goDungeon();}
- return {fields,tick,key,handlers,storage,goDungeon,walkEntrance,get shadow(){return shadow},get drawOrder(){return drawOrder},get starterFrames(){return starterFrames},get font(){return context.font},get bitmapText(){return ink.join('')},get entropy(){return entropy},get randomCalls(){return randomCalls},get audioContexts(){return audioContexts},get audioNotes(){return audioNotes},get lettering(){return lettering},get mapCount(){return mapCount},get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];if(image.width===12)return lastDraw[2]/12;const i=lastDraw[1]/12-(image.width/12-19);if(i===-1)return 23;return i===18?38:lastDraw.flip?20+i:i<6?14+i:20+i},get flashes(){return hitFrames},get strokes(){return strokes}};
+ return {fields,tick,key,handlers,storage,messages,requests,goDungeon,walkEntrance,get shadow(){return shadow},get drawOrder(){return drawOrder},get starterFrames(){return starterFrames},get font(){return context.font},get bitmapText(){return ink.join('')},get entropy(){return entropy},get randomCalls(){return randomCalls},get audioContexts(){return audioContexts},get audioNotes(){return audioNotes},get lettering(){return lettering},get mapCount(){return mapCount},get x(){return lastDraw[5]},get y(){return lastDraw[6]},get sprite(){return actorSprite},get pose(){const image=lastDraw[0];if(image.width===12)return lastDraw[2]/12;const i=lastDraw[1]/12-(image.width/12-actorFrames);if(i===-1)return 23;if(fields.seed&&i===20)return 38;if(compactPlayer)return i===16?38:14+i+(i/4|0)*2;return i===15?38:lastDraw.flip?20+i:14+i+(i/5|0)+(i>=5?6:0)},get flashes(){return hitFrames},get strokes(){return strokes}};
 }
 module.exports=boot;
 if(require.main===module){
@@ -64,19 +65,19 @@ const saved=g.storage.get('room-zero-dev-v1'),restored=boot('dev/play.html',save
 f.collision.checked=false;f.collision.onchange({target:f.collision});g.key('keydown','ArrowUp');run('t',300);g.key('keyup','ArrowUp');assert(g.x>330,'collision disabled allows wall crossing');f.collision.checked=true;f.collision.onchange({target:f.collision});g.tick();assert.equal(g.x,180,'collision restore returns embedded player to spawn');
 f.defaults.click();assert.equal(+f.speed.value,10);assert.equal(f.layout.value,'wasd');assert(!f.grid.checked&&!f.hitbox.checked&&!f['dev-panel'].hidden,'defaults restore settings');
 assert(!fs.readFileSync('dev/release-diagnostics.html','utf8').includes('room-zero-dev-v1'),'dev preferences removed from release');
-const migrated=boot('dev/play.html',JSON.stringify({speed:10,layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:' ',interact:'e'}}),true,false);assert.equal(migrated.fields['bind-attack'].textContent,'I');assert.equal(migrated.fields['bind-interact'].textContent,'O');assert.equal(+migrated.fields.speed.value,10);
+const migrated=boot('dev/play.html',JSON.stringify({speed:10,layout:'wasd',bindings:{up:'w',left:'a',down:'s',right:'d',attack:' ',interact:'e'}}),true,false);assert.equal(migrated.fields['bind-attack'].textContent,'Space');assert(!migrated.fields['bind-interact'],'interact binding is removed');assert.equal(+migrated.fields.speed.value,10);
 console.log('PASS dev controls: speed, pause, presets, custom/duplicate/reserved bindings, overlays, collapse, persistence, collision and defaults');
 
 for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const g=boot(file),f=g.fields,poses=new Set(),idle=g.sprite;
  g.key('keydown','o');g.key('keyup','o');g.tick();assert(!f['run-status'].textContent.includes('None'),'no power slot in HUD');
- g.key('keydown','i');g.key('keyup','i');assert.equal(f.attack['data-active'],'true','attack starts on input');
+ g.key('keydown',' ');g.key('keyup',' ');assert.equal(f.attack['data-active'],'true','attack starts on input');
  for(let i=0;i<10;i++){g.tick();poses.add(g.pose);assert.equal(g.sprite,idle,'character identity preserved');}
  assert(poses.size>=2,'windup and strike have separate poses');assert.equal(f.attack['data-active'],'false','fast recovery');
  if(f.pause){
   g.tick(10);f['attack-rate'].value='2';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(20);assert.equal(f.attack['data-active'],'true','slower timing applied');g.tick(11);assert.equal(f.attack['data-active'],'false','slow cycle completes');
   f['attack-rate'].value='20';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(4);assert.equal(f.attack['data-active'],'false','fast timing applied');
-  g.key('keydown','i');let starts=0,active=false;for(let i=0;i<60;i++){g.tick();const next=f.attack['data-active']==='true';if(next&&!active)starts++;active=next;}assert(starts>=2,'held input repeats through cooldown gaps');g.key('keyup','i');g.tick(10);assert.equal(f.attack['data-active'],'false','release ends repeat');
+  g.key('keydown',' ');let starts=0,active=false;for(let i=0;i<60;i++){g.tick();const next=f.attack['data-active']==='true';if(next&&!active)starts++;active=next;}assert(starts>=2,'held input repeats through cooldown gaps');g.key('keyup',' ');g.tick(10);assert.equal(f.attack['data-active'],'false','release ends repeat');
   f['attack-rate'].value='2';f['attack-rate'].oninput({target:f['attack-rate']});f.attack.click();g.tick(2);f.pause.click();const pose=g.pose;g.tick(30);assert.equal(g.pose,pose,'pause freezes action');f.pause.click();g.tick(40);
   f['bind-attack'].click();g.key('keydown','q');g.key('keyup','q');g.key('keydown','q');g.key('keyup','q');g.tick();assert.equal(f.game.dataset.action,'attack','remapped attack works');
   const restored=boot(file,g.storage.get('room-zero-dev-v1'));assert.equal(+restored.fields['attack-rate'].value,2,'action rate persists');
@@ -112,12 +113,12 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  // Face left, then strafe down/right while holding a left-facing attack.
  g.key('keydown','a');g.tick(2);g.key('keyup','a');g.tick();
  assert.equal(g.pose,20,'left idle retained');
- g.key('keydown','i');g.key('keydown','s');
+ g.key('keydown',' ');g.key('keydown','s');
  let attackFrames=0,gapFrames=0;const y=g.y;
  for(let i=0;i<24;i++){g.tick();assert(g.pose>=20&&g.pose<26,'held attack retains body aim during animation and cooldown');if(f.attack['data-active']==='true')attackFrames++;else gapFrames++;}
  assert(g.y>y+10,'movement stays responsive during attack');assert(attackFrames&&gapFrames,'attacks have recovery gaps');
- g.key('keyup','i');g.tick(14);assert(g.pose>=20&&g.pose<26,'held movement after attack release does not snap facing');
- g.key('keyup','s');g.tick();assert.equal(g.pose,20,'idle preserves attack-facing direction');
+ g.key('keyup',' ');g.tick(14);assert(g.pose>=26&&g.pose<32,'continued movement resumes natural facing after attack recovery');
+ g.key('keyup','s');g.tick();assert.equal(g.pose,26,'idle preserves the last movement direction');
  g.key('keydown','d');g.tick(2);g.key('keyup','d');g.tick();assert.equal(g.pose,14,'new movement intentionally changes facing');
  // Release ignores rapid taps during recovery; there is no deferred action queue.
  f.attack.click();g.tick(6);assert.equal(f.attack['data-active'],'false','animation finishes before cooldown');
@@ -128,46 +129,46 @@ for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  if(f.pause){
  // Pointer buttons exist only in development; keyboard-only release has one hold flag.
  // Pointer release must not cancel a simultaneous keyboard hold.
- g.key('keydown','i');f.attack.onpointerdown({button:0,pointerId:7,preventDefault(){}});
+ g.key('keydown',' ');f.attack.onpointerdown({button:0,pointerId:7,preventDefault(){}});
  f.attack.onpointerup({pointerId:7});g.tick(15);let repeated=false;
  for(let i=0;i<24;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'pointer release preserves keyboard input');
- g.key('keyup','i');g.tick(10);assert.equal(f.attack['data-active'],'false');
- f.attack.onpointerdown({button:0,pointerId:8,preventDefault(){}});g.key('keyup','i');g.tick(15);repeated=false;
+ g.key('keyup',' ');g.tick(10);assert.equal(f.attack['data-active'],'false');
+ f.attack.onpointerdown({button:0,pointerId:8,preventDefault(){}});g.key('keyup',' ');g.tick(15);repeated=false;
  for(let i=0;i<12;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'keyup preserves pointer input');
  f.attack.onpointercancel({pointerId:8});g.tick(10);assert.equal(f.attack['data-active'],'false','pointer cancel releases');
  }
  // Focus within gameplay preserves held controls; leaving it safely clears them.
- g.key('keydown','i');g.handlers.focusin({target:f.game});g.tick(10);g.handlers.focusin({target:f.attack});g.tick(10);
+ g.key('keydown',' ');g.handlers.focusin({target:f.game});g.tick(10);g.handlers.focusin({target:f.attack});g.tick(10);
  repeated=false;for(let i=0;i<12;i++){g.tick();repeated ||= f.attack['data-active']==='true';}assert(repeated,'gameplay focus preserves held attack');
  g.handlers.blur();g.tick(30);assert.equal(f.attack['data-active'],'false','blur clears held attack');
- g.key('keydown','i',f.game,{ctrlKey:true});g.tick();assert.equal(f.attack['data-active'],'false','modifier shortcut does not attack');
+ g.key('keydown',' ',f.game,{ctrlKey:true});g.tick();assert.equal(f.attack['data-active'],'false','modifier shortcut does not attack');
  if(f.pause){
   f['attack-cooldown'].value='500';f['attack-cooldown'].oninput({target:f['attack-cooldown']});
   const restored=boot(file,g.storage.get('room-zero-dev-v1'));assert.equal(+restored.fields['attack-cooldown'].value,500,'cooldown persists');
-  g.key('keydown','i');g.tick(6);assert.equal(f.attack['data-active'],'false');g.tick(20);assert.equal(f.attack['data-active'],'false','cooldown independent of animation');g.tick(35);assert.equal(f.attack['data-active'],'true','held attack resumes when ready');
-  f.pause.click();g.key('keydown','i');g.tick(30);f.pause.click();g.tick(40);assert.equal(f.attack['data-active'],'false','paused input does not latch a repeat');
-  f['attack-mode'].value='press';f['attack-mode'].onchange({target:f['attack-mode']});g.key('keydown','i');g.tick(90);assert.equal(f.attack['data-active'],'false','press mode never auto-repeats');g.key('keyup','i');
+  g.key('keydown',' ');g.tick(6);assert.equal(f.attack['data-active'],'false');g.tick(20);assert.equal(f.attack['data-active'],'false','cooldown independent of animation');g.tick(35);assert.equal(f.attack['data-active'],'true','held attack resumes when ready');
+  f.pause.click();g.key('keydown',' ');g.tick(30);f.pause.click();g.tick(40);assert.equal(f.attack['data-active'],'false','paused input does not latch a repeat');
+  f['attack-mode'].value='press';f['attack-mode'].onchange({target:f['attack-mode']});g.key('keydown',' ');g.tick(90);assert.equal(f.attack['data-active'],'false','press mode never auto-repeats');g.key('keyup',' ');
  }
  console.log('PASS '+file+': locked attack strafe/idle, fresh direction input, cooldown gaps/no queue, focus lifecycle'+(f.pause?' and independent pointer/keyboard':''));
 }
 
 // Pickup must not swivel the character or conceal a punch, and its hit still follows aim.
 for(const file of ['dev/release-diagnostics.html','dev/play.html']){
- const g=boot(file),f=g.fields;g.key('keydown','i');g.key('keydown','o');g.key('keyup','o');g.tick();
+ const g=boot(file),f=g.fields;g.key('keydown',' ');g.key('keydown','o');g.key('keyup','o');g.tick();
  assert.equal(g.pose,14,'pickup cannot steal the windup pose or direction');assert(!f['run-status'].textContent.includes('None'),'no power slot');
- g.key('keyup','i');g.tick(20);assert.equal(g.pose,14,'idle keeps captured facing after simultaneous pickup');
+ g.key('keyup',' ');g.tick(20);assert.equal(g.pose,14,'idle keeps captured facing after simultaneous pickup');
 }
 console.log('PASS simultaneous actions: captured hit direction, punch priority and pickup');
 
 for(const fps of [30,60,144]){
- const g=boot('dev/release-diagnostics.html');g.key('keydown','i');let active=true,starts=1,lastStart=0;
+ const g=boot('dev/release-diagnostics.html');g.key('keydown',' ');let active=true,starts=1,lastStart=0;
  for(let i=1;i<=fps;i++){g.tick(1,1000/fps);const next=g.fields.attack['data-active']==='true';if(next&&!active){const time=i*1000/fps;assert(time-lastStart>=300-1e-6,'repeat respects cooldown across frame rates');lastStart=time;starts++;}active=next;}
  assert(starts>=3&&starts<=4,'repeat cadence stays close across frame rates');
 }
 {
- const g=boot('dev/release-diagnostics.html');g.key('keydown','i');g.tick(9,30);assert.equal(g.fields.attack['data-active'],'false');
+ const g=boot('dev/release-diagnostics.html');g.key('keydown',' ');g.tick(9,30);assert.equal(g.fields.attack['data-active'],'false');
  g.tick(1,5000);assert.equal(g.fields.attack['data-active'],'true','long frame triggers at most the next ready strike');
- g.key('keyup','i');g.tick(30);assert.equal(g.fields.attack['data-active'],'false','long frame creates no catch-up queue');
+ g.key('keyup',' ');g.tick(30);assert.equal(g.fields.attack['data-active'],'false','long frame creates no catch-up queue');
 }
 console.log('PASS cooldown timing: 30/60/144 fps cadence and no long-frame catch-up burst');
 assert.equal(boot('dev/release-diagnostics.html').fields['run-status'].textContent,boot('dev/play.html').fields['run-status'].textContent,'release and development begin with identical game state');
@@ -175,25 +176,25 @@ assert.equal(boot('dev/release-diagnostics.html').fields['pickup-status'].textCo
 
 for(const file of ['dev/release-diagnostics.html','dev/play.html']){
  const g=boot(file,undefined,false,true,4);let hit=false;for(let i=0;i<3600&&!g.fields['run-status'].textContent.startsWith('Fallen');i++){g.tick();if(g.fields['run-status'].textContent.startsWith('HP 1'))hit=true;}
- assert(hit,'first damage leaves 1 HP');assert(g.fields['run-status'].textContent.startsWith('Fallen'),'second hit kills player');assert(g.flashes>0,'damage draws red feedback');assert.equal(g.pose,38,'death uses dedicated atlas sprite');const x=g.x,y=g.y;g.key('keydown','d',g.fields.game,{repeat:true});g.key('keydown','i',g.fields.game,{repeat:true});g.tick(30);assert.equal(g.x,x);assert.equal(g.y,y);assert.equal(g.pose,38,'dead player does not walk or attack');g.key('keyup','d');g.key('keyup','i');assert(g.lettering.some(t=>/^SCORE \d+$/.test(t)),'score is visible after death');assert(g.lettering.includes('Press any key to revive'));g.key('keydown','q');g.key('keyup','q');g.tick();assert.equal(g.fields['run-status'].textContent,'Room Zero','any fresh key restarts in safe entrance');assert.equal(g.entropy,g.fields.seed?2:0,'dev restart rolls a fresh seed; release uses native random draws');if(!g.fields.seed){const before=g.randomCalls;g.goDungeon();assert(g.randomCalls>before,'new run consumes fresh random draws');}
+ assert(hit,'first damage leaves 1 HP');assert(g.fields['run-status'].textContent.startsWith('Fallen'),'second hit kills player');assert(g.flashes>0,'damage draws red feedback');assert.equal(g.pose,38,'death uses dedicated atlas sprite');const x=g.x,y=g.y;g.key('keydown','d',g.fields.game,{repeat:true});g.key('keydown',' ',g.fields.game,{repeat:true});g.tick(30);assert.equal(g.x,x);assert.equal(g.y,y);assert.equal(g.pose,38,'dead player does not walk or attack');g.key('keyup','d');g.key('keyup',' ');assert(g.lettering.some(t=>/^SCORE \d+$/.test(t)),'score is visible after death');assert(g.lettering.includes('Press any key to revive'));g.key('keydown','q');g.key('keyup','q');g.tick(16);assert.equal(g.pose,38,'early restart press is ignored');g.key('keydown','q');g.key('keyup','q');g.tick();assert.equal(g.fields['run-status'].textContent,'Room Zero','any fresh key restarts in safe entrance');assert.equal(g.entropy,g.fields.seed?2:0,'dev restart rolls a fresh seed; release uses native random draws');if(!g.fields.seed){const before=g.randomCalls;g.goDungeon();assert(g.randomCalls>before,'new run consumes fresh random draws');}
  console.log('PASS '+file+': 2 HP, damage flash, dedicated corpse, death lock and restart');
 }
 
 }
-if(require.main===module){const g=boot('dev/play.html',undefined,false,false),f=g.fields;f['hazard-test'].value='radiation';f['hazard-test'].onchange({target:f['hazard-test']});g.tick(30);g.key('keydown','d');g.tick(27);g.key('keyup','d');g.key('keydown','o');g.key('keyup','o');g.tick();assert.equal(f['pickup-status'].textContent,'O · Drop uranium','O picks up floor uranium');g.tick(20);g.key('keydown','o');g.key('keyup','o');g.tick();assert.equal(f['pickup-status'].textContent,'Take Uranium','O drops a carried bar');g.tick(20);g.key('keydown','o');g.key('keyup','o');g.tick();assert.equal(f['pickup-status'].textContent,'O · Drop uranium','O picks the dropped bar up again');console.log('PASS dev keyboard: O picks up, drops and reclaims uranium');}
+if(require.main===module){const g=boot('dev/play.html',undefined,false,false),f=g.fields;f['hazard-test'].value='radiation';f['hazard-test'].onchange({target:f['hazard-test']});g.tick(30);g.key('keydown','d');g.tick(27);g.key('keyup','d');for(let i=0;i<3;i++){g.key('keydown','o');g.key('keyup','o');g.tick(20);assert(!/uranium/i.test(f['pickup-status'].textContent),'O never picks up or offers to drop uranium');}console.log('PASS dev keyboard: uranium remains a static hazard');}
 
 if(require.main===module){
 for(const [astralBody,frame]of [['sun',0],['moon',2]]){
  const g=boot('dev/play.html',JSON.stringify({astralBody}),true,false);
- g.key('keydown','i');g.key('keyup','i');g.tick();assert.deepEqual(g.starterFrames,[frame+1],'starting weapon matches the visible '+astralBody+' during windup');
+ g.key('keydown',' ');g.key('keyup',' ');g.tick();assert.deepEqual(g.starterFrames,[frame+1],'starting weapon matches the visible '+astralBody+' during windup');
  g.tick(3);assert.deepEqual(g.starterFrames,[frame+1],'pullback is horizontal before the hit begins');const pulledX=g.x;g.tick();assert(g.x-pulledX<=2,'body leaves the pullback continuously instead of snapping forward');g.tick();assert.deepEqual(g.starterFrames,[frame+1],'starting weapon extends after 80ms');g.tick(7);assert.deepEqual(g.starterFrames,[frame+1],'strike stays extended beyond the old 100ms window');g.tick(5);assert.deepEqual(g.starterFrames,[frame+1],'blade returns to diagonal ready after its strike');g.key('keydown','d');g.tick(5);assert.deepEqual(g.starterFrames,[frame+1],'ready sword stays visible while moving');g.key('keyup','d');
- g.goDungeon();g.key('keydown','i');g.key('keyup','i');g.tick();assert.deepEqual(g.starterFrames,[frame+1],'starter choice survives entering the dungeon');
+ g.goDungeon();g.key('keydown',' ');g.key('keyup',' ');g.tick();assert.deepEqual(g.starterFrames,[frame+1],'starter choice survives entering the dungeon');
 }
 for(const [astralBody,frame]of [['sun',0],['moon',2]])for(const [i,keys]of [['d'],['d','s'],['s'],['s','a'],['a'],['a','w'],['w'],['w','d']].entries()){
  const g=boot('dev/play.html',JSON.stringify({astralBody}),true,false),readyFrame=frame+([1,3,7].includes(i)?0:1);
  g.fields['hazard-test'].value='radiation';g.fields['hazard-test'].onchange({target:g.fields['hazard-test']});g.tick(30);
  for(const key of keys)g.key('keydown',key);g.tick(3);assert.deepEqual(g.starterFrames,[readyFrame],'one solid ready blade while walking in direction '+i);for(const key of keys)g.key('keyup',key);g.tick();assert.deepEqual(g.starterFrames,[readyFrame],'ready remains after stopping in direction '+i);assert.deepEqual(g.drawOrder,i<6?['actor','sword']:['sword','actor'],'ready blade uses the correct depth in direction '+i);
- g.key('keydown','i');g.key('keyup','i');g.tick(4);assert.deepEqual(g.starterFrames,[frame+(i%2?0:1)],'pullback aligns with aim in direction '+i);assert.deepEqual(g.shadow,[g.x+2,g.y+10],'shadow follows pullback body in direction '+i);assert.deepEqual(g.drawOrder,i<3||i>5?['sword','actor']:['actor','sword'],'pulled blade passes behind the body in direction '+i);g.tick(3);assert.deepEqual(g.starterFrames,[frame+(i%2?0:1)],'thrust keeps its committed direction '+i);assert.deepEqual(g.shadow,[g.x+2,g.y+10],'shadow follows thrust body in direction '+i);assert.deepEqual(g.drawOrder,i<5?['actor','sword']:['sword','actor'],'strike blade uses the correct depth in direction '+i);const extended=[g.x,g.y];g.tick(15);assert.deepEqual([g.x,g.y],extended,'body keeps the completed forward step in direction '+i);assert.deepEqual(g.shadow,[g.x+2,g.y+10],'shadow stays under the final position');assert.deepEqual(g.starterFrames,[readyFrame],'recovery returns to ready in direction '+i);
+ g.key('keydown',' ');g.key('keyup',' ');g.tick(4);assert.deepEqual(g.starterFrames,[frame+(i%2?0:1)],'pullback aligns with aim in direction '+i);assert.deepEqual(g.shadow,[g.x+2,g.y+10],'shadow follows pullback body in direction '+i);assert.deepEqual(g.drawOrder,i<3||i>5?['sword','actor']:['actor','sword'],'pulled blade passes behind the body in direction '+i);g.tick(3);assert.deepEqual(g.starterFrames,[frame+(i%2?0:1)],'thrust keeps its committed direction '+i);assert.deepEqual(g.shadow,[g.x+2,g.y+10],'shadow follows thrust body in direction '+i);assert.deepEqual(g.drawOrder,i<5?['actor','sword']:['sword','actor'],'strike blade uses the correct depth in direction '+i);const extended=[g.x,g.y];g.tick(15);assert.deepEqual([g.x,g.y],extended,'body keeps the completed forward step in direction '+i);assert.deepEqual(g.shadow,[g.x+2,g.y+10],'shadow stays under the final position');assert.deepEqual(g.starterFrames,[readyFrame],'recovery returns to ready in direction '+i);
 }
 console.log('PASS starter blades: sun/moon art, diagonal windup, horizontal strike, recovery and floor persistence');
 }

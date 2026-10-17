@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-10",
+  "before": 10449,
+  "after": 10374,
+  "saved": 75,
+  "remainingTo10000": 374,
+  "itch": {
+    "game": 10769,
+    "loader": 157,
+    "total": 10926,
+    "zip": 11103
+  },
+  "changes": [
+    "Compose the nine title glyphs into one strip during the build, preserving their exact spacing and shadow.",
+    "Keep hazard generation state local and inline its single call.",
+    "Specialize the one-floor texture selection while preserving its random draw.",
+    "Store an exit position only for the boss room.",
+    "Resolve the fixed boss room index at build time.",
+    "Derive boss identity from the existing recipe HP field instead of storing another flag.",
+    "Share the player/enemy uranium proximity query without allocating a filtered source array.",
+    "Remove the always-zero sprite index from corpse, uranium and armor objects."
+  ],
+  "content": {
+    "enemies": 9,
+    "bosses": 6,
+    "weapon": 1,
+    "enemySprites": 23,
+    "pantryTiles": 14,
+    "atlasTiles": 159
+  },
+  "validation": {
+    "existingFullSuite": "passed",
+    "itchLifecycle": "passed",
+    "itchPixelAudioEquality": "passed",
+    "baselineComparisons": [
+      {
+        "seed": 1,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 1,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 2,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 2,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 7,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 7,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 19,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 19,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 83,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 83,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 104,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 104,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 2026,
+        "entrance": false,
+        "frames": 600,
+        "pixels": "identical",
+        "audio": "identical"
+      },
+      {
+        "seed": 2026,
+        "entrance": true,
+        "frames": 60,
+        "pixels": "identical",
+        "audio": "identical"
+      }
+    ],
+    "frameCount": 4620,
+    "visualChanges": false,
+    "audioChanges": false
+  },
+  "rejected": [
+    "Caching the player pose reduced repeated computation but increased final file size.",
+    "Integer-facing encoding did not beat the current representation.",
+    "Deriving hue from the song increased final file size.",
+    "Combining reward/clear flags into a bitfield increased final file size.",
+    "Sharing visibility/blur handlers increased final file size."
+  ],
+  "snapshot": "dev/snapshots/optimization-render-20261010"
+}

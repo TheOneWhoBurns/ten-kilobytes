@@ -3,7 +3,7 @@ const {unzipSync}=require('fflate');
 const zopfli=require('@gfx/zopfli');
 // ISO-8859-5 has a linear Cyrillic range and only two exceptional byte mappings.
 // Its inverse needs no 256-character table. "cyrillic" is its browser label.
-const prefix=(escape,xor,script)=>'<meta charset=cyrillic><body onload=\'let a=[],e=0;for(let c of p.textContent){let n=c.charCodeAt();n=n>255?n>2e3?240:n-864:n==167?253:n;n==='+escape+'?e=32:(a.push(n^e'+(xor?'^'+xor:'')+'),e=0)}new Response(new Response(new Uint8Array(a)).body.pipeThrough(new DecompressionStream("deflate"))).text().then(h=>{'+(script?'eval(h)':'document.write(h)')+';document.close()})\'><plaintext id=p hidden>';
+const prefix=(escape,xor,script)=>'<meta charset=cyrillic><body onload=\'a=[],e=0;for(c of p.textContent)n=c.charCodeAt(),n=n>255?n>2e3?240:n-864:n==167?253:n,e=n==='+escape+'?32:(a.push(n^e'+(xor?'^'+xor:'')+'),0);new Response(new Response(new Uint8Array(a)).body.pipeThrough(new DecompressionStream("deflate"))).text().then(h=>{'+(script?'eval(h)':'document.write(h)')+';document.close()})\'><plaintext id=p hidden>';
 function binaryEnvelope(compressed,script=false){
  // Select an XOR alphabet and a rare escape byte. This is an exact byte
  // permutation: it reduces HTML escaping without altering the Deflate stream.
@@ -31,7 +31,7 @@ async function envelope(html,iterations=1000,script=false,data){
  if(!inflateSync(compressed).equals(input))throw Error('Deflate round trip failed');
  if(!data)return binaryEnvelope(compressed,script);
  const result=binaryEnvelope(Buffer.concat([compressed,data]),true),marker=Buffer.from('<plaintext id=p hidden>'),end=result.indexOf(marker)+marker.length;
- const head=result.subarray(0,end).toString('ascii').replace('new Uint8Array(a)','new Uint8Array(a.splice(0,'+compressed.length+'))').replace('.then(h=>{eval(h);document.close()})','.then(h=>eval(h))');
+ const head=result.subarray(0,end).toString('ascii').replace('new Uint8Array(a)','new Uint8Array(a.splice(0,'+compressed.length+'))').replace('.then(h=>{eval(h);document.close()})','.then(eval)');
  return Buffer.concat([Buffer.from(head),result.subarray(end)]);
 }
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let j=0;j<8;j++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -46,7 +46,8 @@ async function zipHtml(html,iterations=1000){
 }
 function jsInput(html){return 'document.write('+JSON.stringify(html.replace(/<script>[\s\S]*?<\/script>/,''))+');'+html.match(/<script>([\s\S]*?)<\/script>/)[1];}
 async function roller(html,options,optimize=0,binary=false){
- const {sparseModel=false,...modelOptions}=options;
+ const {sparseModel=false,rawBytes=false,syntaxSelectors=[],...modelOptions}=options;
+ if(syntaxSelectors.length){if(!sparseModel||optimize||!modelOptions.sparseSelectors)throw Error('Syntax contexts need explicit sparse selectors');modelOptions.sparseSelectors=[...modelOptions.sparseSelectors,...syntaxSelectors];}
  if(sparseModel&&!binary)throw Error('Sparse model requires the byte stream');
  // A small dense run supplies the pinned library's decoder template. The real
  // sparse encoder and decoder below use the requested context width.
@@ -54,14 +55,14 @@ async function roller(html,options,optimize=0,binary=false){
  const {Packer}=await import('roadroller'),data=jsInput(html),packer=new Packer([{data,type:'js',action:'eval'}],templateOptions);
  const result=optimize?await packer.optimize(optimize):null,packed=packer.makeDecoder();
  let code=packed.firstLine+packed.secondLine,stream,memoryMB=packer.memoryUsageMB;
- const effectiveOptions=sparseModel?{...packer.options,maxMemoryMB:modelOptions.maxMemoryMB??packer.options.maxMemoryMB,contextBits:modelOptions.contextBits}:packer.options;
- if(binary){const raw=await require('./byte-stream.cjs')(packer,{data,type:'js',action:'eval'},code,sparseModel,effectiveOptions);code=raw.code;stream=raw.data;memoryMB=raw.memoryMB??memoryMB;}
+ const effectiveOptions=sparseModel?{...packer.options,maxMemoryMB:modelOptions.maxMemoryMB??packer.options.maxMemoryMB,contextBits:modelOptions.contextBits,syntaxSelectors}:packer.options;
+ if(binary){const raw=await require('./byte-stream.cjs')(packer,{data,type:'js',action:'eval'},code,sparseModel,effectiveOptions,rawBytes);code=raw.code;stream=raw.data;memoryMB=raw.memoryMB??memoryMB;}
  if(binary)code=(await require('terser').minify(code,{compress:{passes:3},mangle:false})).code;
  // Preprocessing normalizes string escapes. Compare parsed programs, not source spelling.
  let restored;require('node:vm').runInNewContext(code,{eval:s=>restored=s,TextDecoder,a:stream&&Array.from(stream)},{timeout:10000});
  const canonical=s=>JSON.stringify(require('acorn').parse(s,{ecmaVersion:2020}),function(k,v){return ['start','end'].includes(k)||k==='raw'&&!Object.hasOwn(this,'cooked')?undefined:v;});
  if(canonical(data)!==canonical(restored))throw Error('Roadroller changed the program');
- return{code,data:stream,html:binary?undefined:'<!doctype html><meta charset=utf-8><script>'+code.replace(/<\/script/gi,'<\\/script')+'</script>',options:{...effectiveOptions,...(sparseModel?{sparseModel}: {})},memoryMB,search:result};
+ return{code,data:stream,html:binary?undefined:'<!doctype html><meta charset=utf-8><script>'+code.replace(/<\/script/gi,'<\\/script')+'</script>',options:{...effectiveOptions,...(syntaxSelectors.length?{sparseSelectors:options.sparseSelectors}:{}),...(sparseModel?{sparseModel}: {})},memoryMB,search:result};
 }
 async function smallestEnvelope(source,script=false,data){
  // The standalone source file is the primary budget. Break equal HTML sizes

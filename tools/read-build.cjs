@@ -2,6 +2,7 @@ const fs=require('node:fs'),vm=require('node:vm'),{inflateSync}=require('node:zl
 const cache=new Map();
 function unpack(bytes,depth=0){
  if(depth>4)throw Error('Too many packaging layers');
+ if(bytes[0]===120){const {buffer,engine}=inflateSync(bytes,{info:true});return unpackProgram(buffer.toString(),depth+1,{a:Array.from(bytes.subarray(engine.bytesWritten))});}
  const plaintext=Buffer.from('<plaintext id=p hidden>'),plainOffset=bytes.indexOf(plaintext);
  if(plainOffset>=0){
   const decoder=bytes.subarray(0,plainOffset).toString('ascii').match(/onload='([^']*)'/)?.[1];
@@ -35,9 +36,12 @@ function unpackProgram(script,depth,scope={}){
  return shell.includes('</html>')?shell.replace('</html>',()=>tag+'</html>'):shell+tag;
 }
 function decodeBytes(encoded,decoder){
- const escape=+(decoder.match(/n===(\d+)\?e=32/)?.[1]??27),xor=+(decoder.match(/a\.push\(n\^e\^(\d+)\)/)?.[1]??0),raw=[];
+ const escape=+(decoder.match(/n===(\d+)\?(?:e=)?32/)?.[1]??27),xor=+(decoder.match(/a\.push\(n\^e\^(\d+)\)/)?.[1]??0),raw=[];
  for(let i=0;i<encoded.length;i++)raw.push((encoded[i]===escape?encoded[++i]^32:encoded[i])^xor);
  return Buffer.from(raw);
 }
 module.exports=file=>{const bytes=fs.readFileSync(file),old=cache.get(file);if(old?.bytes.equals(bytes))return old.html;const html=unpack(bytes);cache.set(file,{bytes,html});return html;};
 module.exports.unpack=unpack;
+
+module.exports.decodeBytes=decodeBytes;
+module.exports.unpackProgram=unpackProgram;

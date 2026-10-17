@@ -25,18 +25,6 @@
       20
     ],
     [
-      115,
-      37
-    ],
-    [
-      79,
-      11
-    ],
-    [
-      78,
-      12
-    ],
-    [
       166,
       16
     ],
@@ -51,6 +39,58 @@
     [
       176,
       11
+    ],
+    [
+      113,
+      42
+    ],
+    [
+      127,
+      40
+    ],
+    [
+      202,
+      6
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      79,
+      11
+    ],
+    [
+      78,
+      12
+    ],
+    [
+      34,
+      48
+    ],
+    [
+      35,
+      48
+    ],
+    [
+      34,
+      49
+    ],
+    [
+      35,
+      49
+    ],
+    [
+      106,
+      42
+    ],
+    [
+      105,
+      42
+    ],
+    [
+      104,
+      42
     ]
   ],
   "enemies": [
@@ -129,10 +169,10 @@
     {
       "id": "conga",
       "art": {
-        "base": 6,
-        "variants": 3
+        "base": 14,
+        "variants": 1
       },
-      "move": 1.6,
+      "move": 1.4,
       "attack": {
         "mode": "conga",
         "count": 5,
@@ -147,7 +187,7 @@
     {
       "id": "charge",
       "art": {
-        "base": 9,
+        "base": 6,
         "variants": 1
       },
       "move": 0.34,
@@ -163,15 +203,19 @@
     {
       "id": "horse",
       "art": {
-        "base": 10,
+        "base": 7,
         "variants": 1
       },
-      "move": 2.4,
+      "move": 0.5,
       "attack": {
         "mode": "charge",
-        "chargeSpeed": 12,
+        "chargeSpeed": 10,
         "windup": 0,
-        "active": 1.2
+        "active": 0.4,
+        "range": 4,
+        "recovery": 0.1,
+        "cooldown": 1.2,
+        "cooldownStep": 0
       },
       "hitbox": [
         0.46,
@@ -182,7 +226,7 @@
     {
       "id": "mage",
       "art": {
-        "base": 11,
+        "base": 8,
         "variants": 1
       },
       "move": 0.22,
@@ -201,7 +245,7 @@
     {
       "id": "medusa",
       "art": {
-        "base": 12,
+        "base": 9,
         "variants": 1
       },
       "move": 0.5,
@@ -217,7 +261,127 @@
       ]
     }
   ],
-  "bosses": [],
+  "bosses": [
+    {
+      "id": "horse-boss",
+      "art": {
+        "base": 10,
+        "variants": 1
+      },
+      "move": 2.4,
+      "attack": {
+        "mode": "charge",
+        "chargeSpeed": 12,
+        "windup": 0,
+        "active": 1.2
+      },
+      "hitbox": [
+        0.46,
+        0.29,
+        0.06
+      ],
+      "hp": 2
+    },
+    {
+      "id": "archmage",
+      "art": {
+        "base": 11,
+        "variants": 1
+      },
+      "move": 0.22,
+      "spellRate": 4,
+      "attack": {
+        "mode": "mage"
+      },
+      "hitbox": [
+        0.28,
+        0.39,
+        -0.04
+      ],
+      "hp": 3
+    },
+    {
+      "id": "spellblade",
+      "art": {
+        "base": 12,
+        "variants": 1
+      },
+      "move": 0.5,
+      "spellRate": 1,
+      "attack": {
+        "mode": "thrust",
+        "chargeSpeed": 6,
+        "range": 2.4,
+        "windup": 0.12,
+        "active": 0.2,
+        "cooldown": 1.2,
+        "cooldownStep": 0,
+        "recovery": 0.3
+      },
+      "hitbox": [
+        0.32,
+        0.36,
+        0
+      ],
+      "hp": 6
+    },
+    {
+      "id": "radioactive-conga",
+      "art": {
+        "base": 15,
+        "variants": 1
+      },
+      "move": 1.4,
+      "radiation": true,
+      "attack": {
+        "mode": "conga",
+        "count": 3,
+        "countStep": 0
+      },
+      "hitbox": [
+        0.32,
+        0.29,
+        0.04
+      ],
+      "hp": 1
+    },
+    {
+      "id": "kitty",
+      "art": {
+        "base": 13,
+        "variants": 1
+      },
+      "hp": 1,
+      "contact": 0,
+      "move": 0,
+      "attack": {
+        "mode": "passive"
+      },
+      "hitbox": [
+        0.3,
+        0.25,
+        0.02
+      ]
+    },
+    {
+      "id": "slime",
+      "art": {
+        "base": 16,
+        "variants": 7
+      },
+      "move": 0.3,
+      "attack": {
+        "mode": "slime",
+        "windup": 0
+      },
+      "hitbox": [
+        0.4,
+        0.4,
+        0
+      ],
+      "hp": 1
+    }
+  ],
   "weapons": [
     {
       "id": "fist",

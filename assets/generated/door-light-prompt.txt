@@ -1,0 +1,3 @@
+Built-in image_gen; transparent background.
+Single tiny one-bit pixel-art floor illumination sprite for a top-down roguelike. Warm white light spills from a north-wall doorway: narrow four-pixel top, widening stepped trapezoid, solid center with sparse edge and lower-edge dithering. 12×12 logical pixels, sharp square blocks. No door, scene, text, outline, blur, gradients or antialiasing; white and transparency only. Minimal Urizen onebit aesthetic.
+Original preserved as door-light-original.png; native 12×12 alpha mask encoded in door-light.png and door-light.json.

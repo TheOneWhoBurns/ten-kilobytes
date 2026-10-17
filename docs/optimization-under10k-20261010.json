@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-10",
+  "before": 10374,
+  "after": 10298,
+  "saved": 76,
+  "remainingTo10000": 298,
+  "targetAchieved": false,
+  "sha256": "f9ea04bd3d6c773256cdbe2b62df4b7a9ca29896030e30ce078127d2da4fe506",
+  "changes": [
+    "Smaller asynchronous bootstrap, with exact binary recovery.",
+    "Tune the lossless compressor context set.",
+    "Store navigation caches by integer tile key.",
+    "Simplify conga placement validity algebra for the current bounded line lengths.",
+    "Remove unreachable weapon-pickup branches from the one-weapon release.",
+    "Use modular indexing for the preceding sword pose.",
+    "Use integer Boolean minification while explicitly preserving sword layer comparisons and canvas smoothing flags.",
+    "Reverse the six bits of each bitmap symbol; every source pixel is retained."
+  ],
+  "content": {
+    "enemies": 9,
+    "bosses": 6,
+    "weapons": 1,
+    "enemySprites": 23,
+    "pantryTiles": 14,
+    "atlasTiles": 159
+  },
+  "itch": {
+    "game": 10689,
+    "loader": 157,
+    "total": 10846,
+    "zip": 11019
+  },
+  "validation": {
+    "fullExistingSuite": "passed",
+    "pixelAudioOracle": "4,620 frames across seven seeds; identical pixels, atlas and scheduled audio",
+    "binaryBootstrap": "passed all byte values and native asynchronous recovery",
+    "itchLifecycle": "passed",
+    "itchPixelAudio": "passed"
+  },
+  "rejected": [
+    "Closure and SWC whole-program compilers",
+    "Additional minifier and identifier naming strategies",
+    "Separate sprite stream and alternate symbol widths",
+    "Spatial sprite permutations and alphabet offsets",
+    "Shared compression tables and alternate context hashes",
+    "Broad model parameter search",
+    "Additional token macros and RegPack preprocessing",
+    "Rotating bit significance across the entire compressed program"
+  ],
+  "candidateArtifacts": 173,
+  "notes": [
+    "No content cuts, no README edits, no commit, push or deployment.",
+    "The 10,000-byte target remains unmet."
+  ]
+}

@@ -1,101 +1,92 @@
 {
-  "measured_at_utc": "2026-10-10T05:17:30.812Z",
-  "sha256": "6c2fec1973411d36d142079dbe001b1165a01b6c73b1f41a5637f576738ef709",
-  "total_bytes": 9587,
-  "quick_baseline_bytes": 9592,
-  "exact_file_breakdown": {
-    "game_and_art": 8690,
-    "decompressor": 563,
-    "bootstrap": 327,
-    "escaping": 7
+  "bytes": 10298,
+  "sha256": "f9ea04bd3d6c773256cdbe2b62df4b7a9ca29896030e30ce078127d2da4fe506",
+  "quickBaseline": 10299,
+  "exact": {
+    "gameAndArt": 9436,
+    "decompressor": 550,
+    "htmlBootstrap": 306,
+    "escapes": 6
   },
-  "method": "Independent removal probes of the current complete HTML, using quick packing with the same game/data decoder settings. Differences are marginal estimates, overlap and do not add up. New artwork is not counted as code. No probe changes the playable build.",
-  "features": [
+  "itch": {
+    "game": 10689,
+    "leaderboardOverhead": 391,
+    "loader": 157,
+    "total": 10846
+  },
+  "estimatedComponents": [
     {
-      "id": "generation",
-      "label": "Dungeon graph, rooms, doors, spawns and hazard placement",
-      "bytes": 989,
-      "raw_bytes": 2554
+      "label": "Sprite pixels",
+      "marginalBytes": 1538
     },
     {
-      "id": "movement_collision",
-      "label": "Movement, ice, navigation visibility and collision geometry",
-      "bytes": 716,
-      "raw_bytes": 2192
+      "label": "Dungeon generation and placement",
+      "marginalBytes": 984
     },
     {
-      "id": "enemy_ai",
-      "label": "Enemy behavior, timing and shared navigation",
-      "bytes": 675,
-      "raw_bytes": 2070
+      "label": "Music and all sound effects",
+      "marginalBytes": 803
     },
     {
-      "id": "sword_player",
-      "label": "Player and sword drawing, poses and strike collision",
-      "bytes": 660,
-      "raw_bytes": 1913
+      "label": "Enemy/boss AI and navigation",
+      "marginalBytes": 790
     },
     {
-      "id": "audio",
-      "label": "Procedural music and all sound effects",
-      "bytes": 563,
-      "raw_bytes": 1421
+      "label": "Sword combat, poses and rendering",
+      "marginalBytes": 498
     },
     {
-      "id": "terrain",
-      "label": "Room painting, palette recoloring and astral/ring rendering",
-      "bytes": 507,
-      "raw_bytes": 1541
+      "label": "Room painting and palette code",
+      "marginalBytes": 321
     },
     {
-      "id": "hazards_spells",
-      "label": "Hazards, spell shapes and exposure damage",
-      "bytes": 398,
-      "raw_bytes": 1387
+      "label": "Shared hurtboxes and collisions",
+      "marginalBytes": 321
     },
     {
-      "id": "controls",
-      "label": "Keyboard handling and action dispatch",
-      "bytes": 267,
-      "raw_bytes": 719
+      "label": "Damage, deaths and score",
+      "marginalBytes": 312
     },
     {
-      "id": "arrows",
-      "label": "Enemy arrow creation, motion, collisions and drawing",
-      "bytes": 185,
-      "raw_bytes": 657
+      "label": "Movement and ice",
+      "marginalBytes": 307
+    },
+    {
+      "label": "Room Zero code",
+      "marginalBytes": 302
+    },
+    {
+      "label": "Spell shapes, casting and damage",
+      "marginalBytes": 256
+    },
+    {
+      "label": "Hazards, exposure and extinguishing",
+      "marginalBytes": 176
+    },
+    {
+      "label": "Enemy rendering",
+      "marginalBytes": 170
+    },
+    {
+      "label": "Procedural music only",
+      "marginalBytes": 151
+    },
+    {
+      "label": "Projectiles: motion and rendering",
+      "marginalBytes": 142
+    },
+    {
+      "label": "Static noise only",
+      "marginalBytes": 129
+    },
+    {
+      "label": "Player sprite rendering",
+      "marginalBytes": 112
+    },
+    {
+      "label": "Pickup and next-level trigger",
+      "marginalBytes": 77
     }
   ],
-  "art": [
-    {
-      "label": "All sprite artwork",
-      "bytes": 1304,
-      "tiles": 131
-    },
-    {
-      "label": "Room Zero artwork",
-      "bytes": 324,
-      "tiles": 31
-    },
-    {
-      "label": "Pickups, hazards and effect artwork",
-      "bytes": 307,
-      "tiles": 36
-    },
-    {
-      "label": "Environment and door artwork",
-      "bytes": 297,
-      "tiles": 27
-    },
-    {
-      "label": "Enemy artwork",
-      "bytes": 188,
-      "tiles": 13
-    },
-    {
-      "label": "Player and sword artwork",
-      "bytes": 145,
-      "tiles": 24
-    }
-  ]
+  "method": "Independent omission probes using the same quick packing settings. Deltas include shared dependencies and compression interactions; they overlap and do not sum. No probes are published or used as playable builds."
 }

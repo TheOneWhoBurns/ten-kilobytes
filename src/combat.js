@@ -11,12 +11,13 @@ function seek(e,target,dt,speed){
   for(const n of neighbors(cell))if(costs[n]&&costs[n]<costs[next])next=n;
   p=tilePoint(next);if(!clearShot(e,p))p=tilePoint(cell);
  }
- movePlayer(room.cells,e,p.x-e.x,p.y-e.y,dt,Math.min(speed,geomDistance(p,e)/dt));
+ movePlayer(room.cells,e,p.x-e.x,p.y-e.y,dt,Math.min(speed,geomDistance(e,player)>6?2.5:99,geomDistance(p,e)/dt));
 }
 function extinguish(){
  if(room.enemies.some(e=>e.hp>0))return;
+ if(health&&!room.cleared&&room.enemies.length){room.cleared=true;sound(chamber===world.boss?2:3);}
  for(let n=0;n<W*H;n++)if((room.cells[n]>>1)===FIRE)room.cells[n]=1;
- fields=fields.filter(f=>f.damage);
+ fields=fields.filter(f=>f.damage);shots=shots.filter(s=>s.damage);
 }
 // A field stores a shape, not hundreds of tile records. The same predicate draws and hits.
 function spellCell(f,n){
@@ -33,7 +34,7 @@ function cast(p,a,shape,friendly=false,warn=.8){
 }
 function hurtbox(e=player){
  if(e===player)return{x:e.x,y:e.y-.22,rx:.22,ry:.28};
- const rule=enemyRule(e);return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X],ry:rule[E_RADIUS_Y]};
+ const rule=enemyRule(e),stage=e.form-rule[E_ART],scale=(SEQUENCED_ENEMIES?rule[E_MODE][0]:rule[E_MODE])===12?stage?(8-stage)/4:2:1;return{x:e.x,y:e.y+rule[E_BODY_Y],rx:rule[E_RADIUS_X]*scale,ry:rule[E_RADIUS_Y]*scale};
 }
 function capsuleHit(ax,ay,bx,by,r,e){
  const h=hurtbox(e),rx=h.rx+r,ry=h.ry+r,x=(ax-h.x)/rx,y=(ay-h.y)/ry,dx=(bx-ax)/rx,dy=(by-ay)/ry,t=Math.max(0,Math.min(1,-(x*dx+y*dy)/(dx*dx+dy*dy||1)));
@@ -44,7 +45,7 @@ function boxHit(x,y,a,start,end,width,e){
  return ((u-Math.max(start,Math.min(end,u)))/rx)**2+((v-Math.max(-width,Math.min(width,v)))/ry)**2<=1;
 }
 function touchEnemy(e){
- const rule=enemyRule(e),a=hurtbox(),b=hurtbox(e),scale=.8*rule[E_CONTACT]/(BOSS_COUNT&&e.boss?1.1:.55);
+ const rule=enemyRule(e);if((SEQUENCED_ENEMIES?rule[E_MODE][0]:rule[E_MODE])===12&&e.wait>0)return false;const a=hurtbox(),b=hurtbox(e),scale=.8*rule[E_CONTACT]/.55;
  return scale>0&&((a.x-b.x)/(a.rx+b.rx*scale))**2+((a.y-b.y)/(a.ry+b.ry*scale))**2<1;
 }
 function starterKey(a,pose){return [[[4,-1,6,0,0,0,0],[3,-2,3,6,0,0,0],[4,0,4,0,0,0,12],[4,0,-3,4,0,0,12],[3,-1,6,0,0,0,6],[3,-2,0,2,0,0,6],[-3,-1,6,1,0,0,18],[-3,-2,-1,1,0,0,18]],[[-5,-3,0,1,-4,0,0],[-4,-9,1,1,-3,-3,0],[3,-9,2,5,0,-4,12],[7,-6,3,4,3,-3,12],[8,-2,4,4,4,0,6],[6,2,5,4,3,3,6],[-2,4,6,5,0,4,18],[-6,3,7,5,-3,3,18]],[[7,-3,0,0,4,0,3],[6,0,1,4,3,3,3],[2,3,2,4,0,4,15],[-2,2,3,4,-2,3,15],[-5,-3,4,4,-2,0,9],[-4,-3,5,5,-1,-1,9],[-3,-6,6,5,0,-3,21],[-2,-4,7,5,1,-1,21]]][pose][(Math.round(a*4/Math.PI)+8)%8];}
@@ -82,7 +83,7 @@ function tickCombat(dt){
   if(b.kind===0&&previous<.16&&b.age>=.16){const p=starterKey(b.a,2);movePlayer(room.cells,player,p[4],p[5],.05,Math.hypot(p[4],p[5])/12/.05);b.step=[(player.x-from.x)*12,(player.y-from.y)*12];}
  }
  blows=blows.filter(b=>b.age<(b.kind===0?.21:b.kind===6?.42:b.kind===3?.18:.22));if(dash?.age>=.42)dash=null;
- for(const f of fields){f.age+=dt;if(f.age<f.burn||f.age>f.burn+1.2)continue;
+ for(const f of fields){const age=f.age;f.age+=dt;if(age<f.burn&&f.age>=f.burn)sound(5);if(f.age<f.burn||f.age>f.burn+1.2)continue;
   if(f.damage){for(const e of room.enemies)if(e.hp>0&&!f.hit.includes(e)&&fieldHits(f,e)){f.hit.push(e);hitEnemy(e,f.damage);}}
   else if(fieldHits(f,player))hurtPlayer();
  }
@@ -123,6 +124,6 @@ function drawCombat(){
   for(let i=0;i<n;i++){ctx.rotate(Math.PI*2/n);ctx.save();ctx.translate(4,0);if(k===6&&!(Math.round(b.a*4/Math.PI)&1))tile(ctx,assets.thrust,0,-5);
    else{ctx.rotate(Math.PI/4);if(k===7)ctx.scale(1.5,1.5);tile(ctx,k===6?assets.thrust+1:assets.weapon+weaponArt,-2,-10);}ctx.restore();}}
   ctx.restore();}
- if(radiation){ctx.globalAlpha=.75+radiation/12;statusTile(assets.effects+5,player.x*12+(gaze?7:0),player.y*12-20);ctx.globalAlpha=1;}
- if(gaze)statusTile(assets.effects+1+Math.min(3,Math.floor(gaze/.75)),player.x*12-(radiation?7:0),player.y*12-20);
+ if(radiation){ctx.globalAlpha=.75+radiation/12;statusTile(assets.effects+4,player.x*12+(gaze?7:0),player.y*12-20);ctx.globalAlpha=1;}
+ if(gaze)statusTile(assets.effects+1+Math.min(2,Math.floor(gaze)),player.x*12-(radiation?7:0),player.y*12-20);
 }

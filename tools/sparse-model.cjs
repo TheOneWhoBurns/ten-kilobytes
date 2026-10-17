@@ -1,14 +1,14 @@
 // Keep the encoder's context identities, but store only visited contexts in the
 // shipped decoder. Linear probing resolves collisions without changing a model.
-const acorn=require('acorn');
-function contextCount(values,{sparseSelectors,contextBits,inBits,modelQuotes}){
+const acorn=require('acorn'),syntax=require('./syntax-context.cjs');
+function contextCount(values,{sparseSelectors,contextBits,inBits,modelQuotes,syntaxSelectors=[]}){
  const visited=new Set(),mask=2**contextBits-1;
  if(2**contextBits*sparseSelectors.length>=2**32)throw Error('Sparse model keys exceed Uint32');
  let quote=0;
  for(let e=0;e<values.length;e++){
-  const hashes=sparseSelectors.map(selector=>{
+  const hashes=sparseSelectors.map((selector,model)=>{
    let hash=0;
-   for(let i=30;i>=0;i--)if(selector>>>i&1)hash=(hash+(values[e-i-1]||0))*997|0;
+   for(let i=30;i>=0;i--)if(selector>>>i&1)hash=(hash+(model>=sparseSelectors.length-syntaxSelectors.length?syntax.normalize(values[e-i-1]||0):values[e-i-1]||0))*997|0;
    return hash;
   });
   let prefix=1;
@@ -50,7 +50,24 @@ module.exports=(code,values,options)=>{
  function findMask(n){if(!n||typeof n!=='object')return;if(n.type==='BinaryExpression'&&n.operator==='&')masks.push(n.left);for(const v of Object.values(n))if(Array.isArray(v))v.forEach(findMask);else findMask(v);}
  findMask(arrow.body);if(masks.length!==1)throw Error('Unknown sparse context mask');
  const power=options.contextBits-options.precision-1,h=fn.params[limit].name,contextMask=h+(power>0?'*'+2**power:power<0?'/'+2**-power:'')+'-1';
- const m=masks[0],expression=code.slice(arrow.body.start,m.start)+contextMask+code.slice(m.end,arrow.body.end),[key,slot]=arrow.params.map(p=>p.name);
+ const m=masks[0];let expression=code.slice(arrow.body.start,m.start)+contextMask+code.slice(m.end,arrow.body.end),[key,slot]=arrow.params.map(p=>p.name);
+ if(options.syntaxSelectors?.length){
+  const input=selector.callee.object,rows=options.sparseSelectors.map((mask,i)=>{const row=[];for(let k=30;k>=0;k--)if(mask>>>k&1)row.push((k+1)*(i>=options.sparseSelectors.length-options.syntaxSelectors.length?-1:1));return row;});
+  edits.push([input.start,input.end,input.type==='ArrayExpression'?JSON.stringify(rows):'('+code.slice(input.arguments[0].start,input.arguments[0].end)+','+JSON.stringify(rows)+')']);
+  let read,scope;
+  function findRead(n,fn){
+   if(!n||typeof n!=='object')return;
+   if(n.type==='ArrowFunctionExpression')fn=n;
+   if(n.type==='BinaryExpression'&&n.operator==='|'&&n.right.value===0&&n.left.type==='MemberExpression'&&n.left.object.name===call.callee.params[1].name&&n.left.property.type==='BinaryExpression'&&n.left.property.operator==='-'){if(read)throw Error('Ambiguous syntax context read');read=n;scope=fn;}
+   for(const v of Object.values(n))if(Array.isArray(v))v.forEach(c=>findRead(c,fn));else findRead(v,fn);
+  }
+  findRead(arrow.body,arrow);
+  if(!read||scope.params.length!==2||scope.params.some(p=>p.type!=='Identifier'))throw Error('Unknown syntax context read');
+  const scratch=scope.params[1].name,member=read.left,offset=member.property.right.name;
+  if(!offset||new RegExp('\\b'+scratch+'\\b').test(code.slice(scope.body.start,scope.body.end)))throw Error('Syntax context scratch is used');
+  const replacement='('+scratch+'='+member.object.name+'['+member.property.left.name+'-Math.abs('+offset+')]|0,'+offset+'<0?('+syntax.expression(scratch)+'):'+scratch+')';
+  expression=expression.replace(code.slice(read.start,read.end),replacement);
+ }
  // Reuse callback parameters after the original context expression is evaluated.
  // Returning its hash-table slot avoids a second map and temporary array per bit.
  edits.push([arrow.body.start,arrow.body.end,`{${key}=(${expression})+1;${slot}=${key}%${capacity};while(K[${slot}]&&K[${slot}]-${key})${slot}=(${slot}+1)%${capacity};K[${slot}]=${key};return ${slot}}`]);

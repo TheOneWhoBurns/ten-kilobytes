@@ -8,7 +8,7 @@ function boot(catalog,specialize,release=false){
  get state(){return {room,world,player,health,shots,weapon,fields,gaze};},
  isolate(e){room.enemies=e?[e]:[];shots=[];player={x:15.5,y:10.5};health=2;hurt=0;travel=0;reveal=0;},
  step:tickWorld,take:takeLoot,fire,attack:worldAttack,
- aim(a){${release?'facing=a':'facing=actionStates.attack.direction=a'};},walk(v){walking=v;},speed:movementFactor,draw:drawWorld,
+ aim(a){${release?'facing=a':'facing=actionStates.attack.direction=a'};},walk(v){walking=v;},draw:drawWorld,
  startAttack(){performAction('attack');return ${release?'cooldown':'actionStates.attack.cooldown'};},
  drop:bossWeapon,rule:enemyRule,
  kind(e){return ${release?'enemyRules.indexOf(e.rule)':'e.kind'};},
@@ -35,7 +35,7 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
  api.init(1);api.isolate();api.aim(0);api.take({kind:3,value:gun});api.attack();
  assert.equal(api.state.shots.length,6,'new weapon ID emits a full ring');assert(api.state.shots.every(s=>(s.traits&1)),'trait is independent of weapon ID');
  api.take({kind:3,value:0});assert(api.state.shots.every(s=>(s.traits&1)),'in-flight behavior survives weapon replacement');
- const drops=new Set();for(let seed=0;seed<120;seed++){api.init(seed);drops.add(api.drop({kind:0}));}assert(drops.has(1)&&drops.has(gun),'old and new rewards remain reachable');
+ const drops=new Set();for(let seed=0;seed<120;seed++){api.init(seed);drops.add(api.drop(api.prepare({kind:0,boss:true})));}assert(drops.has(1)&&drops.has(gun),'old and new rewards remain reachable');
  api.init(1);api.isolate();api.aim(0);api.take({kind:3,value:catalog.weapons.length-1});
  const spearTarget={...found,x:18.5,y:10.5,hp:9,wait:999};api.isolate(spearTarget);api.attack();for(let j=0;j<16;j++)api.step(.01);assert(spearTarget.hp<9,'data-defined melee reach');
  assert.equal(api.startAttack(),.15*1.5,'data-defined weapon cadence');
@@ -73,7 +73,7 @@ for(const [specialize,release] of [[false,false],[true,false],[true,true]]){
   if(name==='medusa')assert(api.state.gaze>0,'medusa still accumulates gaze');
  }
  const level=api.level('sequence-roster',1);
- for(const room of level.rooms){const kinds=room.enemies.map(e=>api.kind(e));if(kinds.some(k=>sequenceCatalog.enemies[k].id==='swarm'||sequenceCatalog.enemies[k].id==='conga'))assert(kinds.every(k=>k===kinds[0]),'group encounters remain homogeneous with attack sequences');}
+ for(const room of level.rooms){const kinds=room.enemies.filter(e=>!e.boss).map(e=>api.kind(e));if(kinds.some(k=>sequenceCatalog.enemies[k].id==='swarm'||sequenceCatalog.enemies[k].id==='conga'))assert(kinds.every(k=>k===kinds[0]),'group encounters remain homogeneous with attack sequences');}
 
 }
 for(const sequence of sequences)assert.equal(sequence,sequences[0],'sequence and release specialization preserve attacks');

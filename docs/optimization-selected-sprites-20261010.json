@@ -1,0 +1,230 @@
+{
+  "date": "2026-10-10",
+  "before_bytes": 9943,
+  "after_selected_cuts_bytes": 9883,
+  "after_bytes": 9866,
+  "saved_bytes": 77,
+  "selected_cut_savings_bytes": 60,
+  "code_optimization_savings_bytes": 17,
+  "remaining_bytes": 134,
+  "sha256": "558151a9b511a2181dacb4f99a2dc124a209bc1710168286d8446546e37d28d7",
+  "selected_cuts": [
+    {
+      "id": "floors:5,6",
+      "group": "floors",
+      "coordinate": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "floors:58,1",
+      "group": "floors",
+      "coordinate": [
+        58,
+        1
+      ]
+    },
+    {
+      "id": "props:19,33",
+      "group": "props",
+      "coordinate": [
+        19,
+        33
+      ]
+    },
+    {
+      "id": "props:20,33",
+      "group": "props",
+      "coordinate": [
+        20,
+        33
+      ]
+    },
+    {
+      "id": "effects:87,34",
+      "group": "effects",
+      "coordinate": [
+        87,
+        34
+      ]
+    }
+  ],
+  "retained_optimizations": [
+    "Encode RGB color literals as exact six-digit hex after palette quantization; RGB values remain identical.",
+    "Pass the current strike age directly instead of subtracting and adding the previous age."
+  ],
+  "validation": [
+    "Full npm test passed.",
+    "Exact frame-pixel and audio comparisons passed for both code optimizations after the selected cuts.",
+    "Standalone browser boot and dungeon entry checked."
+  ],
+  "rejected": [
+    "Smaller bitmap symbol widths and row-major ordering increased total size.",
+    "Run-length and packed palette representations increased total size.",
+    "Shared room-clear helpers and alternate HP arithmetic did not improve the file.",
+    "Packing parameter changes yielded at most one byte; kept the established decoder configuration.",
+    "Opacity/color-quantization changes were not retained."
+  ],
+  "probes": {
+    "source": [
+      {
+        "name": "baseline",
+        "bytes": 9883,
+        "source": 23549
+      },
+      {
+        "name": "shared-clear",
+        "bytes": 9883,
+        "source": 23549
+      },
+      {
+        "name": "direct-blow-age",
+        "bytes": 9883,
+        "source": 23549
+      },
+      {
+        "name": "no-retired-cycle",
+        "bytes": 9883,
+        "source": 23549
+      },
+      {
+        "name": "shared-status-alpha",
+        "bytes": 9878,
+        "source": 23525
+      },
+      {
+        "name": "conga-clear-candidates",
+        "bytes": 9883,
+        "source": 23549
+      }
+    ],
+    "source2": [
+      {
+        "name": "shared-clear",
+        "bytes": 9884,
+        "source": 23506
+      },
+      {
+        "name": "shared-live-list",
+        "bytes": 9890,
+        "source": 23554
+      },
+      {
+        "name": "cached-hurtbox",
+        "bytes": 9883,
+        "source": 23549
+      },
+      {
+        "name": "integer-hp",
+        "bytes": 9887,
+        "source": 23542
+      },
+      {
+        "name": "palette-short-rgb",
+        "bytes": 9868,
+        "source": 23503
+      }
+    ],
+    "packing": [
+      {
+        "overrides": {
+          "modelMaxCount": 3
+        },
+        "bytes": 9885
+      },
+      {
+        "overrides": {
+          "modelMaxCount": 5
+        },
+        "bytes": 9891
+      },
+      {
+        "overrides": {
+          "modelMaxCount": 6
+        },
+        "bytes": 9902
+      },
+      {
+        "overrides": {
+          "recipLearningRate": 1500
+        },
+        "bytes": 9889
+      },
+      {
+        "overrides": {
+          "recipLearningRate": 2500
+        },
+        "bytes": 9885
+      },
+      {
+        "overrides": {
+          "modelRecipBaseCount": 20
+        },
+        "bytes": 9882
+      },
+      {
+        "overrides": {
+          "modelRecipBaseCount": 28
+        },
+        "bytes": 9882
+      },
+      {
+        "overrides": {
+          "numAbbreviations": 12
+        },
+        "bytes": 9886
+      },
+      {
+        "overrides": {
+          "numAbbreviations": 24
+        },
+        "bytes": 9904
+      },
+      {
+        "overrides": {
+          "precision": 16
+        },
+        "bytes": 9884
+      },
+      {
+        "overrides": {
+          "precision": 18
+        },
+        "bytes": 9888
+      }
+    ],
+    "bitmap": [
+      {
+        "name": "2-true",
+        "bytes": 9987,
+        "source": 29973
+      },
+      {
+        "name": "3-true",
+        "bytes": 9914,
+        "source": 26757
+      },
+      {
+        "name": "4-true",
+        "bytes": 9914,
+        "source": 25149
+      },
+      {
+        "name": "6-false",
+        "bytes": 9943,
+        "source": 23549
+      },
+      {
+        "name": "3-false",
+        "bytes": 9948,
+        "source": 26757
+      },
+      {
+        "name": "4-false",
+        "bytes": 9939,
+        "source": 25149
+      }
+    ]
+  }
+}

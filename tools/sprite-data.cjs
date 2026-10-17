@@ -11,12 +11,11 @@ module.exports=bytes=>{
  let text='';
  for(let i=0;i<bytes.length;i+=3){
   const n=bytes[i]<<16|bytes[i+1]<<8|bytes[i+2];
-  for(const shift of [18,12,6,0]){let c=(n>>>shift&63)+63;if(c>=92)c++;text+=String.fromCharCode(c);}
+  for(const shift of [18,12,6,0]){let v=n>>>shift&63;v=(v&1)<<5|(v&2)<<3|(v&4)<<1|(v&8)>>1|(v&16)>>3|(v&32)>>5;let c=v+63;if(c>=92)c++;text+=String.fromCharCode(c);}
  }
  return{text,format:'ascii6',loader:`const bits=assets.bits;
 atlas.width=${bytes.length/18*12};atlas.height=12;art.fillStyle='#efefdb';
-for(let i=0,n;i<bits.length;i++)for(let b=0;b<6;b++)if((n=bits.charCodeAt(i),n-63-(n>92))&32>>b){
- const tileIndex=Math.floor(i/24),pixel=(i%24)*6+b;
- art.fillRect(tileIndex*12+Math.floor(pixel/12),pixel%12,1,1);
+for(let i=0,n;i<bits.length;i++)for(let b=0;b<6;b++)if((n=bits.charCodeAt(i),n-63-(n>92))&1<<b){
+ art.fillRect(i>>1,i%2*6+b,1,1);
 }`};
 };

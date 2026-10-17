@@ -2,7 +2,7 @@
 // similar masks together. Shared rows receive extra weight for the tile-stride
 // compression context. Animated/theme-strided and overlapping pools stay fixed.
 module.exports=(catalog,tiles,bytes)=>{
- const out=tiles.slice(),pools=catalog.enemies.map(e=>({start:e.art?.base||0,count:e.art?.variants||1,fixed:!!(e.art?.animation||e.art?.themeStride)})),seen=new Set();
+ const out=tiles.slice(),pools=[...catalog.enemies,...(catalog.bosses||[])].map(e=>({start:e.art?.base||0,count:e.art?.variants||1,fixed:!!(e.art?.animation||e.art?.themeStride||e.attack?.mode==='slime')})),seen=new Set();
  const pop=Uint8Array.from({length:256},(_,n)=>n.toString(2).replaceAll('0','').length);
  for(const p of pools){
   const key=p.start+':'+p.count;if(seen.has(key))continue;seen.add(key);

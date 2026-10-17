@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-17",
+  "change": "Reuse the celestial sprite offset to select both the Room Zero object and its matching sword. Preserve the random draw, both objects, both swords, all rings, text, poses and gameplay.",
+  "before": {
+    "standalone": 10004,
+    "itch": 10227
+  },
+  "after": {
+    "standalone": 9999,
+    "itch": 10223
+  },
+  "contentCuts": [],
+  "comparisons": {
+    "seeds": [
+      1,
+      2,
+      7,
+      19,
+      83,
+      104,
+      2026
+    ],
+    "framesPerSeed": {
+      "roomZero": 60,
+      "combat": 240
+    },
+    "result": "Exact pictures, atlas, HUD and scheduled audio match before the change"
+  },
+  "sha256": "0a7b39bc883918b4fb4f274846da503716a664c2544ba6f24fff9ecda4fd2c43"
+}
